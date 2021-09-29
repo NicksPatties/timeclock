@@ -4,16 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ExperimentalComposeApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.nickspatties.timeclock.ui.pages.AnalysisPage
+import com.nickspatties.timeclock.ui.pages.ClockPage
+import com.nickspatties.timeclock.ui.pages.ListPage
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,6 +27,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * intialPage - index of the initial page to test. 0 for clock page,
+ * 1 for ListPage, 2 for AnalysisPage
+ */
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun TimeClockApp(initialPage: Int = 0) {
@@ -43,7 +49,19 @@ fun TimeClockApp(initialPage: Int = 0) {
             }
 
             HorizontalPagerIndicator(
-                pagerState = pagerState
+                pagerState = pagerState,
+                modifier = Modifier.layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(placeable.width, placeable.height) {
+                        // place x at half of the screen size minus half the width of
+                        // the horizontal pager indicator
+                        val xPos = (constraints.maxWidth / 2) - (placeable.width / 2)
+
+                        // place y at the bottom of the screen, minus some padding
+                        val yPos = constraints.maxHeight - 100
+                        placeable.placeRelative(xPos, yPos)
+                    }
+                }
             )
         }
     }
@@ -52,22 +70,10 @@ fun TimeClockApp(initialPage: Int = 0) {
 @Composable
 fun PageSelector(pageId: Int) {
     when(pageId) {
-        0 -> SamplePage("One")
-        1 -> SamplePage("Two")
-        2 -> SamplePage("Three")
+        0 -> ClockPage()
+        1 -> ListPage()
+        2 -> AnalysisPage()
     }
-}
-
-@Composable
-fun SamplePage(name: String) {
-    Scaffold() {
-        Greeting(name = name)
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
 }
 
 @Preview(showBackground = true)
