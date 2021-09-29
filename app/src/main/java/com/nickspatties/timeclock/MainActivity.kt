@@ -14,12 +14,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TimeClockTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    Greeting("Android")
-                }
-            }
+            TimeClockApp()
+        }
+    }
+}
+
+@Composable
+fun TimeClockApp() {
+    TimeClockTheme {
+        // A surface container using the 'background' color from the theme
+        Surface(color = MaterialTheme.colors.background) {
+            Greeting("Android")
         }
     }
 }
@@ -31,8 +36,6 @@ fun Greeting(name: String) {
 
 @Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    TimeClockTheme {
-        Greeting("Android")
-    }
+fun AppPreview() {
+    TimeClockApp()
 }
