@@ -17,12 +17,15 @@ import com.nickspatties.timeclock.ui.pages.AnalysisPage
 import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
+import com.nickspatties.timeclock.util.Chronometer
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // create a chronometer that will survive state changes
+        val chronometer = Chronometer()
         setContent {
-            TimeClockApp()
+            TimeClockApp(chrono = chronometer)
         }
     }
 }
@@ -33,7 +36,7 @@ class MainActivity : ComponentActivity() {
  */
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun TimeClockApp(initialPage: Int = 0) {
+fun TimeClockApp(initialPage: Int = 0, chrono: Chronometer) {
     TimeClockTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colors.background) {
@@ -45,7 +48,7 @@ fun TimeClockApp(initialPage: Int = 0) {
             HorizontalPager(
                 state = pagerState
             ) { page ->
-                PageSelector(page)
+                PageSelector(page, chrono)
             }
 
             HorizontalPagerIndicator(
@@ -68,28 +71,28 @@ fun TimeClockApp(initialPage: Int = 0) {
 }
 
 @Composable
-fun PageSelector(pageId: Int) {
+fun PageSelector(pageId: Int, chrono: Chronometer) {
     when(pageId) {
-        0 -> ClockPage()
+        0 -> ClockPage(chrono)
         1 -> ListPage()
         2 -> AnalysisPage()
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun FirstPagePreview() {
-    TimeClockApp()
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SecondPagePreview() {
-    TimeClockApp(1)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ThirdPagePreview() {
-    TimeClockApp(2)
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun FirstPagePreview() {
+//    TimeClockApp()
+//}
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun SecondPagePreview() {
+//    TimeClockApp(1)
+//}
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun ThirdPagePreview() {
+//    TimeClockApp(2)
+//}
