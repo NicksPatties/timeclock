@@ -10,11 +10,14 @@ import android.os.SystemClock
  */
 class Chronometer {
 
+    // TODO: Should I allow this class to execute on a different thread?
     private var mHandler: Handler = Handler(Looper.getMainLooper())
     private var mBase: Long = 0
     private var mRunning: Boolean = false
     private var mOnChronometerTickListener: () -> Unit = {}
 
+    // TODO: create an interface for different listeners, then when you're creating the ViewModel
+    // for this app, have the ViewModel implement the members of that interface
     fun setOnChronometerTickListener(function: () -> Unit) {
         mOnChronometerTickListener = function
     }
@@ -22,7 +25,7 @@ class Chronometer {
     fun start() {
         mBase = SystemClock.elapsedRealtime()
         mRunning = true
-        mHandler.post(mTickRunnable)
+        mHandler.postDelayed(mTickRunnable, 1000)
     }
 
     fun stop() {
