@@ -1,6 +1,5 @@
 package com.nickspatties.timeclock.ui.pages
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,25 +14,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
-import com.nickspatties.timeclock.util.Chronometer
-
-val TAG = "ClockPage"
+import com.nickspatties.timeclock.ui.TimeClockViewModel
 
 @Composable
-fun ClockPage(chronometer: Chronometer) {
+fun ClockPage(viewModel: TimeClockViewModel) {
 
     // initial state variables
     val (clockEnabled, setClockEnabled) = remember { mutableStateOf(false) }
     val (isRunning, setIsRunning) = remember { mutableStateOf(false) }
-    var (taskName, setTaskName) = remember { mutableStateOf("") }
-    val (startTime, setStartTime) = remember { mutableStateOf(0L) }
-    val (endTime, setEndTime) = remember { mutableStateOf(0L) }
-    val (currSeconds, setCurrSeconds) = remember { mutableStateOf(0) }
-
-    chronometer.setOnChronometerTickListener {
-        setCurrSeconds(currSeconds+1)
-    }
 
     Scaffold() {
         Column(
@@ -44,33 +32,26 @@ fun ClockPage(chronometer: Chronometer) {
             // Task name input
             // todo character limit 120
             TaskTextField(
-                taskName = taskName,
+                taskName = viewModel.taskName,
                 onTaskNameChange = {
-                    setTaskName(it)
-                    setClockEnabled(it.isNotBlank())
+                    viewModel.taskName = it
+                    setClockEnabled(viewModel.taskName.isNotBlank())
                 }
             )
 
             // timer clock
-            TimerText(currSeconds = currSeconds)
+            TimerText(currSeconds = viewModel.currSeconds)
 
             // button for starting time
             Button(
                 enabled = clockEnabled,
                 onClick = {
                     if (isRunning) {
-                        setEndTime(System.currentTimeMillis())
-                        chronometer.stop()
-                        Log.i(
-                            TAG,
-                            "startTime: $startTime endTime: $endTime"
-                        )
-                        setIsRunning(false)
+                        viewModel.stopClock()
                     } else {
-                        setStartTime(System.currentTimeMillis())
-                        chronometer.start()
-                        setIsRunning(true)
+                        viewModel.startClock()
                     }
+                    setIsRunning(!isRunning)
                 }
             ) {
                 Text(

@@ -12,19 +12,18 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.nickspatties.timeclock.ui.TimeClockViewModel
 import com.nickspatties.timeclock.ui.pages.AnalysisPage
 import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
-import com.nickspatties.timeclock.util.Chronometer
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // create a chronometer that will survive state changes
-        val chronometer = Chronometer()
+        val timeClockViewModel = TimeClockViewModel()
         setContent {
-            TimeClockApp(chronometer = chronometer)
+            TimeClockApp(viewModel = timeClockViewModel)
         }
     }
 }
@@ -35,7 +34,7 @@ class MainActivity : ComponentActivity() {
  */
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun TimeClockApp(initialPage: Int = 0, chronometer: Chronometer) {
+fun TimeClockApp(initialPage: Int = 0, viewModel: TimeClockViewModel) {
     TimeClockTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colors.background) {
@@ -47,7 +46,7 @@ fun TimeClockApp(initialPage: Int = 0, chronometer: Chronometer) {
             HorizontalPager(
                 state = pagerState
             ) { page ->
-                PageSelector(page, chronometer)
+                PageSelector(page, viewModel)
             }
 
             HorizontalPagerIndicator(
@@ -70,9 +69,9 @@ fun TimeClockApp(initialPage: Int = 0, chronometer: Chronometer) {
 }
 
 @Composable
-fun PageSelector(pageId: Int, chrono: Chronometer) {
+fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
     when(pageId) {
-        0 -> ClockPage(chrono)
+        0 -> ClockPage(viewModel)
         1 -> ListPage()
         2 -> AnalysisPage()
     }
