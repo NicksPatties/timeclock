@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import com.nickspatties.timeclock.ui.TimeClockViewModel
+import com.nickspatties.timeclock.util.getTimerString
 
 @Composable
 fun ClockPage(viewModel: TimeClockViewModel) {
@@ -97,8 +98,4 @@ fun TimerText(
         text = getTimerString(currSeconds),
         style = MaterialTheme.typography.h2
     )
-}
-
-fun getTimerString(currSeconds: Int) : String {
-    return currSeconds.toString()
 }
