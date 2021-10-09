@@ -72,7 +72,7 @@ fun TimeClockApp(initialPage: Int = 0, viewModel: TimeClockViewModel) {
 fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
     when(pageId) {
         0 -> ClockPage(viewModel)
-        1 -> ListPage()
+        1 -> ListPage(viewModel)
         2 -> AnalysisPage()
     }
 }
