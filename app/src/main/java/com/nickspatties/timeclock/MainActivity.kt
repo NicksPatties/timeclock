@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * intialPage - index of the initial page to test. 0 for clock page,
+ * initialPage - index of the initial page to test. 0 for clock page,
  * 1 for ListPage, 2 for AnalysisPage
  */
 @OptIn(ExperimentalPagerApi::class)
