@@ -20,7 +20,6 @@ import com.nickspatties.timeclock.util.Chronometer
 
 val TAG = "ClockPage"
 
-@Preview(showBackground = true)
 @Composable
 fun ClockPage(chronometer: Chronometer) {
 
@@ -53,10 +52,7 @@ fun ClockPage(chronometer: Chronometer) {
             )
 
             // timer clock
-            Text(
-                text = currSeconds.toString(),
-                style = MaterialTheme.typography.h2
-            )
+            TimerText(currSeconds = currSeconds)
 
             // button for starting time
             Button(
@@ -112,31 +108,16 @@ fun TaskTextField(
 @Composable
 fun TimerText(
     modifier: Modifier = Modifier,
-    startTime: Long,
-    isCounting: Boolean = false
+    currSeconds: Int
 ) {
-    var timerString = getTimerString(startTime)
     // timer clock
     Text(
-        text = "00:00:00",
+        modifier = modifier,
+        text = getTimerString(currSeconds),
         style = MaterialTheme.typography.h2
     )
 }
 
-fun getTimerString(startTime: Long) : String {
-    if (startTime == null) return "00:00:00"
-
-    // get the current time
-    val currTime = System.currentTimeMillis()
-
-    // get the difference between the two times
-    val diffMillis = currTime - startTime
-
-    // convert millis to hours, mins, and seconds
-    val hours = 1
-    val minutes = 1
-    val seconds = 1
-
-    // format the timer string accordingly
-    return "00:00:00"
+fun getTimerString(currSeconds: Int) : String {
+    return currSeconds.toString()
 }

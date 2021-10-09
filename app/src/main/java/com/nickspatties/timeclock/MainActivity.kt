@@ -8,7 +8,6 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
@@ -25,7 +24,7 @@ class MainActivity : ComponentActivity() {
         // create a chronometer that will survive state changes
         val chronometer = Chronometer()
         setContent {
-            TimeClockApp(chrono = chronometer)
+            TimeClockApp(chronometer = chronometer)
         }
     }
 }
@@ -36,7 +35,7 @@ class MainActivity : ComponentActivity() {
  */
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun TimeClockApp(initialPage: Int = 0, chrono: Chronometer) {
+fun TimeClockApp(initialPage: Int = 0, chronometer: Chronometer) {
     TimeClockTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colors.background) {
@@ -48,7 +47,7 @@ fun TimeClockApp(initialPage: Int = 0, chrono: Chronometer) {
             HorizontalPager(
                 state = pagerState
             ) { page ->
-                PageSelector(page, chrono)
+                PageSelector(page, chronometer)
             }
 
             HorizontalPagerIndicator(
