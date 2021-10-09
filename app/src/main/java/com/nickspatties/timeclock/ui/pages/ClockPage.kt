@@ -21,8 +21,12 @@ import com.nickspatties.timeclock.util.getTimerString
 fun ClockPage(viewModel: TimeClockViewModel) {
 
     // initial state variables
-    val (clockEnabled, setClockEnabled) = remember { mutableStateOf(false) }
-    val (isRunning, setIsRunning) = remember { mutableStateOf(false) }
+    val (clockEnabled, setClockEnabled) = remember {
+        mutableStateOf(viewModel.taskName.isNotBlank())
+    }
+    val (isRunning, setIsRunning) = remember {
+        mutableStateOf(viewModel.isRunning())
+    }
 
     Scaffold() {
         Column(
