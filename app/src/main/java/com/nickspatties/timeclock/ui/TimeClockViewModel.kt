@@ -1,14 +1,21 @@
 package com.nickspatties.timeclock.ui
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.nickspatties.timeclock.data.TimeClockEvent
+import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
 
-class TimeClockViewModel: ViewModel() {
+class TimeClockViewModel (
+    val database: TimeClockEventDao,
+    application: Application
+): AndroidViewModel(application) {
 
     // all the time clock events
     var timeClockEvents = mutableStateListOf<TimeClockEvent>()

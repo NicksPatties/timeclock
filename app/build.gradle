@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt' // required to generate helper code for Room DB
 }
 
 android {
@@ -38,7 +39,7 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion compose_version
-        kotlinCompilerVersion '1.5.21'
+        kotlinCompilerVersion "$kotlin_version"
     }
     packagingOptions {
         resources {
@@ -65,6 +66,11 @@ dependencies {
     implementation "com.google.accompanist:accompanist-pager:$accompanist_version"
     implementation "com.google.accompanist:accompanist-pager-indicators:$accompanist_version"
 
+    // Room database
+    implementation "androidx.room:room-runtime:$room_version" // do I need
+    implementation "androidx.room:room-ktx:$room_version"     // both of these?
+    kapt "androidx.room:room-compiler:$room_version"
+
     // Testing dependencies
     testImplementation 'junit:junit:4.13.2'
     testImplementation "com.google.truth:truth:1.0.1"
@@ -72,5 +78,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    testImplementation "androidx.room:room-testing:$room_version"
 
 }
