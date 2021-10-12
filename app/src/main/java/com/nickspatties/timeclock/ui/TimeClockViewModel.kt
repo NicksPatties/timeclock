@@ -19,16 +19,16 @@ class TimeClockViewModel (
     // all the time clock events
     var timeClockEvents = database.getAllEvents()
 
+    val allEvents = Transformations.map(timeClockEvents) {
+        it.reversed()
+    }
+
     // current time clock event that's being recorded
     var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
 
     // fields modified by the clock view
     var taskName by mutableStateOf("")
-    var currEventStartTime by mutableStateOf(0L)
-    var currEventEndTime by mutableStateOf(0L)
     var currSeconds by mutableStateOf(0)
-
-    // TODO: how about things like the currentElapsedTime that's based on a transformation of the current TimeClockEvent
 
     private val chronometer = Chronometer()
 
@@ -36,9 +36,17 @@ class TimeClockViewModel (
         chronometer.setOnChronometerTickListener {
             currSeconds += 1
         }
+        viewModelScope.launch {
+            // initialize the currentEvent in case the app was closed while counting
+            val currEvent = getCurrentEventFromDatabase()
+            currentTimeClockEvent.value = currEvent
+        }
     }
 
-    fun isRunning(): Boolean = currEventStartTime > currEventEndTime
+    fun isRunning(): Boolean {
+        val currEvent = currentTimeClockEvent.value
+        return currEvent != null && currEvent.startTime == currEvent.endTime
+    }
 
     suspend fun getCurrentEventFromDatabase(): TimeClockEvent? {
         val event = database.getCurrentEvent()
@@ -57,9 +65,6 @@ class TimeClockViewModel (
             )
             database.insert(newEvent)
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
-
-            // TODO: don't use this value, but use a transformation of the currentTimeClockEvent
-            currEventStartTime = currentTimeClockEvent.value!!.startTime
         }
     }
 
@@ -71,25 +76,11 @@ class TimeClockViewModel (
             finishedEvent.endTime = System.currentTimeMillis()
             database.update(finishedEvent)
             currentTimeClockEvent.value = null
-
-            // TODO: don't use this value, but use a transformation of the currentTimeClockEvent
-            currEventEndTime = finishedEvent.endTime
+            resetCurrSeconds()
         }
     }
 
     private fun resetCurrSeconds() {
         currSeconds = 0
-    }
-
-    private fun setCurrEventStartTime(st: Long? = null) {
-        currEventStartTime = st ?: System.currentTimeMillis()
-    }
-
-    private fun setCurrEventEndTime(et: Long? = null) {
-        currEventEndTime = et ?: System.currentTimeMillis()
-    }
-
-    private fun addEvent(event: TimeClockEvent) {
-        //timeClockEvents.add(event)
     }
 }

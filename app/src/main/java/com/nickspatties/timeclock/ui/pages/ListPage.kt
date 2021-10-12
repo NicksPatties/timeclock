@@ -14,7 +14,7 @@ import com.nickspatties.timeclock.ui.TimeClockViewModel
 
 @Composable
 fun ListPage(viewModel: TimeClockViewModel) {
-    val allEvents = viewModel.timeClockEvents.observeAsState()
+    val allEvents = viewModel.allEvents.observeAsState()
     Scaffold(modifier = Modifier.padding(horizontal = 10.dp)) {
         if (allEvents.value.isNullOrEmpty()) {
             NothingHereText()

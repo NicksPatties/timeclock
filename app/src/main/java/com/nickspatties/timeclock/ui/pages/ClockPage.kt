@@ -25,7 +25,6 @@ fun ClockPage(viewModel: TimeClockViewModel) {
         mutableStateOf(viewModel.taskName.isNotBlank())
     }
 
-    // TODO: this should be determined by the currentTimeClockEvent of the ViewModel instead of in here
     val (isRunning, setIsRunning) = remember {
         mutableStateOf(viewModel.isRunning())
     }
