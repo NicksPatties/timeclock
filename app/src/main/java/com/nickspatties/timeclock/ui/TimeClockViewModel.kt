@@ -1,6 +1,8 @@
 package com.nickspatties.timeclock.ui
 
 import android.app.Application
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +31,8 @@ class TimeClockViewModel (
     // fields modified by the clock view
     var taskName by mutableStateOf("")
     var currSeconds by mutableStateOf(0)
+
+    var toastMessage = ""
 
     private val chronometer = Chronometer()
 
@@ -75,6 +79,7 @@ class TimeClockViewModel (
             val finishedEvent = currentTimeClockEvent.value ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
             database.update(finishedEvent)
+            showToast("Task \"$taskName\" saved!")
             currentTimeClockEvent.value = null
             resetCurrSeconds()
         }
@@ -82,5 +87,9 @@ class TimeClockViewModel (
 
     private fun resetCurrSeconds() {
         currSeconds = 0
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
     }
 }
