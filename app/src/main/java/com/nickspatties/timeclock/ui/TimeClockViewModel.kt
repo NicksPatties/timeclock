@@ -5,12 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
+import kotlinx.coroutines.launch
 
 class TimeClockViewModel (
     val database: TimeClockEventDao,
@@ -18,14 +17,18 @@ class TimeClockViewModel (
 ): AndroidViewModel(application) {
 
     // all the time clock events
-    var timeClockEvents = mutableStateListOf<TimeClockEvent>()
-        private set
+    var timeClockEvents = database.getAllEvents()
+
+    // current time clock event that's being recorded
+    var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
 
     // fields modified by the clock view
     var taskName by mutableStateOf("")
     var currEventStartTime by mutableStateOf(0L)
     var currEventEndTime by mutableStateOf(0L)
     var currSeconds by mutableStateOf(0)
+
+    // TODO: how about things like the currentElapsedTime that's based on a transformation of the current TimeClockEvent
 
     private val chronometer = Chronometer()
 
@@ -37,20 +40,41 @@ class TimeClockViewModel (
 
     fun isRunning(): Boolean = currEventStartTime > currEventEndTime
 
+    suspend fun getCurrentEventFromDatabase(): TimeClockEvent? {
+        val event = database.getCurrentEvent()
+        if (event?.endTime != event?.startTime) {
+            return null // because this event has already been completed
+        }
+        return event
+    }
+
     fun startClock() {
         chronometer.start()
-        setCurrEventStartTime()
+        // create current model
+        viewModelScope.launch {
+            val newEvent = TimeClockEvent(
+                name = taskName
+            )
+            database.insert(newEvent)
+            currentTimeClockEvent.value = getCurrentEventFromDatabase()
+
+            // TODO: don't use this value, but use a transformation of the currentTimeClockEvent
+            currEventStartTime = currentTimeClockEvent.value!!.startTime
+        }
     }
 
     fun stopClock() {
         chronometer.stop()
-        setCurrEventEndTime()
-        resetCurrSeconds()
-        addEvent(TimeClockEvent(
-            taskName,
-            currEventStartTime,
-            currEventEndTime
-        ))
+        // update current model
+        viewModelScope.launch {
+            val finishedEvent = currentTimeClockEvent.value ?: return@launch
+            finishedEvent.endTime = System.currentTimeMillis()
+            database.update(finishedEvent)
+            currentTimeClockEvent.value = null
+
+            // TODO: don't use this value, but use a transformation of the currentTimeClockEvent
+            currEventEndTime = finishedEvent.endTime
+        }
     }
 
     private fun resetCurrSeconds() {
@@ -66,6 +90,6 @@ class TimeClockViewModel (
     }
 
     private fun addEvent(event: TimeClockEvent) {
-        timeClockEvents.add(event)
+        //timeClockEvents.add(event)
     }
 }

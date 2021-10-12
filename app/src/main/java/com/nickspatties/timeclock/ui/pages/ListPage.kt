@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -13,11 +14,12 @@ import com.nickspatties.timeclock.ui.TimeClockViewModel
 
 @Composable
 fun ListPage(viewModel: TimeClockViewModel) {
+    val allEvents = viewModel.timeClockEvents.observeAsState()
     Scaffold(modifier = Modifier.padding(horizontal = 10.dp)) {
-        if (viewModel.timeClockEvents.size > 0) {
-            TimeClockList(viewModel.timeClockEvents)
-        } else {
+        if (allEvents.value.isNullOrEmpty()) {
             NothingHereText()
+        } else {
+            TimeClockList(allEvents.value!!)
         }
     }
 }
