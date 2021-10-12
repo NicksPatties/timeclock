@@ -39,6 +39,7 @@ fun ClockPage(viewModel: TimeClockViewModel) {
             // todo character limit 120
             TaskTextField(
                 taskName = viewModel.taskName,
+                enabled = !isRunning,
                 onTaskNameChange = {
                     viewModel.taskName = it
                     setClockEnabled(viewModel.taskName.isNotBlank())
@@ -72,11 +73,13 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 @Composable
 fun TaskTextField(
     taskName: String,
+    enabled: Boolean,
     onTaskNameChange: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     TextField(
         value = taskName,
+        enabled = enabled,
         onValueChange = onTaskNameChange,
         singleLine = true,
         label = {
