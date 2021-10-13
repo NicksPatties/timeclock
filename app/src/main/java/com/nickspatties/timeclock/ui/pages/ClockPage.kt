@@ -1,19 +1,24 @@
 package com.nickspatties.timeclock.ui.pages
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.window.PopupProperties
 import com.nickspatties.timeclock.ui.TimeClockViewModel
 import com.nickspatties.timeclock.util.getTimerString
 
@@ -29,22 +34,60 @@ fun ClockPage(viewModel: TimeClockViewModel) {
         mutableStateOf(viewModel.isRunning())
     }
 
+    val (dropdownExpanded, setDropdownExpanded) = remember { mutableStateOf(false) }
+
+    val taskNames = viewModel.taskNames.observeAsState()
+    val (textFieldSize, setTextFieldSize) = remember { mutableStateOf(Size.Zero) }
+
     Scaffold() {
         Column(
             modifier = Modifier.fillMaxSize(1f),
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Task name input
-            // todo character limit 120
-            TaskTextField(
-                taskName = viewModel.taskName,
-                enabled = !isRunning,
-                onTaskNameChange = {
-                    viewModel.taskName = it
-                    setClockEnabled(viewModel.taskName.isNotBlank())
+            Column {
+                // Task name input
+                // todo character limit 120
+                TaskTextField(
+                    modifier = Modifier
+                        .onGloballyPositioned { coordinates ->
+                            setTextFieldSize(coordinates.size.toSize())
+                        },
+                    taskName = viewModel.taskName,
+                    enabled = !isRunning,
+                    onTaskNameChange = {
+                        viewModel.taskName = it
+                        setClockEnabled(viewModel.taskName.isNotBlank())
+                        setDropdownExpanded(viewModel.taskName.isNotBlank())
+                    },
+                    onDone = {
+                        setDropdownExpanded(false)
+                    }
+                )
+                // dropdown menu
+                DropdownMenu(
+                    modifier = Modifier
+                        .requiredSizeIn(maxHeight = 144.dp), // 144 = 3 * 48 (the default height of a DropdownMenuItem
+                    expanded = dropdownExpanded,
+                    properties = PopupProperties(focusable = false),
+                    onDismissRequest = { setDropdownExpanded(false) },
+                ) {
+                    val filteredTaskNames = taskNames.value!!.filter {
+                        it.contains(viewModel.taskName)
+                    }
+
+                    if (filteredTaskNames.isNotEmpty()) {
+                        filteredTaskNames.forEach { label ->
+                            DropdownMenuItem(onClick = {
+                                viewModel.taskName = label
+                                setDropdownExpanded(false)
+                            }) {
+                                Text(text = label)
+                            }
+                        }
+                    }
                 }
-            )
+            }
 
             // timer clock
             TimerText(currSeconds = viewModel.currSeconds)
@@ -72,12 +115,15 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TaskTextField(
+    modifier: Modifier = Modifier,
     taskName: String,
     enabled: Boolean,
-    onTaskNameChange: (String) -> Unit
+    onTaskNameChange: (String) -> Unit,
+    onDone: () -> Unit = {}
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     TextField(
+        modifier = modifier,
         value = taskName,
         enabled = enabled,
         onValueChange = onTaskNameChange,
@@ -91,6 +137,7 @@ fun TaskTextField(
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = {
             keyboardController?.hide()
+            onDone()
         })
     )
 }

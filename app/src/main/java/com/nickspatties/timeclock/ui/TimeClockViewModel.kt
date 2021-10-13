@@ -25,6 +25,12 @@ class TimeClockViewModel (
         it.reversed()
     }
 
+    val taskNames = Transformations.map(timeClockEvents) { events ->
+        events.map {
+            it.name
+        }.toSet()
+    }
+
     // current time clock event that's being recorded
     var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
 
