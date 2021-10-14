@@ -1,6 +1,9 @@
 package com.nickspatties.timeclock.ui.pages
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -11,14 +14,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
 import com.nickspatties.timeclock.ui.TimeClockViewModel
 import com.nickspatties.timeclock.util.getTimerString
@@ -39,9 +40,10 @@ fun ClockPage(viewModel: TimeClockViewModel) {
     val (dropdownExpanded, setDropdownExpanded) = remember { mutableStateOf(false) }
 
     val taskNames = viewModel.taskNames.observeAsState()
-    val (textFieldSize, setTextFieldSize) = remember { mutableStateOf(Size.Zero) }
 
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    val (taskTextFieldValue, setTaskTextFieldValue) = remember { mutableStateOf(TextFieldValue(text = viewModel.taskName))}
 
     Scaffold() {
         Column(
@@ -53,14 +55,11 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                 // Task name input
                 // todo character limit 120
                 TaskTextField(
-                    modifier = Modifier
-                        .onGloballyPositioned { coordinates ->
-                            setTextFieldSize(coordinates.size.toSize())
-                        },
-                    taskName = viewModel.taskName,
+                    value = taskTextFieldValue,
                     enabled = !isRunning,
                     onTaskNameChange = {
-                        viewModel.taskName = it
+                        viewModel.taskName = it.text
+                        setTaskTextFieldValue(it)
                         setClockEnabled(viewModel.taskName.isNotBlank())
                         setDropdownExpanded(viewModel.taskName.isNotBlank())
                     },
@@ -85,8 +84,16 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                         filteredTaskNames.forEach { label ->
                             DropdownMenuItem(onClick = {
                                 viewModel.taskName = label
-                                setDropdownExpanded(false)
+
                                 // move cursor for text field to end of string
+                                setTaskTextFieldValue(
+                                    TextFieldValue(
+                                        text = label,
+                                        selection = TextRange(label.length)
+                                    )
+                                )
+
+                                setDropdownExpanded(false)
 
                                 // close keyboard
                                 keyboardController?.hide()
@@ -125,16 +132,16 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 @Composable
 fun TaskTextField(
     modifier: Modifier = Modifier,
-    taskName: String,
+    value: TextFieldValue,
     enabled: Boolean,
-    onTaskNameChange: (String) -> Unit,
+    onTaskNameChange: (TextFieldValue) -> Unit,
     onDone: () -> Unit = {},
     keyboardController: SoftwareKeyboardController?
 ) {
 
     TextField(
         modifier = modifier,
-        value = taskName,
+        value = value,
         enabled = enabled,
         onValueChange = onTaskNameChange,
         singleLine = true,
