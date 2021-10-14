@@ -11,6 +11,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.TimeClockViewModel
+import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
+import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
+import com.nickspatties.timeclock.util.decorateMillisWithWholeHoursAndMinutes
 
 @Composable
 fun ListPage(viewModel: TimeClockViewModel) {
@@ -55,10 +58,11 @@ fun TimeClockListItem(event: TimeClockEvent) {
     ) {
         Column {
             Text(text = event.name, style = MaterialTheme.typography.body1)
-            Row {
-                Text(text = "startTime: ${event.startTime}", style = MaterialTheme.typography.caption)
-                Text(text = "endTime: ${event.endTime}", style = MaterialTheme.typography.caption)
-            }
+            val elapsedTime = event.endTime - event.startTime
+            Text(
+                text = "Elapsed time: ${decorateMillisLikeStopwatch(elapsedTime)}",
+                style = MaterialTheme.typography.caption
+            )
         }
     }
 }
