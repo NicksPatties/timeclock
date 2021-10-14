@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -22,6 +23,7 @@ import androidx.compose.ui.window.PopupProperties
 import com.nickspatties.timeclock.ui.TimeClockViewModel
 import com.nickspatties.timeclock.util.getTimerString
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ClockPage(viewModel: TimeClockViewModel) {
 
@@ -38,6 +40,8 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 
     val taskNames = viewModel.taskNames.observeAsState()
     val (textFieldSize, setTextFieldSize) = remember { mutableStateOf(Size.Zero) }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold() {
         Column(
@@ -62,7 +66,8 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                     },
                     onDone = {
                         setDropdownExpanded(false)
-                    }
+                    },
+                    keyboardController = keyboardController
                 )
                 // dropdown menu
                 DropdownMenu(
@@ -81,6 +86,10 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                             DropdownMenuItem(onClick = {
                                 viewModel.taskName = label
                                 setDropdownExpanded(false)
+                                // move cursor for text field to end of string
+
+                                // close keyboard
+                                keyboardController?.hide()
                             }) {
                                 Text(text = label)
                             }
@@ -119,9 +128,10 @@ fun TaskTextField(
     taskName: String,
     enabled: Boolean,
     onTaskNameChange: (String) -> Unit,
-    onDone: () -> Unit = {}
+    onDone: () -> Unit = {},
+    keyboardController: SoftwareKeyboardController?
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
+
     TextField(
         modifier = modifier,
         value = taskName,
