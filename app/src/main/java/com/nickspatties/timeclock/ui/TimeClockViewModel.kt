@@ -1,10 +1,8 @@
 package com.nickspatties.timeclock.ui
 
 import android.app.Application
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.*
@@ -18,29 +16,37 @@ class TimeClockViewModel (
     application: Application
 ): AndroidViewModel(application) {
 
-    // all the time clock events
+    /**
+     * Common properties
+     */
     var timeClockEvents = database.getAllEvents()
 
-    val allEvents = Transformations.map(timeClockEvents) {
-        it.reversed()
-    }
-
-    val taskNames = Transformations.map(timeClockEvents) { events ->
+    // task names used for autofill dropdown
+    val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
         events.map {
             it.name
         }.toSet()
     }
 
+    /**
+     * Clock Page properties
+     */
     // current time clock event that's being recorded
     var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
 
-    // fields modified by the clock view
     var taskName by mutableStateOf("")
     var currSeconds by mutableStateOf(0)
-
-    var toastMessage = ""
-
     private val chronometer = Chronometer()
+
+    /**
+     * List page properties
+     */
+    // save current editing index in here
+    var editingEventId by mutableStateOf(-1L)
+
+    val allEvents = Transformations.map(timeClockEvents) {
+        it.reversed()
+    }
 
     init {
         chronometer.setOnChronometerTickListener {
@@ -93,6 +99,17 @@ class TimeClockViewModel (
 
     private fun resetCurrSeconds() {
         currSeconds = 0
+    }
+
+    fun changeEditId(id: Long) {
+        editingEventId = id
+    }
+
+    fun deleteEvent(event: TimeClockEvent) {
+        viewModelScope.launch {
+            database.delete(event)
+            editingEventId = -1
+        }
     }
 
     private fun showToast(message: String) {

@@ -39,7 +39,7 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 
     val (dropdownExpanded, setDropdownExpanded) = remember { mutableStateOf(false) }
 
-    val taskNames = viewModel.taskNames.observeAsState()
+    val autofillTaskNames = viewModel.autofillTaskNames.observeAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -76,7 +76,7 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                     properties = PopupProperties(focusable = false),
                     onDismissRequest = { setDropdownExpanded(false) },
                 ) {
-                    val filteredTaskNames = taskNames.value!!.filter {
+                    val filteredTaskNames = autofillTaskNames.value!!.filter {
                         it.contains(viewModel.taskName)
                     }
 
@@ -153,8 +153,8 @@ fun TaskTextField(
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = {
-            keyboardController?.hide()
             onDone()
+            keyboardController?.hide()
         })
     )
 }

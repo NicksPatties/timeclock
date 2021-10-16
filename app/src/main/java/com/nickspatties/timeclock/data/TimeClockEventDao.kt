@@ -1,10 +1,7 @@
 package com.nickspatties.timeclock.data
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 
 @Dao
 interface TimeClockEventDao {
@@ -17,6 +14,9 @@ interface TimeClockEventDao {
 
     @Query("SELECT * from time_clock_event_table WHERE id = :key")
     suspend fun get(key: Long): TimeClockEvent?
+
+    @Delete
+    suspend fun delete(event: TimeClockEvent)
 
     @Query("DELETE from time_clock_event_table")
     suspend fun clear()
