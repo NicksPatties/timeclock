@@ -27,6 +27,7 @@ fun ListPage(viewModel: TimeClockViewModel) {
                 events = allEvents.value!!,
                 editingId = viewModel.editingEventId,
                 onDeleteButtonClick = viewModel::deleteEvent,
+                onCancelButtonClick = viewModel::changeEditId,
                 onListItemClick = viewModel::changeEditId
             )
         }
@@ -49,6 +50,7 @@ fun NothingHereText() {
 fun TimeClockList (
     events: List<TimeClockEvent>,
     editingId: Long = -1,
+    onCancelButtonClick: (Long) -> Unit,
     onDeleteButtonClick: (TimeClockEvent) -> Unit,
     onListItemClick: (Long) -> Unit
 ) {
@@ -58,6 +60,7 @@ fun TimeClockList (
             if (editingId == item.id) {
                 TimeClockListItemEditor(
                     event = item,
+                    onCancelButtonClick = { onCancelButtonClick(-1) },
                     onDeleteButtonClick = { onDeleteButtonClick(item) }
                 )
             } else {
@@ -95,6 +98,7 @@ fun TimeClockListItem(
 @Composable
 fun TimeClockListItemEditor(
     event: TimeClockEvent,
+    onCancelButtonClick: () -> Unit,
     onDeleteButtonClick: () -> Unit
 ) {
     Box(
@@ -110,8 +114,14 @@ fun TimeClockListItemEditor(
             Text(text = "endTime: ${event.endTime}", style = MaterialTheme.typography.body1)
             Row (
                 modifier = Modifier
-                    .align(Alignment.End)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Button(
+                    onClick = onCancelButtonClick
+                ) {
+                    Text(text = "Cancel", style = MaterialTheme.typography.body1)
+                }
                 Button(
                     onClick = onDeleteButtonClick
                 ) {
@@ -143,6 +153,7 @@ fun TestTimeClockListItemEditor() {
     )
     TimeClockListItemEditor(
         event = testEvent,
+        onCancelButtonClick = {},
         onDeleteButtonClick = {}
     )
 }
