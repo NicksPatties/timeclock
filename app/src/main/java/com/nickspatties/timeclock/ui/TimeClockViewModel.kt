@@ -61,7 +61,7 @@ class TimeClockViewModel (
 
     fun isRunning(): Boolean {
         val currEvent = currentTimeClockEvent.value
-        return currEvent != null && currEvent.startTime == currEvent.endTime
+        return currEvent != null && currEvent.isRunning
     }
 
     suspend fun getCurrentEventFromDatabase(): TimeClockEvent? {

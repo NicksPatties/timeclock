@@ -19,4 +19,7 @@ data class TimeClockEvent(
 
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L
-)
+) {
+    val isRunning : Boolean
+        get() = startTime == endTime
+}

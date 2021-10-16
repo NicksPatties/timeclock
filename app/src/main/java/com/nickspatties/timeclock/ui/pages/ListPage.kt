@@ -63,13 +63,18 @@ fun TimeClockList (
                     onCancelButtonClick = { onCancelButtonClick(-1) },
                     onDeleteButtonClick = { onDeleteButtonClick(item) }
                 )
+            } else if(item.isRunning) {
+                TimeClockListItem(
+                    event = item,
+                    onClick = {}
+                )
             } else {
                 TimeClockListItem(
                     event = item,
                     onClick = { onListItemClick(item.id) }
                 )
             }
-        }
+    }
     }
 }
 
@@ -87,10 +92,17 @@ fun TimeClockListItem(
         Column {
             Text(text = event.name, style = MaterialTheme.typography.body1)
             val elapsedTime = event.endTime - event.startTime
-            Text(
-                text = "Elapsed time: ${decorateMillisLikeStopwatch(elapsedTime)}",
-                style = MaterialTheme.typography.caption
-            )
+            if (event.isRunning) {
+                Text(
+                    text = "In progress...",
+                    style = MaterialTheme.typography.caption
+                )
+            } else {
+                Text(
+                    text = "Elapsed time: ${decorateMillisLikeStopwatch(elapsedTime)}",
+                    style = MaterialTheme.typography.caption
+                )
+            }
         }
     }
 }
