@@ -93,14 +93,7 @@ fun ClockPage(viewModel: TimeClockViewModel) {
             // button for starting time
             Button(
                 enabled = clockEnabled,
-                onClick = {
-                    if (isRunning) {
-                        stopClock()
-                    } else {
-                        startClock()
-                    }
-                    //setIsRunning(!isRunning) // update isRunning in the viewModel instead
-                }
+                onClick = { if (isRunning) stopClock() else startClock() }
             ) {
                 Text(
                     text = if (isRunning) "Stop" else "Start"

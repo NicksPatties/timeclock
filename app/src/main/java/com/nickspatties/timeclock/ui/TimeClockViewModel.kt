@@ -36,17 +36,19 @@ class TimeClockViewModel (
      * Clock Page properties
      */
     var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
-    var taskTextFieldValue by mutableStateOf(TextFieldValue(text = "")) // replace task name with text field value
+    var taskTextFieldValue by mutableStateOf(TextFieldValue(text = ""))
     var clockButtonEnabled by mutableStateOf(false)
-    var isClockRunning by mutableStateOf(false) // should replace isRunning function with this
+    var isClockRunning by mutableStateOf(false)
     var dropdownExpanded by mutableStateOf(false)
     var currSeconds by mutableStateOf(0)
+
+    // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
+    private var dropdownClicked = false
     private val chronometer = Chronometer()
 
     /**
      * List page properties
      */
-    // save current editing index in here
     var editingEventId by mutableStateOf(-1L)
 
     val allEvents = Transformations.map(timeClockEvents) {
@@ -67,11 +69,6 @@ class TimeClockViewModel (
     /**
      * Clock page functions
      */
-//    fun isRunning(): Boolean {
-//        val currEvent = currentTimeClockEvent.value
-//        return currEvent != null && currEvent.isRunning
-//    }
-
     private suspend fun getCurrentEventFromDatabase(): TimeClockEvent? {
         val event = database.getCurrentEvent()
         if (event?.endTime != event?.startTime) {
@@ -81,73 +78,51 @@ class TimeClockViewModel (
     }
 
     fun onTaskNameChange(tfv: TextFieldValue) {
+        if (dropdownClicked) {
+            dropdownClicked = false
+            return
+        }
         taskTextFieldValue = tfv
         val taskName = tfv.text
         clockButtonEnabled = taskName.isNotBlank()
         dropdownExpanded = taskName.isNotBlank()
-        Log.i("ViewModel", """
-            onTaskNameExecuted
-            input: $taskName
-            taskTextFieldValue.text: ${taskTextFieldValue.text}
-            clockButtonEnabled: $clockButtonEnabled
-            dropdownExpanded: $dropdownExpanded
-        """.trimIndent())
     }
 
     fun onTaskNameDonePressed() {
         dropdownExpanded = false
-        Log.i("ViewModel", """
-            onTaskNameDonePressed executed
-            dropdownExpanded: $dropdownExpanded
-        """.trimIndent())
     }
 
     fun onDismissDropdown() {
         dropdownExpanded = false
-        Log.i("ViewModel", """
-            onDismissDropdown executed
-            dropdownExpanded: $dropdownExpanded
-        """.trimIndent())
     }
 
     fun onDropdownMenuItemClick(label: String) {
+        dropdownClicked = true
         taskTextFieldValue = TextFieldValue(
             text = label,
             selection = TextRange(label.length)
         )
         dropdownExpanded = false
-        Log.i("ViewModel", """
-            onDropdownMenuItemClick executed
-            input: $label
-            taskTextFieldValue.text: ${taskTextFieldValue.text}
-            taskTextFieldValue.selection: ${taskTextFieldValue.selection}
-            dropdownExpanded: $dropdownExpanded
-        """.trimIndent())
     }
 
     fun startClock() {
-        Log.i("ViewModel", "onStartClock executed")
-        chronometer.start()
-        // create current model
         viewModelScope.launch {
             val newEvent = TimeClockEvent(
                 name = taskTextFieldValue.text // change this to the taskTextFieldValue.text property
             )
             database.insert(newEvent)
-
+            chronometer.start()
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
             isClockRunning = true
         }
     }
 
     fun stopClock() {
-        Log.i("ViewModel", "onStopClock executed")
-        chronometer.stop()
-        // update current model
         viewModelScope.launch {
             val finishedEvent = currentTimeClockEvent.value ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
             database.update(finishedEvent)
+            chronometer.stop()
             showToast("Task \"${taskTextFieldValue.text}\" saved!")
             currentTimeClockEvent.value = null
             isClockRunning = false
