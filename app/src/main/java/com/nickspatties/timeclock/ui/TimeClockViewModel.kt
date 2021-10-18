@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
@@ -35,7 +36,6 @@ class TimeClockViewModel (
      * Clock Page properties
      */
     var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
-    var taskName by mutableStateOf("") // should be replaced with text field value
     var taskTextFieldValue by mutableStateOf(TextFieldValue(text = "")) // replace task name with text field value
     var clockButtonEnabled by mutableStateOf(false)
     var isClockRunning by mutableStateOf(false) // should replace isRunning function with this
@@ -67,10 +67,10 @@ class TimeClockViewModel (
     /**
      * Clock page functions
      */
-    fun isRunning(): Boolean {
-        val currEvent = currentTimeClockEvent.value
-        return currEvent != null && currEvent.isRunning
-    }
+//    fun isRunning(): Boolean {
+//        val currEvent = currentTimeClockEvent.value
+//        return currEvent != null && currEvent.isRunning
+//    }
 
     private suspend fun getCurrentEventFromDatabase(): TimeClockEvent? {
         val event = database.getCurrentEvent()
@@ -80,8 +80,9 @@ class TimeClockViewModel (
         return event
     }
 
-    fun onTaskNameChange(taskName: String) {
-        taskTextFieldValue = TextFieldValue(text = taskName)
+    fun onTaskNameChange(tfv: TextFieldValue) {
+        taskTextFieldValue = tfv
+        val taskName = tfv.text
         clockButtonEnabled = taskName.isNotBlank()
         dropdownExpanded = taskName.isNotBlank()
         Log.i("ViewModel", """
@@ -130,10 +131,12 @@ class TimeClockViewModel (
         // create current model
         viewModelScope.launch {
             val newEvent = TimeClockEvent(
-                name = taskName // change this to the taskTextFieldValue.text property
+                name = taskTextFieldValue.text // change this to the taskTextFieldValue.text property
             )
             database.insert(newEvent)
+
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
+            isClockRunning = true
         }
     }
 
@@ -145,8 +148,9 @@ class TimeClockViewModel (
             val finishedEvent = currentTimeClockEvent.value ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
             database.update(finishedEvent)
-            showToast("Task \"$taskName\" saved!")
+            showToast("Task \"${taskTextFieldValue.text}\" saved!")
             currentTimeClockEvent.value = null
+            isClockRunning = false
             resetCurrSeconds()
         }
     }

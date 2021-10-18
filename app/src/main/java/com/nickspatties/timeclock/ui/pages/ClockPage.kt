@@ -9,14 +9,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -28,10 +25,11 @@ import com.nickspatties.timeclock.util.getTimerString
 @Composable
 fun ClockPage(viewModel: TimeClockViewModel) {
 
-    val clockEnabledVM = viewModel.clockButtonEnabled
-    val isRunningVM = viewModel.isClockRunning
-    val dropdownExpandedVM = viewModel.dropdownExpanded
-    val taskTextFieldValueVM = viewModel.taskTextFieldValue
+    val clockEnabled = viewModel.clockButtonEnabled
+    val isRunning = viewModel.isClockRunning
+    val dropdownExpanded = viewModel.dropdownExpanded
+    val taskTextFieldValue = viewModel.taskTextFieldValue
+    val autofillTaskNames = viewModel.autofillTaskNames.observeAsState()
 
     val onTaskNameChange = viewModel::onTaskNameChange
     val onTaskNameDonePressed = viewModel::onTaskNameDonePressed
@@ -39,20 +37,6 @@ fun ClockPage(viewModel: TimeClockViewModel) {
     val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
     val startClock = viewModel::startClock
     val stopClock = viewModel::stopClock
-
-
-    // TODO get rid of these
-
-    val (isRunning, setIsRunning) = remember {
-        mutableStateOf(viewModel.isRunning())
-    }
-
-    val (dropdownExpanded, setDropdownExpanded) = remember { mutableStateOf(false) }
-
-    val autofillTaskNames = viewModel.autofillTaskNames.observeAsState()
-
-    val (taskTextFieldValue, setTaskTextFieldValue) = remember { mutableStateOf(TextFieldValue(text = viewModel.taskName))}
-    // end todo
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -69,21 +53,14 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                     value = taskTextFieldValue,
                     enabled = !isRunning,
                     onTaskNameChange = {
-                        onTaskNameChange(it.text)
-                        // todo delete this
-                        viewModel.taskName = it.text
-                        setTaskTextFieldValue(it)
-                        setDropdownExpanded(viewModel.taskName.isNotBlank())
+                        onTaskNameChange(it)
                     },
                     onDone = {
                         onTaskNameDonePressed()
-
-                        // todo delete this
-                        setDropdownExpanded(false)
                     },
                     keyboardController = keyboardController
                 )
-                // dropdown menu
+
                 DropdownMenu(
                     modifier = Modifier
                         .requiredSizeIn(maxHeight = 144.dp), // 144 = 3 * 48 (the default height of a DropdownMenuItem
@@ -91,31 +68,17 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                     properties = PopupProperties(focusable = false),
                     onDismissRequest = {
                         onDismissDropdown()
-                        setDropdownExpanded(false)
                     },
                 ) {
                     val filteredTaskNames = autofillTaskNames.value!!.filter {
-                        it.contains(viewModel.taskName)
+                        it.contains(taskTextFieldValue.text)
                     }
 
                     if (filteredTaskNames.isNotEmpty()) {
                         filteredTaskNames.forEach { label ->
                             DropdownMenuItem(onClick = {
                                 onDropdownMenuItemClick(label)
-                                viewModel.taskName = label
-
-                                // move cursor for text field to end of string
-                                setTaskTextFieldValue(
-                                    TextFieldValue(
-                                        text = label,
-                                        selection = TextRange(label.length)
-                                    )
-                                )
-
-                                setDropdownExpanded(false)
-
-                                // close keyboard
-                                keyboardController?.hide()
+                                keyboardController?.hide() // close keyboard
                             }) {
                                 Text(text = label)
                             }
@@ -129,14 +92,14 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 
             // button for starting time
             Button(
-                enabled = clockEnabledVM,
+                enabled = clockEnabled,
                 onClick = {
-                    if (isRunningVM) {
+                    if (isRunning) {
                         stopClock()
                     } else {
                         startClock()
                     }
-                    setIsRunning(!isRunning) // update isRunning in the viewModel instead
+                    //setIsRunning(!isRunning) // update isRunning in the viewModel instead
                 }
             ) {
                 Text(
