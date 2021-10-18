@@ -28,10 +28,20 @@ import com.nickspatties.timeclock.util.getTimerString
 @Composable
 fun ClockPage(viewModel: TimeClockViewModel) {
 
-    // initial state variables
-    val (clockEnabled, setClockEnabled) = remember {
-        mutableStateOf(viewModel.taskName.isNotBlank())
-    }
+    val clockEnabledVM = viewModel.clockButtonEnabled
+    val isRunningVM = viewModel.isClockRunning
+    val dropdownExpandedVM = viewModel.dropdownExpanded
+    val taskTextFieldValueVM = viewModel.taskTextFieldValue
+
+    val onTaskNameChange = viewModel::onTaskNameChange
+    val onTaskNameDonePressed = viewModel::onTaskNameDonePressed
+    val onDismissDropdown = viewModel::onDismissDropdown
+    val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
+    val startClock = viewModel::startClock
+    val stopClock = viewModel::stopClock
+
+
+    // TODO get rid of these
 
     val (isRunning, setIsRunning) = remember {
         mutableStateOf(viewModel.isRunning())
@@ -41,9 +51,10 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 
     val autofillTaskNames = viewModel.autofillTaskNames.observeAsState()
 
-    val keyboardController = LocalSoftwareKeyboardController.current
-
     val (taskTextFieldValue, setTaskTextFieldValue) = remember { mutableStateOf(TextFieldValue(text = viewModel.taskName))}
+    // end todo
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold() {
         Column(
@@ -58,12 +69,16 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                     value = taskTextFieldValue,
                     enabled = !isRunning,
                     onTaskNameChange = {
+                        onTaskNameChange(it.text)
+                        // todo delete this
                         viewModel.taskName = it.text
                         setTaskTextFieldValue(it)
-                        setClockEnabled(viewModel.taskName.isNotBlank())
                         setDropdownExpanded(viewModel.taskName.isNotBlank())
                     },
                     onDone = {
+                        onTaskNameDonePressed()
+
+                        // todo delete this
                         setDropdownExpanded(false)
                     },
                     keyboardController = keyboardController
@@ -74,7 +89,10 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                         .requiredSizeIn(maxHeight = 144.dp), // 144 = 3 * 48 (the default height of a DropdownMenuItem
                     expanded = dropdownExpanded,
                     properties = PopupProperties(focusable = false),
-                    onDismissRequest = { setDropdownExpanded(false) },
+                    onDismissRequest = {
+                        onDismissDropdown()
+                        setDropdownExpanded(false)
+                    },
                 ) {
                     val filteredTaskNames = autofillTaskNames.value!!.filter {
                         it.contains(viewModel.taskName)
@@ -83,6 +101,7 @@ fun ClockPage(viewModel: TimeClockViewModel) {
                     if (filteredTaskNames.isNotEmpty()) {
                         filteredTaskNames.forEach { label ->
                             DropdownMenuItem(onClick = {
+                                onDropdownMenuItemClick(label)
                                 viewModel.taskName = label
 
                                 // move cursor for text field to end of string
@@ -110,14 +129,14 @@ fun ClockPage(viewModel: TimeClockViewModel) {
 
             // button for starting time
             Button(
-                enabled = clockEnabled,
+                enabled = clockEnabledVM,
                 onClick = {
-                    if (isRunning) {
-                        viewModel.stopClock()
+                    if (isRunningVM) {
+                        stopClock()
                     } else {
-                        viewModel.startClock()
+                        startClock()
                     }
-                    setIsRunning(!isRunning)
+                    setIsRunning(!isRunning) // update isRunning in the viewModel instead
                 }
             ) {
                 Text(
