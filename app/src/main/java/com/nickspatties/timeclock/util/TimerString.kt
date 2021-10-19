@@ -1,5 +1,7 @@
 package com.nickspatties.timeclock.util
 
+import com.nickspatties.timeclock.data.TimeClockEvent
+
 fun convertMillisToHoursMinutesSeconds(millis: Long): Triple<Int, Int, Int> {
     val hours = (millis / 1000 / 60 / 60).toInt()
     val minutes = (millis / 1000 / 60).toInt()
@@ -54,4 +56,11 @@ fun getTimerString(currSeconds: Int) : String {
 
     // decorate string
     return String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
+}
+
+fun calculateCurrSeconds(
+    event: TimeClockEvent,
+    currentTimeMillis: Long = System.currentTimeMillis()
+): Int {
+    return ((currentTimeMillis - event.startTime) / 1000).toInt()
 }

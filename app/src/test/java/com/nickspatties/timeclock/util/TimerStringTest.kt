@@ -1,6 +1,7 @@
 package com.nickspatties.timeclock.util
 
 import com.google.common.truth.Truth.assertThat
+import com.nickspatties.timeclock.data.TimeClockEvent
 import junitparams.JUnitParamsRunner
 import junitparams.Parameters
 import org.junit.Test
@@ -21,5 +22,12 @@ class TimerStringTest {
     )
     fun getTimerString_returnsCorrectValue(currentSeconds: Int, expectedString: String) {
         assertThat(getTimerString(currentSeconds)).isEqualTo(expectedString)
+    }
+
+    @Test
+    fun calculateCurrSeconds_outputIsExpected() {
+        val testEvent = TimeClockEvent(name = "event name", startTime = 0)
+        val mockCurrTime = 1000L
+        assertThat(calculateCurrSeconds(testEvent, mockCurrTime)).isEqualTo(1)
     }
 }

@@ -13,6 +13,7 @@ import androidx.lifecycle.*
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
+import com.nickspatties.timeclock.util.calculateCurrSeconds
 import kotlinx.coroutines.launch
 
 class TimeClockViewModel (
@@ -35,7 +36,7 @@ class TimeClockViewModel (
     /**
      * Clock Page properties
      */
-    var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
+    private var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
     var taskTextFieldValue by mutableStateOf(TextFieldValue(text = ""))
     var clockButtonEnabled by mutableStateOf(false)
     var isClockRunning by mutableStateOf(false)
@@ -62,7 +63,16 @@ class TimeClockViewModel (
         viewModelScope.launch {
             // initialize the currentEvent in case the app was closed while counting
             val currEvent = getCurrentEventFromDatabase()
-            currentTimeClockEvent.value = currEvent
+
+            // if there's an event that's already running, populate the UI with that event's data
+            if (currEvent != null) {
+                currentTimeClockEvent.value = currEvent
+                taskTextFieldValue = TextFieldValue(text = currEvent.name)
+                currSeconds = calculateCurrSeconds(currEvent)
+                clockButtonEnabled = true
+                isClockRunning = true
+                chronometer.start()
+            }
         }
     }
 
