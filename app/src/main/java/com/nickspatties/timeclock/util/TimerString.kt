@@ -1,6 +1,7 @@
 package com.nickspatties.timeclock.util
 
 import com.nickspatties.timeclock.data.TimeClockEvent
+import java.util.*
 
 fun convertMillisToHoursMinutesSeconds(millis: Long): Triple<Int, Int, Int> {
     val seconds = millis / 1000
@@ -66,4 +67,15 @@ fun calculateCurrSeconds(
     currentTimeMillis: Long = System.currentTimeMillis()
 ): Int {
     return ((currentTimeMillis - event.startTime) / 1000).toInt()
+}
+
+fun decorateMillisToDateString(millis: Long) : String {
+    // set calendar object that will contain day, month, and year information
+    val cal = Calendar.getInstance()
+    cal.timeInMillis = millis
+    val locale = Locale.getDefault()
+    val monthString = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, locale)
+    val dayString = cal.get(Calendar.DAY_OF_MONTH)
+    val yearString = cal.get(Calendar.YEAR)
+    return "%s %d, %d".format(monthString, dayString, yearString)
 }
