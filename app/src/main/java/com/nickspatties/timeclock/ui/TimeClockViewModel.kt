@@ -1,10 +1,8 @@
 package com.nickspatties.timeclock.ui
 
 import android.app.Application
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
@@ -14,6 +12,7 @@ import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
 import com.nickspatties.timeclock.util.calculateCurrSeconds
+import com.nickspatties.timeclock.util.decorateMillisToDateString
 import kotlinx.coroutines.launch
 
 class TimeClockViewModel (
@@ -24,7 +23,7 @@ class TimeClockViewModel (
     /**
      * Common properties
      */
-    var timeClockEvents = database.getAllEvents()
+    private var timeClockEvents = database.getAllEvents()
 
     // task names used for autofill dropdown
     val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
@@ -50,11 +49,12 @@ class TimeClockViewModel (
     /**
      * List page properties
      */
-    var editingEventId by mutableStateOf(-1L)
-
-    val allEvents = Transformations.map(timeClockEvents) {
-        it.reversed()
+    val groupedEvents = Transformations.map(timeClockEvents) { events ->
+        events.groupBy {
+            decorateMillisToDateString(it.startTime)
+        }
     }
+    var editingEventId by mutableStateOf(-1L)
 
     init {
         chronometer.setOnChronometerTickListener {
