@@ -3,16 +3,25 @@ package com.nickspatties.timeclock.util
 import com.nickspatties.timeclock.data.TimeClockEvent
 
 fun convertMillisToHoursMinutesSeconds(millis: Long): Triple<Int, Int, Int> {
-    val hours = (millis / 1000 / 60 / 60).toInt()
-    val minutes = (millis / 1000 / 60).toInt()
-    val seconds = (millis / 1000).toInt()
+    val seconds = millis / 1000
+    return convertSecondsToHoursMinutesSeconds(seconds.toInt())
+}
 
-    return Triple(hours, minutes, seconds)
+fun convertSecondsToHoursMinutesSeconds(seconds: Int): Triple<Int, Int, Int> {
+    var remainingSeconds = seconds
+
+    val hours = remainingSeconds / 3600
+    remainingSeconds %= 3600
+
+    val minutes = remainingSeconds / 60
+    remainingSeconds %= 60
+
+    return Triple(hours, minutes, remainingSeconds)
 }
 
 fun decorateMillisLikeStopwatch(millis: Long) : String {
-    val hms = convertMillisToHoursMinutesSeconds(millis)
-    return String.format("%02d:%02d:%02d", hms.first, hms.second, hms.third)
+    val (hours, minutes, seconds) = convertMillisToHoursMinutesSeconds(millis)
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
 }
 
 fun decorateMillisWithDecimalHours(millis: Long) : String {
@@ -46,16 +55,10 @@ fun decorateMillisWithWholeHoursAndMinutes(millis: Long) : String {
 }
 
 fun getTimerString(currSeconds: Int) : String {
-    var remainingSeconds = currSeconds
-
-    val hours = remainingSeconds / 3600
-    remainingSeconds %= 3600
-
-    val minutes = remainingSeconds / 60
-    remainingSeconds %= 60
+    val (hours, minutes, seconds) = convertSecondsToHoursMinutesSeconds(currSeconds)
 
     // decorate string
-    return String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
 }
 
 fun calculateCurrSeconds(

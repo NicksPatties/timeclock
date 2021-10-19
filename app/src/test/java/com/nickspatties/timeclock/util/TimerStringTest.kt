@@ -25,7 +25,21 @@ class TimerStringTest {
     }
 
     @Test
-    fun calculateCurrSeconds_outputIsExpected() {
+    @Parameters(
+        "3600000,1,0,0"
+    )
+    fun convertMillisToHoursMillisSeconds_returnsCorrectValue(
+        millis: Long,
+        expectedHours: Int,
+        expectedMinutes: Int,
+        expectedSeconds: Int
+    ) {
+        assertThat(convertMillisToHoursMinutesSeconds(millis))
+            .isEqualTo(Triple(expectedHours, expectedMinutes, expectedSeconds))
+    }
+
+    @Test
+    fun calculateCurrSeconds_returnsCorrectValue() {
         val testEvent = TimeClockEvent(name = "event name", startTime = 0)
         val mockCurrTime = 1000L
         assertThat(calculateCurrSeconds(testEvent, mockCurrTime)).isEqualTo(1)
