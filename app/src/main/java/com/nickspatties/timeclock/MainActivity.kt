@@ -84,24 +84,6 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
     when(pageId) {
         0 -> ClockPage(viewModel)
         1 -> ListPage(viewModel)
-        2 -> AnalysisPage()
+        2 -> AnalysisPage(viewModel.timeClockEvents)
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun FirstPagePreview() {
-//    TimeClockApp()
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun SecondPagePreview() {
-//    TimeClockApp(1)
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun ThirdPagePreview() {
-//    TimeClockApp(2)
-//}

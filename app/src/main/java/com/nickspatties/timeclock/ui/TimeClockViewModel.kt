@@ -23,7 +23,7 @@ class TimeClockViewModel (
     /**
      * Common properties
      */
-    private var timeClockEvents = database.getAllEvents()
+    var timeClockEvents = database.getAllEvents()
 
     // task names used for autofill dropdown
     val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
@@ -49,7 +49,7 @@ class TimeClockViewModel (
     /**
      * List page properties
      */
-    val groupedEvents = Transformations.map(timeClockEvents) { events ->
+    val groupedEventsByDate = Transformations.map(timeClockEvents) { events ->
         events.groupBy {
             decorateMillisToDateString(it.startTime)
         }

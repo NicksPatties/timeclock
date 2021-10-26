@@ -41,7 +41,7 @@ fun decorateMillisWithDecimalHours(millis: Long) : String {
 
     val precision = 2
 
-    return "%.${precision}f hours".format(decimalHours)
+    return "%.${precision}f".format(decimalHours)
 }
 
 fun decorateMillisWithWholeHoursAndMinutes(millis: Long) : String {

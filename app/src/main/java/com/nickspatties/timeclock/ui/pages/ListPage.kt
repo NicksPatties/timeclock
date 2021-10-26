@@ -20,7 +20,7 @@ import com.nickspatties.timeclock.util.decorateMillisToDateString
 
 @Composable
 fun ListPage(viewModel: TimeClockViewModel) {
-    val groupedEvents = viewModel.groupedEvents.observeAsState()
+    val groupedEvents = viewModel.groupedEventsByDate.observeAsState()
     Scaffold(modifier = Modifier.padding(horizontal = 10.dp)) {
         if (groupedEvents.value.isNullOrEmpty()) {
             NothingHereText()
