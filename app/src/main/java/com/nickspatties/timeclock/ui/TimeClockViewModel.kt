@@ -13,6 +13,7 @@ import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
 import com.nickspatties.timeclock.util.calculateCurrSeconds
 import com.nickspatties.timeclock.util.decorateMillisToDateString
+import com.nickspatties.timeclock.util.findEventStartTimeDelay
 import kotlinx.coroutines.launch
 
 class TimeClockViewModel (
@@ -71,7 +72,8 @@ class TimeClockViewModel (
                 currSeconds = calculateCurrSeconds(currEvent)
                 clockButtonEnabled = true
                 isClockRunning = true
-                chronometer.start()
+                val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
+                chronometer.start(startTimeDelay)
             }
         }
     }
