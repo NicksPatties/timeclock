@@ -59,7 +59,7 @@ class TimeClockViewModel (
 
     init {
         chronometer.setOnChronometerTickListener {
-            currSeconds += 1
+            currSeconds = calculateCurrSeconds(currentTimeClockEvent.value)
         }
         viewModelScope.launch {
             // initialize the currentEvent in case the app was closed while counting

@@ -63,9 +63,10 @@ fun getTimerString(currSeconds: Int) : String {
 }
 
 fun calculateCurrSeconds(
-    event: TimeClockEvent,
+    event: TimeClockEvent?,
     currentTimeMillis: Long = System.currentTimeMillis()
 ): Int {
+    if (event == null) return 0
     return ((currentTimeMillis - event.startTime) / 1000).toInt()
 }
 
