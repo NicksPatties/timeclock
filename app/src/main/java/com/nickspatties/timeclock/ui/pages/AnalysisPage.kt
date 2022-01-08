@@ -19,6 +19,7 @@ import com.google.accompanist.flowlayout.FlowCrossAxisAlignment
 import com.google.accompanist.flowlayout.FlowMainAxisAlignment
 import com.google.accompanist.flowlayout.FlowRow
 import com.nickspatties.timeclock.data.TimeClockEvent
+import com.nickspatties.timeclock.util.MockTimeClockEvents
 import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.sortTotalDurationByName
 
@@ -127,45 +128,13 @@ fun JustNumbersCardEntry(millis: Long, taskName: String) {
 @Preview
 @Composable
 fun JustNumbersCardPreview() {
-    val events = listOf(
-        TimeClockEvent(
-            name = "someName",
-            startTime = 0L,
-            endTime = 1000L
-        ),
-        TimeClockEvent(
-            name = "Another name",
-            startTime = 0L,
-            endTime = 3000L
-        ),
-        TimeClockEvent(
-            name = "Programming",
-            startTime = 0L,
-            endTime = 50000L
-        ),
-        TimeClockEvent(
-            name = "someName",
-            startTime = 0L,
-            endTime = 1000L
-        ),
-        TimeClockEvent(
-            name = "Another name",
-            startTime = 0L,
-            endTime = 3000L
-        ),
-        TimeClockEvent(
-            name = "Programming",
-            startTime = 0L,
-            endTime = 50000L
-        )
-    )
+    val events = MockTimeClockEvents
     JustNumbersCard(events)
 }
 
 @Preview
 @Composable
 fun JustNumbersCardEntryPreview() {
-    val millis = 60000L
-    val taskName = "Programming"
-    JustNumbersCardEntry(millis, taskName)
+    val event = MockTimeClockEvents[0]
+    JustNumbersCardEntry(event.endTime - event.startTime, event.name)
 }

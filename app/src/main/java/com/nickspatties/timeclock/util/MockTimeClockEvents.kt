@@ -1,17 +1,6 @@
 package com.nickspatties.timeclock.util
 
-import androidx.lifecycle.LiveData
 import com.nickspatties.timeclock.data.TimeClockEvent
-
-const val MILLIS_PER_SECOND = 1000L
-const val SECONDS_PER_MINUTE = 60L
-const val MILLIS_PER_MINUTE = MILLIS_PER_SECOND * SECONDS_PER_MINUTE
-const val MINUTES_PER_HOUR = 60L
-const val MILLIS_PER_HOUR = MILLIS_PER_MINUTE * MINUTES_PER_HOUR
-
-fun convertHoursMinutesAndSecondsToMillis(hours: Int = 0, minutes: Int = 0, seconds: Int = 0): Long {
-    return MILLIS_PER_HOUR * hours + MILLIS_PER_MINUTE * minutes + MILLIS_PER_SECOND * seconds
-}
 
 fun createMockTimeClockEventList(eventCount: Int = 5): List<TimeClockEvent> {
     val eventList = mutableListOf<TimeClockEvent>()

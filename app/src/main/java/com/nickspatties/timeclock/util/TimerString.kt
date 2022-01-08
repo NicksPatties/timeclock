@@ -3,23 +3,6 @@ package com.nickspatties.timeclock.util
 import com.nickspatties.timeclock.data.TimeClockEvent
 import java.util.*
 
-fun convertMillisToHoursMinutesSeconds(millis: Long): Triple<Int, Int, Int> {
-    val seconds = millis / 1000
-    return convertSecondsToHoursMinutesSeconds(seconds.toInt())
-}
-
-fun convertSecondsToHoursMinutesSeconds(seconds: Int): Triple<Int, Int, Int> {
-    var remainingSeconds = seconds
-
-    val hours = remainingSeconds / 3600
-    remainingSeconds %= 3600
-
-    val minutes = remainingSeconds / 60
-    remainingSeconds %= 60
-
-    return Triple(hours, minutes, remainingSeconds)
-}
-
 fun decorateMillisLikeStopwatch(millis: Long) : String {
     val (hours, minutes, seconds) = convertMillisToHoursMinutesSeconds(millis)
     return String.format("%02d:%02d:%02d", hours, minutes, seconds)
