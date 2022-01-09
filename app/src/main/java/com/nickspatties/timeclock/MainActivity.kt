@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.lifecycle.ViewModelProvider
@@ -81,8 +82,36 @@ fun TimeClockApp(initialPage: Int = 0, viewModel: TimeClockViewModel) {
 
 @Composable
 fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
+    // inputs for ClockPage
+    val clockEnabled = viewModel.clockButtonEnabled
+    val isRunning = viewModel.isClockRunning
+    val dropdownExpanded = viewModel.dropdownExpanded
+    val taskTextFieldValue = viewModel.taskTextFieldValue
+    val autofillTaskNames = viewModel.autofillTaskNames
+    val currSeconds = viewModel.currSeconds
+
+    val onTaskNameChange = viewModel::onTaskNameChange
+    val onTaskNameDonePressed = viewModel::onTaskNameDonePressed
+    val onDismissDropdown = viewModel::onDismissDropdown
+    val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
+    val startClock = viewModel::startClock
+    val stopClock = viewModel::stopClock
+
     when(pageId) {
-        0 -> ClockPage(viewModel)
+        0 -> ClockPage(
+            clockEnabled = clockEnabled,
+            isRunning = isRunning,
+            dropdownExpanded = dropdownExpanded,
+            taskTextFieldValue = taskTextFieldValue,
+            autofillTaskNames = autofillTaskNames,
+            currSeconds = currSeconds,
+            onTaskNameChange = onTaskNameChange,
+            onTaskNameDonePressed = onTaskNameDonePressed,
+            onDismissDropdown = onDismissDropdown,
+            onDropdownMenuItemClick = onDropdownMenuItemClick,
+            startClock = startClock,
+            stopClock = stopClock
+        )
         1 -> ListPage(viewModel)
         2 -> AnalysisPage(viewModel.timeClockEvents)
     }

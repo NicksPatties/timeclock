@@ -1,9 +1,6 @@
 package com.nickspatties.timeclock.ui.pages
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredSizeIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -16,28 +13,31 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
-import com.nickspatties.timeclock.ui.TimeClockViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.nickspatties.timeclock.util.getTimerString
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ClockPage(viewModel: TimeClockViewModel) {
+fun ClockPage(
+    clockEnabled: Boolean,
+    isRunning: Boolean,
+    dropdownExpanded: Boolean,
+    taskTextFieldValue: TextFieldValue,
+    autofillTaskNames: LiveData<Set<String>>,
+    currSeconds: Int,
+    onTaskNameChange: (TextFieldValue) -> Unit,
+    onTaskNameDonePressed: () -> Unit,
+    onDismissDropdown: () -> Unit,
+    onDropdownMenuItemClick: (String) -> Unit,
+    startClock: () -> Unit,
+    stopClock: () -> Unit
+) {
 
-    val clockEnabled = viewModel.clockButtonEnabled
-    val isRunning = viewModel.isClockRunning
-    val dropdownExpanded = viewModel.dropdownExpanded
-    val taskTextFieldValue = viewModel.taskTextFieldValue
-    val autofillTaskNames = viewModel.autofillTaskNames.observeAsState()
-
-    val onTaskNameChange = viewModel::onTaskNameChange
-    val onTaskNameDonePressed = viewModel::onTaskNameDonePressed
-    val onDismissDropdown = viewModel::onDismissDropdown
-    val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
-    val startClock = viewModel::startClock
-    val stopClock = viewModel::stopClock
-
+    autofillTaskNames.observeAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold() {
@@ -88,7 +88,7 @@ fun ClockPage(viewModel: TimeClockViewModel) {
             }
 
             // timer clock
-            TimerText(currSeconds = viewModel.currSeconds)
+            TimerText(currSeconds = currSeconds)
 
             // button for starting time
             Button(
@@ -144,5 +144,24 @@ fun TimerText(
         modifier = modifier,
         text = getTimerString(currSeconds),
         style = MaterialTheme.typography.h2
+    )
+}
+
+@Composable
+@Preview
+fun ClockPageMockUp() {
+    ClockPage(
+        clockEnabled = true,
+        isRunning = false,
+        dropdownExpanded = false,
+        taskTextFieldValue = TextFieldValue(),
+        autofillTaskNames = MutableLiveData(),
+        currSeconds = 0,
+        onTaskNameChange = { },
+        onTaskNameDonePressed = { },
+        onDismissDropdown = { },
+        onDropdownMenuItemClick = { },
+        startClock = { },
+        stopClock = { }
     )
 }
