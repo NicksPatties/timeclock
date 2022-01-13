@@ -87,7 +87,7 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
     val isRunning = viewModel.isClockRunning
     val dropdownExpanded = viewModel.dropdownExpanded
     val taskTextFieldValue = viewModel.taskTextFieldValue
-    val autofillTaskNames = viewModel.autofillTaskNames
+    val autofillTaskNames = viewModel.autofillTaskNames.observeAsState().value
     val currSeconds = viewModel.currSeconds
 
     val onTaskNameChange = viewModel::onTaskNameChange
@@ -98,7 +98,7 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
     val stopClock = viewModel::stopClock
 
     // inputs for list page
-    val groupedEvents = viewModel.groupedEventsByDate.observeAsState()
+    val groupedEvents = viewModel.groupedEventsByDate.observeAsState().value
     val editingEventId = viewModel.editingEventId
     val onListItemClick =  viewModel::changeEditId
     val onDeleteButtonClick = viewModel::deleteEvent
@@ -120,7 +120,7 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
             stopClock = stopClock
         )
         1 -> ListPage(
-            groupedEvents = groupedEvents.value,
+            groupedEvents = groupedEvents,
             editingEventId = editingEventId,
             onListItemClick = onListItemClick,
             onDeleteButtonClick = onDeleteButtonClick,

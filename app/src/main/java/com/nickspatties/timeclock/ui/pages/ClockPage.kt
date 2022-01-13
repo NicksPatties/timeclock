@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.nickspatties.timeclock.util.MockAutofillValues
 import com.nickspatties.timeclock.util.getTimerString
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -27,7 +28,7 @@ fun ClockPage(
     isRunning: Boolean,
     dropdownExpanded: Boolean,
     taskTextFieldValue: TextFieldValue,
-    autofillTaskNames: LiveData<Set<String>>,
+    autofillTaskNames: Set<String>?,
     currSeconds: Int,
     onTaskNameChange: (TextFieldValue) -> Unit,
     onTaskNameDonePressed: () -> Unit,
@@ -37,7 +38,6 @@ fun ClockPage(
     stopClock: () -> Unit
 ) {
 
-    autofillTaskNames.observeAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold() {
@@ -70,7 +70,7 @@ fun ClockPage(
                         onDismissDropdown()
                     },
                 ) {
-                    val filteredTaskNames = autofillTaskNames.value!!.filter {
+                    val filteredTaskNames = autofillTaskNames!!.filter {
                         it.contains(taskTextFieldValue.text)
                     }
 
@@ -155,7 +155,7 @@ fun ClockPageMockUp() {
         isRunning = false,
         dropdownExpanded = false,
         taskTextFieldValue = TextFieldValue(),
-        autofillTaskNames = MutableLiveData(),
+        autofillTaskNames = MockAutofillValues,
         currSeconds = 0,
         onTaskNameChange = { },
         onTaskNameDonePressed = { },

@@ -24,5 +24,12 @@ fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<TimeClockE
     }
 }
 
-val MockTimeClockEvents: List<TimeClockEvent> = createMockTimeClockEventList()
+fun getAutofillValues(events: List<TimeClockEvent>): Set<String> {
+    return events.map {
+        it.name
+    }.toSet()
+}
+
+val MockTimeClockEvents = createMockTimeClockEventList()
 val MockTimeClockEventsGroupedByDate = groupEventsByDate(MockTimeClockEvents)
+val MockAutofillValues = getAutofillValues(MockTimeClockEvents)
