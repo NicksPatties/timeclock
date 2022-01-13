@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.TimeClockViewModel
+import com.nickspatties.timeclock.util.MockTimeClockEventsGroupedByDate
 import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
 import com.nickspatties.timeclock.util.decorateMillisToDateString
 
@@ -206,3 +207,28 @@ fun TestTimeClockListItemEditor() {
         onDeleteButtonClick = {}
     )
 }
+
+@Preview(showBackground = true)
+@Composable
+fun ListPagePreview() {
+    ListPage(
+        groupedEvents = MockTimeClockEventsGroupedByDate,
+        editingEventId = -1,
+        onListItemClick = {},
+        onDeleteButtonClick = {},
+        onCancelButtonClick = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ListPageEmptyPreview() {
+    ListPage(
+        groupedEvents = emptyMap(),
+        editingEventId = -1,
+        onListItemClick = {},
+        onDeleteButtonClick = {},
+        onCancelButtonClick = {}
+    )
+}
+

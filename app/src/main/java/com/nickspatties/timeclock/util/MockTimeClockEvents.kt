@@ -15,7 +15,14 @@ fun createMockTimeClockEventList(eventCount: Int = 5): List<TimeClockEvent> {
         )
         startTime = endTime + MILLIS_PER_HOUR // each event will be an hour apart from each other
     }
-    return eventList.toList()
+    return eventList.reversed()
+}
+
+fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<TimeClockEvent>> {
+    return events.groupBy {
+        decorateMillisToDateString(it.startTime)
+    }
 }
 
 val MockTimeClockEvents: List<TimeClockEvent> = createMockTimeClockEventList()
+val MockTimeClockEventsGroupedByDate = groupEventsByDate(MockTimeClockEvents)
