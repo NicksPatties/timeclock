@@ -97,6 +97,13 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
     val startClock = viewModel::startClock
     val stopClock = viewModel::stopClock
 
+    // inputs for list page
+    val groupedEvents = viewModel.groupedEventsByDate.observeAsState()
+    val editingEventId = viewModel.editingEventId
+    val onListItemClick =  viewModel::changeEditId
+    val onDeleteButtonClick = viewModel::deleteEvent
+    val onCancelButtonClick =  viewModel::changeEditId
+
     when(pageId) {
         0 -> ClockPage(
             clockEnabled = clockEnabled,
@@ -112,7 +119,13 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
             startClock = startClock,
             stopClock = stopClock
         )
-        1 -> ListPage(viewModel)
+        1 -> ListPage(
+            groupedEvents = groupedEvents.value,
+            editingEventId = editingEventId,
+            onListItemClick = onListItemClick,
+            onDeleteButtonClick = onDeleteButtonClick,
+            onCancelButtonClick = onCancelButtonClick
+        )
         2 -> AnalysisPage(viewModel.timeClockEvents)
     }
 }

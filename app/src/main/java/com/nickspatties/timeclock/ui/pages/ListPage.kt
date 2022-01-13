@@ -8,29 +8,36 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.TimeClockViewModel
 import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
 import com.nickspatties.timeclock.util.decorateMillisToDateString
 
 @Composable
-fun ListPage(viewModel: TimeClockViewModel) {
-    val groupedEvents = viewModel.groupedEventsByDate.observeAsState()
+fun ListPage(
+    groupedEvents: Map<String, List<TimeClockEvent>>?,
+    editingEventId: Long,
+    onListItemClick: (Long) -> Unit,
+    onDeleteButtonClick: (TimeClockEvent) -> Unit,
+    onCancelButtonClick: (Long) -> Unit,
+) {
     Scaffold(modifier = Modifier.padding(horizontal = 10.dp)) {
-        if (groupedEvents.value.isNullOrEmpty()) {
+        if (groupedEvents.isNullOrEmpty()) {
             NothingHereText()
         } else {
             TimeClockList(
-                groupedEvents = groupedEvents.value!!,
-                editingId = viewModel.editingEventId,
-                onDeleteButtonClick = viewModel::deleteEvent,
-                onCancelButtonClick = viewModel::changeEditId,
-                onListItemClick = viewModel::changeEditId
+                groupedEvents = groupedEvents,
+                editingId = editingEventId,
+                onDeleteButtonClick = onDeleteButtonClick,
+                onCancelButtonClick = onCancelButtonClick,
+                onListItemClick = onListItemClick
             )
         }
     }
