@@ -5,7 +5,7 @@ buildscript {
         kotlin_version = '1.5.31'
         compose_version = '1.0.5'
         accompanist_version = '0.18.0'
-        room_version = '2.3.0'
+        room_version = '2.4.1'
         coroutine_version = '1.5.0'
     }
     repositories {
