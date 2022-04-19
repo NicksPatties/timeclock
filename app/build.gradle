@@ -64,8 +64,6 @@ dependencies {
     implementation 'androidx.activity:activity-compose:1.4.0'
 
     // Accompanist
-    implementation "com.google.accompanist:accompanist-pager:$accompanist_version"
-    implementation "com.google.accompanist:accompanist-pager-indicators:$accompanist_version"
     implementation "com.google.accompanist:accompanist-flowlayout:$accompanist_version"
 
     // Room database
