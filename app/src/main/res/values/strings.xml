@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">TimeClock</string>
+    <string name="route_clock">clock</string>
+    <string name="route_list">list</string>
+    <string name="route_metrics">metrics</string>
+    <string name="label_clock">Clock</string>
+    <string name="label_list">List</string>
+    <string name="label_metrics">Metrics</string>
 </resources>

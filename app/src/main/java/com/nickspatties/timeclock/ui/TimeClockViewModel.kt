@@ -2,6 +2,8 @@ package com.nickspatties.timeclock.ui
 
 import android.app.Application
 import android.widget.Toast
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,6 +13,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
+import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
@@ -35,14 +38,6 @@ class TimeClockViewModel (
             it.name
         }.toSet()
     }
-
-    companion object {
-        const val clockPath = "clock"
-        const val listPath = "list"
-        const val metricsPath = "metrics"
-    }
-
-    var currPage = mutableStateOf(clockPath)
 
     /**
      * Clock Page properties
@@ -87,10 +82,6 @@ class TimeClockViewModel (
                 chronometer.start(startTimeDelay)
             }
         }
-    }
-
-    fun onBottomNavBarButtonPressed(pageId: String) {
-        currPage.value = pageId
     }
 
     /**
@@ -178,4 +169,19 @@ class TimeClockViewModel (
             editingEventId = -1
         }
     }
+}
+
+sealed class Screen(
+    @StringRes val routeResourceId: Int,
+    @StringRes val labelResourceId: Int,
+    @DrawableRes val iconResourceId: Int
+) {
+    object Clock :
+        Screen(R.string.route_clock, R.string.label_clock, R.drawable.ic_baseline_clock_24)
+
+    object List :
+        Screen(R.string.route_list, R.string.label_list, R.drawable.ic_baseline_list_24)
+
+    object Metrics :
+        Screen(R.string.route_metrics, R.string.label_metrics, R.drawable.ic_baseline_pie_chart_24)
 }

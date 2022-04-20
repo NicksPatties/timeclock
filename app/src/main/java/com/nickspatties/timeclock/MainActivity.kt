@@ -5,15 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.nickspatties.timeclock.data.TimeClockEventDatabase
+import com.nickspatties.timeclock.ui.Screen
 import com.nickspatties.timeclock.ui.TimeClockViewModel
-import com.nickspatties.timeclock.ui.TimeClockViewModel.Companion.clockPath
-import com.nickspatties.timeclock.ui.TimeClockViewModel.Companion.listPath
-import com.nickspatties.timeclock.ui.TimeClockViewModel.Companion.metricsPath
 import com.nickspatties.timeclock.ui.TimeClockViewModelFactory
-import com.nickspatties.timeclock.ui.components.BottomBar
 import com.nickspatties.timeclock.ui.pages.AnalysisPage
 import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
@@ -37,30 +43,56 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/**
- * initialPage - index of the initial page to test. 0 for clock page,
- * 1 for ListPage, 2 for AnalysisPage
- */
 @Composable
 fun TimeClockApp(viewModel: TimeClockViewModel) {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = backStackEntry?.destination
+
     TimeClockTheme {
         Scaffold(
             bottomBar = {
-                BottomBar(
-                    currPage = viewModel.currPage.value,
-                    onBottomNavButtonPressed = viewModel::onBottomNavBarButtonPressed
-                )
+                BottomNavigation() {
+                    val screens = listOf(Screen.Clock, Screen.List, Screen.Metrics)
+                    for (i in screens) {
+                        val route = stringResource(i.routeResourceId)
+                        val label = stringResource(i.labelResourceId)
+                        val icon = i.iconResourceId
+                        BottomNavigationItem(
+                            selected = currentDestination?.hierarchy?.any { it.route == route } == true,
+                            onClick = {
+                                navController.navigate(route) {
+                                    launchSingleTop = true
+                                }
+                             },
+                            label = { Text(label) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = icon),
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+                }
             },
             content = {
-                PageSelector(viewModel.currPage.value, viewModel)
+                NavigationComponent(
+                    viewModel = viewModel,
+                    navController = navController,
+                    startDestination = stringResource(R.string.route_clock)
+                )
             }
         )
     }
 }
 
 @Composable
-fun PageSelector(pageId: String, viewModel: TimeClockViewModel) {
-    // inputs for ClockPage
+fun NavigationComponent(
+    viewModel: TimeClockViewModel,
+    navController: NavHostController,
+    startDestination: String
+) {
     val clockEnabled = viewModel.clockButtonEnabled
     val isRunning = viewModel.isClockRunning
     val dropdownExpanded = viewModel.dropdownExpanded
@@ -75,35 +107,44 @@ fun PageSelector(pageId: String, viewModel: TimeClockViewModel) {
     val startClock = viewModel::startClock
     val stopClock = viewModel::stopClock
 
-    // inputs for list page
     val groupedEvents = viewModel.groupedEventsByDate.observeAsState().value
     val editingEventId = viewModel.editingEventId
     val onListItemClick =  viewModel::changeEditId
     val onDeleteButtonClick = viewModel::deleteEvent
     val onCancelButtonClick =  viewModel::changeEditId
 
-    when(pageId) {
-        clockPath -> ClockPage(
-            clockEnabled = clockEnabled,
-            isRunning = isRunning,
-            dropdownExpanded = dropdownExpanded,
-            taskTextFieldValue = taskTextFieldValue,
-            autofillTaskNames = autofillTaskNames,
-            currSeconds = currSeconds,
-            onTaskNameChange = onTaskNameChange,
-            onTaskNameDonePressed = onTaskNameDonePressed,
-            onDismissDropdown = onDismissDropdown,
-            onDropdownMenuItemClick = onDropdownMenuItemClick,
-            startClock = startClock,
-            stopClock = stopClock
-        )
-        listPath -> ListPage(
-            groupedEvents = groupedEvents,
-            editingEventId = editingEventId,
-            onListItemClick = onListItemClick,
-            onDeleteButtonClick = onDeleteButtonClick,
-            onCancelButtonClick = onCancelButtonClick
-        )
-        metricsPath -> AnalysisPage(viewModel.timeClockEvents)
+    val clockRoute = stringResource(id = R.string.route_clock)
+    val listRoute = stringResource(id = R.string.route_list)
+    val metricsRoute = stringResource(id = R.string.route_metrics)
+
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(clockRoute) {
+            ClockPage(
+                clockEnabled = clockEnabled,
+                isRunning = isRunning,
+                dropdownExpanded = dropdownExpanded,
+                taskTextFieldValue = taskTextFieldValue,
+                autofillTaskNames = autofillTaskNames,
+                currSeconds = currSeconds,
+                onTaskNameChange = onTaskNameChange,
+                onTaskNameDonePressed = onTaskNameDonePressed,
+                onDismissDropdown = onDismissDropdown,
+                onDropdownMenuItemClick = onDropdownMenuItemClick,
+                startClock = startClock,
+                stopClock = stopClock
+            )
+        }
+        composable(listRoute) {
+            ListPage(
+                groupedEvents = groupedEvents,
+                editingEventId = editingEventId,
+                onListItemClick = onListItemClick,
+                onDeleteButtonClick = onDeleteButtonClick,
+                onCancelButtonClick = onCancelButtonClick
+            )
+        }
+        composable(metricsRoute) {
+            AnalysisPage(viewModel.timeClockEvents)
+        }
     }
 }
