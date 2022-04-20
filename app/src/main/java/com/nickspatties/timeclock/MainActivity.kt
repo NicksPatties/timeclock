@@ -6,13 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import com.nickspatties.timeclock.data.TimeClockEventDatabase
 import com.nickspatties.timeclock.ui.TimeClockViewModel
+import com.nickspatties.timeclock.ui.TimeClockViewModel.Companion.clockPath
+import com.nickspatties.timeclock.ui.TimeClockViewModel.Companion.listPath
+import com.nickspatties.timeclock.ui.TimeClockViewModel.Companion.metricsPath
 import com.nickspatties.timeclock.ui.TimeClockViewModelFactory
+import com.nickspatties.timeclock.ui.components.BottomBar
 import com.nickspatties.timeclock.ui.pages.AnalysisPage
 import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
@@ -42,51 +43,13 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 fun TimeClockApp(viewModel: TimeClockViewModel) {
-    val currPage = viewModel.currPage
     TimeClockTheme {
         Scaffold(
             bottomBar = {
-                BottomNavigation() {
-                    BottomNavigationItem(
-                        selected = viewModel.currPage.value == 0,
-                        onClick = { viewModel.onBottomNavBarButtonPressed(0) },
-                        label = {
-                            Text("Clock")
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_baseline_clock_24),
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    BottomNavigationItem(
-                        selected = viewModel.currPage.value == 1,
-                        onClick = { viewModel.onBottomNavBarButtonPressed(1) },
-                        label = {
-                            Text("List")
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_baseline_list_24),
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    BottomNavigationItem(
-                        selected = viewModel.currPage.value == 2,
-                        onClick = { viewModel.onBottomNavBarButtonPressed(2) },
-                        label = {
-                            Text("Metrics")
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_baseline_pie_chart_24),
-                                contentDescription = null
-                            )
-                        }
-                    )
-                }
+                BottomBar(
+                    currPage = viewModel.currPage.value,
+                    onBottomNavButtonPressed = viewModel::onBottomNavBarButtonPressed
+                )
             },
             content = {
                 PageSelector(viewModel.currPage.value, viewModel)
@@ -96,7 +59,7 @@ fun TimeClockApp(viewModel: TimeClockViewModel) {
 }
 
 @Composable
-fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
+fun PageSelector(pageId: String, viewModel: TimeClockViewModel) {
     // inputs for ClockPage
     val clockEnabled = viewModel.clockButtonEnabled
     val isRunning = viewModel.isClockRunning
@@ -120,7 +83,7 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
     val onCancelButtonClick =  viewModel::changeEditId
 
     when(pageId) {
-        0 -> ClockPage(
+        clockPath -> ClockPage(
             clockEnabled = clockEnabled,
             isRunning = isRunning,
             dropdownExpanded = dropdownExpanded,
@@ -134,13 +97,13 @@ fun PageSelector(pageId: Int, viewModel: TimeClockViewModel) {
             startClock = startClock,
             stopClock = stopClock
         )
-        1 -> ListPage(
+        listPath -> ListPage(
             groupedEvents = groupedEvents,
             editingEventId = editingEventId,
             onListItemClick = onListItemClick,
             onDeleteButtonClick = onDeleteButtonClick,
             onCancelButtonClick = onCancelButtonClick
         )
-        2 -> AnalysisPage(viewModel.timeClockEvents)
+        metricsPath -> AnalysisPage(viewModel.timeClockEvents)
     }
 }

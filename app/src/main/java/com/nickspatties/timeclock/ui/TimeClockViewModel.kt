@@ -7,7 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.viewModelScope
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
@@ -33,8 +36,13 @@ class TimeClockViewModel (
         }.toSet()
     }
 
-    // 0 = clock page, 1 = list page, 2 = analysis page
-    var currPage = mutableStateOf(0)
+    companion object {
+        const val clockPath = "clock"
+        const val listPath = "list"
+        const val metricsPath = "metrics"
+    }
+
+    var currPage = mutableStateOf(clockPath)
 
     /**
      * Clock Page properties
@@ -81,6 +89,10 @@ class TimeClockViewModel (
         }
     }
 
+    fun onBottomNavBarButtonPressed(pageId: String) {
+        currPage.value = pageId
+    }
+
     /**
      * Clock page functions
      */
@@ -90,10 +102,6 @@ class TimeClockViewModel (
             return null // because this event has already been completed
         }
         return event
-    }
-
-    fun onBottomNavBarButtonPressed(pageId: Int) {
-        currPage.value = pageId
     }
 
     fun onTaskNameChange(tfv: TextFieldValue) {
