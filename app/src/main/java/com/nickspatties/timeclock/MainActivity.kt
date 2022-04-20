@@ -3,10 +3,12 @@ package com.nickspatties.timeclock
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import com.nickspatties.timeclock.data.TimeClockEventDatabase
 import com.nickspatties.timeclock.ui.TimeClockViewModel
@@ -39,12 +41,57 @@ class MainActivity : ComponentActivity() {
  * 1 for ListPage, 2 for AnalysisPage
  */
 @Composable
-fun TimeClockApp(initialPage: Int = 0, viewModel: TimeClockViewModel) {
+fun TimeClockApp(viewModel: TimeClockViewModel) {
+    val currPage = viewModel.currPage
     TimeClockTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(color = MaterialTheme.colors.background) {
-            PageSelector(initialPage, viewModel)
-        }
+        Scaffold(
+            bottomBar = {
+                BottomNavigation() {
+                    BottomNavigationItem(
+                        selected = viewModel.currPage.value == 0,
+                        onClick = { viewModel.onBottomNavBarButtonPressed(0) },
+                        label = {
+                            Text("Clock")
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_baseline_clock_24),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    BottomNavigationItem(
+                        selected = viewModel.currPage.value == 1,
+                        onClick = { viewModel.onBottomNavBarButtonPressed(1) },
+                        label = {
+                            Text("List")
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_baseline_list_24),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    BottomNavigationItem(
+                        selected = viewModel.currPage.value == 2,
+                        onClick = { viewModel.onBottomNavBarButtonPressed(2) },
+                        label = {
+                            Text("Metrics")
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_baseline_pie_chart_24),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                }
+            },
+            content = {
+                PageSelector(viewModel.currPage.value, viewModel)
+            }
+        )
     }
 }
 

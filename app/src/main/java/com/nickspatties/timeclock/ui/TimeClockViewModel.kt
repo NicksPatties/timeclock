@@ -33,6 +33,9 @@ class TimeClockViewModel (
         }.toSet()
     }
 
+    // 0 = clock page, 1 = list page, 2 = analysis page
+    var currPage = mutableStateOf(0)
+
     /**
      * Clock Page properties
      */
@@ -87,6 +90,10 @@ class TimeClockViewModel (
             return null // because this event has already been completed
         }
         return event
+    }
+
+    fun onBottomNavBarButtonPressed(pageId: Int) {
+        currPage.value = pageId
     }
 
     fun onTaskNameChange(tfv: TextFieldValue) {
