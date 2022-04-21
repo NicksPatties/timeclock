@@ -50,7 +50,6 @@ fun AnalysisPage(eventsData: LiveData<List<TimeClockEvent>>) {
         // List of analysis cards that are shown
         Column (
             Modifier
-                .padding(bottom = 50.dp)
                 .verticalScroll(verticalScrollState)
         ){
             analysisCards.forEach { card ->
