@@ -8,15 +8,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
 import com.nickspatties.timeclock.data.TimeClockEvent
-import com.nickspatties.timeclock.ui.TimeClockViewModel
 import com.nickspatties.timeclock.util.MockTimeClockEventsGroupedByDate
 import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
 import com.nickspatties.timeclock.util.decorateMillisToDateString
@@ -29,7 +25,7 @@ fun ListPage(
     onDeleteButtonClick: (TimeClockEvent) -> Unit,
     onCancelButtonClick: (Long) -> Unit,
 ) {
-    Scaffold(modifier = Modifier.padding(horizontal = 10.dp)) {
+    Scaffold() {
         if (groupedEvents.isNullOrEmpty()) {
             NothingHereText()
         } else {
@@ -65,9 +61,7 @@ fun TimeClockList (
     onDeleteButtonClick: (TimeClockEvent) -> Unit,
     onListItemClick: (Long) -> Unit
 ) {
-    LazyColumn (
-        modifier = Modifier.padding(5.dp, 50.dp)
-    ) {
+    LazyColumn () {
         groupedEvents.forEach { (dateString, events) ->
             stickyHeader {
                 DateHeader(dateString = dateString)

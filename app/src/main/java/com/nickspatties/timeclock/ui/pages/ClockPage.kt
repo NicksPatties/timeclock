@@ -15,8 +15,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import com.nickspatties.timeclock.ui.components.StartTimerButton
+import com.nickspatties.timeclock.ui.components.TimerText
 import com.nickspatties.timeclock.util.MockAutofillValues
-import com.nickspatties.timeclock.util.getTimerString
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -39,14 +40,15 @@ fun ClockPage(
 
     Scaffold() {
         Column(
-            modifier = Modifier.fillMaxSize(1f),
-            verticalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column {
                 // Task name input
                 // todo character limit 120
                 TaskTextField(
+                    modifier = Modifier.fillMaxWidth(),
                     value = taskTextFieldValue,
                     enabled = !isRunning,
                     onTaskNameChange = {
@@ -60,7 +62,9 @@ fun ClockPage(
 
                 DropdownMenu(
                     modifier = Modifier
-                        .requiredSizeIn(maxHeight = 144.dp), // 144 = 3 * 48 (the default height of a DropdownMenuItem
+                        // 144 = 3 * 48 (the default height of a DropdownMenuItem
+                        .requiredSizeIn(maxHeight = 144.dp)
+                        .fillMaxWidth(),
                     expanded = dropdownExpanded,
                     properties = PopupProperties(focusable = false),
                     onDismissRequest = {
@@ -85,17 +89,17 @@ fun ClockPage(
             }
 
             // timer clock
-            TimerText(currSeconds = currSeconds)
+            TimerText(
+                isRunning = isRunning,
+                currSeconds = currSeconds
+            )
 
-            // button for starting time
-            Button(
-                enabled = clockEnabled,
-                onClick = { if (isRunning) stopClock() else startClock() }
-            ) {
-                Text(
-                    text = if (isRunning) "Stop" else "Start"
-                )
-            }
+            StartTimerButton(
+                clockEnabled = clockEnabled,
+                isRunning = isRunning,
+                startClock = startClock,
+                stopClock = stopClock
+            )
         }
     }
 }
@@ -128,19 +132,6 @@ fun TaskTextField(
             onDone()
             keyboardController?.hide()
         })
-    )
-}
-
-@Composable
-fun TimerText(
-    modifier: Modifier = Modifier,
-    currSeconds: Int
-) {
-    // timer clock
-    Text(
-        modifier = modifier,
-        text = getTimerString(currSeconds),
-        style = MaterialTheme.typography.h2
     )
 }
 

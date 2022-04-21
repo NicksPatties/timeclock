@@ -46,8 +46,7 @@ fun AnalysisPage(eventsData: LiveData<List<TimeClockEvent>>) {
         }
     )
 
-    Scaffold(modifier = Modifier.padding(horizontal = 10.dp)) {
-
+    Scaffold() {
         // List of analysis cards that are shown
         Column (
             Modifier
@@ -63,14 +62,8 @@ fun AnalysisPage(eventsData: LiveData<List<TimeClockEvent>>) {
 
 @Composable
 fun AnalysisCardContainer(name: String, content: @Composable () -> Unit) {
-    Card (
-        modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth()
-    ) {
-        Column (
-            modifier = Modifier.padding(5.dp)
-        ) {
+    Card (modifier = Modifier.fillMaxWidth()) {
+        Column () {
             Text(name)
             Box (
                 modifier = Modifier

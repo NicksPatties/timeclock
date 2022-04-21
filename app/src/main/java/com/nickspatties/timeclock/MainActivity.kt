@@ -52,7 +52,7 @@ fun TimeClockApp(viewModel: TimeClockViewModel) {
     TimeClockTheme {
         Scaffold(
             bottomBar = {
-                BottomNavigation() {
+                BottomNavigation {
                     val screens = listOf(Screen.Clock, Screen.List, Screen.Metrics)
                     for (i in screens) {
                         val route = stringResource(i.routeResourceId)
@@ -117,7 +117,10 @@ fun NavigationComponent(
     val listRoute = stringResource(id = R.string.route_list)
     val metricsRoute = stringResource(id = R.string.route_metrics)
 
-    NavHost(navController = navController, startDestination = startDestination) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
         composable(clockRoute) {
             ClockPage(
                 clockEnabled = clockEnabled,
