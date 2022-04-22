@@ -33,7 +33,8 @@ fun ClockPage(
     onDismissDropdown: () -> Unit,
     onDropdownMenuItemClick: (String) -> Unit,
     startClock: () -> Unit,
-    stopClock: () -> Unit
+    stopClock: () -> Unit,
+    timerAnimationFinishedListener: () -> Unit = {}
 ) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -91,7 +92,8 @@ fun ClockPage(
             // timer clock
             TimerText(
                 isRunning = isRunning,
-                currSeconds = currSeconds
+                currSeconds = currSeconds,
+                finishedListener = timerAnimationFinishedListener
             )
 
             StartTimerButton(

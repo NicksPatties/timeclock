@@ -14,15 +14,20 @@ import com.nickspatties.timeclock.util.getTimerString
 fun TimerText(
     modifier: Modifier = Modifier,
     isRunning: Boolean,
-    currSeconds: Int
+    currSeconds: Int,
+    finishedListener: () -> Unit = { }
 ) {
-    val alpha: Float by animateFloatAsState(if (isRunning) 1f else 0f)
+    val alpha: Float by animateFloatAsState(
+        targetValue = if (isRunning) 1f else 0f,
+        finishedListener = { finishedListener() }
+    )
     Text(
         modifier = modifier.graphicsLayer(alpha = alpha),
         text = getTimerString(currSeconds),
         style = MaterialTheme.typography.h2
     )
 }
+
 
 @Preview
 @Composable

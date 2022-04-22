@@ -139,16 +139,17 @@ class TimeClockViewModel (
         viewModelScope.launch {
             val finishedEvent = currentTimeClockEvent.value ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
-            database.update(finishedEvent)
             chronometer.stop()
+            // saving...
+            database.update(finishedEvent)
+            // successfully saved!
             showToast("Task \"${taskTextFieldValue.text}\" saved!")
             currentTimeClockEvent.value = null
             isClockRunning = false
-            resetCurrSeconds()
         }
     }
 
-    private fun resetCurrSeconds() {
+    fun resetCurrSeconds() {
         currSeconds = 0
     }
 

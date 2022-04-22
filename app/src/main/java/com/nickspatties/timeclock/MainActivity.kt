@@ -110,6 +110,7 @@ fun NavigationComponent(
     val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
     val startClock = viewModel::startClock
     val stopClock = viewModel::stopClock
+    val onTimerAnimationFinished = viewModel::resetCurrSeconds
 
     val groupedEvents = viewModel.groupedEventsByDate.observeAsState().value
     val editingEventId = viewModel.editingEventId
@@ -139,7 +140,8 @@ fun NavigationComponent(
                 onDismissDropdown = onDismissDropdown,
                 onDropdownMenuItemClick = onDropdownMenuItemClick,
                 startClock = startClock,
-                stopClock = stopClock
+                stopClock = stopClock,
+                timerAnimationFinishedListener = onTimerAnimationFinished
             )
         }
         composable(listRoute) {
