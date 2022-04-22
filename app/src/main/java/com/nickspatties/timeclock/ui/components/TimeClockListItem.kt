@@ -1,12 +1,10 @@
 package com.nickspatties.timeclock.ui.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,11 +19,15 @@ fun TimeClockListItem(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth(1f)
-            .padding(8.dp)
             .clickable { onClick() }
+            .fillMaxWidth()
+            .height(TextFieldDefaults.MinHeight)
+            .padding(8.dp)
     ) {
-        Column {
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(text = event.name, style = MaterialTheme.typography.body1)
             val elapsedTime = event.endTime - event.startTime
             if (event.isRunning) {
@@ -35,7 +37,7 @@ fun TimeClockListItem(
                 )
             } else {
                 Text(
-                    text = "Elapsed time: ${decorateMillisLikeStopwatch(elapsedTime)}",
+                    text = decorateMillisLikeStopwatch(elapsedTime),
                     style = MaterialTheme.typography.caption
                 )
             }
