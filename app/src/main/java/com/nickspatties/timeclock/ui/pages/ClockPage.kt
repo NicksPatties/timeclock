@@ -1,20 +1,20 @@
 package com.nickspatties.timeclock.ui.pages
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import com.nickspatties.timeclock.data.TaskTextField
 import com.nickspatties.timeclock.ui.components.StartTimerButton
 import com.nickspatties.timeclock.ui.components.TimerText
 import com.nickspatties.timeclock.util.MockAutofillValues
@@ -104,37 +104,6 @@ fun ClockPage(
             )
         }
     }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun TaskTextField(
-    modifier: Modifier = Modifier,
-    value: TextFieldValue,
-    enabled: Boolean,
-    onTaskNameChange: (TextFieldValue) -> Unit,
-    onDone: () -> Unit = {},
-    keyboardController: SoftwareKeyboardController?
-) {
-
-    TextField(
-        modifier = modifier,
-        value = value,
-        enabled = enabled,
-        onValueChange = onTaskNameChange,
-        singleLine = true,
-        label = {
-            Text("I am going to...")
-        },
-        placeholder = {
-            Text("what are you doing?")
-        },
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = {
-            onDone()
-            keyboardController?.hide()
-        })
-    )
 }
 
 @Composable
