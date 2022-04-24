@@ -20,6 +20,8 @@ import com.nickspatties.timeclock.ui.components.ListPageDateHeader
 import com.nickspatties.timeclock.ui.components.TimeClockListItem
 import com.nickspatties.timeclock.ui.components.TimeClockListItemEditor
 import com.nickspatties.timeclock.util.MockTimeClockEventsGroupedByDate
+import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
+import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
 fun ListPage(
@@ -96,16 +98,21 @@ fun TimeClockList (
                             onDeleteButtonClick = { onDeleteButtonClick(item) }
                         )
                     }
-                    item.isRunning -> {
-                        TimeClockListItem(
-                            event = item,
-                            onClick = {}
-                        )
-                    }
                     else -> {
+                        val accentColor = generateColorFromString(item.name)
+                        val titleName = item.name
+                        val elapsedTime = item.endTime - item.startTime
+                        val subtitleName =
+                            if (item.isRunning) "Running..."
+                            else decorateMillisLikeStopwatch(elapsedTime)
+
                         TimeClockListItem(
-                            event = item,
-                            onClick = { onListItemClick(item.id) }
+                            title = titleName,
+                            subtitle = subtitleName,
+                            accentColor = accentColor,
+                            onClick = {
+                                if(!item.isRunning) onListItemClick(item.id)
+                            }
                         )
                     }
                 }
