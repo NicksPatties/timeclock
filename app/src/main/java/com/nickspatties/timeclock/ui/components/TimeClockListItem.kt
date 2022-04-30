@@ -1,8 +1,8 @@
 package com.nickspatties.timeclock.ui.components
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,7 +17,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.util.decorateMillisToDateString
-import com.nickspatties.timeclock.util.generateColorFromString
 
 /**
  * The individual item in a list of TimeClock items.
@@ -27,7 +26,6 @@ import com.nickspatties.timeclock.util.generateColorFromString
  * @param accentColor The color that appears on the left side of the item
  * @param onClick The function to execute when a list item is clicked
  */
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun TimeClockListItem(
     accentColor: Color? = null,
@@ -40,6 +38,9 @@ fun TimeClockListItem(
     }
 ) {
     var isClosed by remember { mutableStateOf(true) }
+    val itemHeight by animateDpAsState(
+        targetValue = if (isClosed) TextFieldDefaults.MinHeight else 120.dp
+    )
     Box(
         modifier = Modifier
             .clickable {
@@ -47,11 +48,9 @@ fun TimeClockListItem(
                 isClosed = !isClosed
             }
             .fillMaxWidth()
-            .height(TextFieldDefaults.MinHeight)
+            .height(itemHeight)
     ) {
-        Row(
-            modifier = Modifier.animateContentSize()
-        ) {
+        Row() {
             if (accentColor != null) {
                 Box(
                     modifier = Modifier
@@ -60,10 +59,9 @@ fun TimeClockListItem(
                         .background(accentColor),
                 )
             }
-            AnimatedContent(targetState = isClosed) { closed ->
+            Crossfade(targetState = isClosed) { closed ->
                 if (closed) closedContent() else openContent()
             }
-            //if (isClosed) closedContent() else openContent()
         }
     }
 }
