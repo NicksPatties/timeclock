@@ -107,11 +107,9 @@ fun TimeClockList (
                             else decorateMillisLikeStopwatch(elapsedTime)
 
                         TimeClockListItem(
-                            title = titleName,
-                            subtitle = subtitleName,
                             accentColor = accentColor,
                             onClick = {
-                                if(!item.isRunning) onListItemClick(item.id)
+                                //if(!item.isRunning) onListItemClick(item.id)
                             }
                         )
                     }

@@ -1,17 +1,22 @@
 package com.nickspatties.timeclock.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nickspatties.timeclock.util.decorateMillisToDateString
 import com.nickspatties.timeclock.util.generateColorFromString
 
 /**
@@ -22,20 +27,31 @@ import com.nickspatties.timeclock.util.generateColorFromString
  * @param accentColor The color that appears on the left side of the item
  * @param onClick The function to execute when a list item is clicked
  */
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun TimeClockListItem(
-    title: String,
-    subtitle: String,
     accentColor: Color? = null,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    closedContent: @Composable () -> Unit = {
+        ClosedContent()
+    },
+    openContent: @Composable () -> Unit = {
+        OpenContent()
+    }
 ) {
+    var isClosed by remember { mutableStateOf(true) }
     Box(
         modifier = Modifier
-            .clickable { onClick() }
+            .clickable {
+                onClick()
+                isClosed = !isClosed
+            }
             .fillMaxWidth()
             .height(TextFieldDefaults.MinHeight)
     ) {
-        Row() {
+        Row(
+            modifier = Modifier.animateContentSize()
+        ) {
             if (accentColor != null) {
                 Box(
                     modifier = Modifier
@@ -44,22 +60,65 @@ fun TimeClockListItem(
                         .background(accentColor),
                 )
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(8.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+            AnimatedContent(targetState = isClosed) { closed ->
+                if (closed) closedContent() else openContent()
+            }
+            //if (isClosed) closedContent() else openContent()
+        }
+    }
+}
+
+@Composable
+fun ClosedContent(
+    title: String = "Title string",
+    subtitle: String = "Subtitle string"
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.body1,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.caption
+        )
+    }
+}
+
+@Composable
+fun OpenContent() {
+    val eventName = "Some event name"
+    val startTime = 0L
+    val endTime = 10000000L
+    val onCancelButtonClick = {}
+    val onDeleteButtonClick = {}
+    Column (
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(text = eventName, style = MaterialTheme.typography.body1)
+        Text(text = "startTime ${decorateMillisToDateString(startTime)}", style = MaterialTheme.typography.body1)
+        Text(text = "endTime: ${decorateMillisToDateString(endTime)}", style = MaterialTheme.typography.body1)
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Button(
+                onClick = onCancelButtonClick
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.body1,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.caption
-                )
+                Text(text = "Cancel", style = MaterialTheme.typography.body1)
+            }
+            Button(
+                onClick = onDeleteButtonClick
+            ) {
+                Text(text = "Delete", style = MaterialTheme.typography.body1)
             }
         }
     }
@@ -69,49 +128,5 @@ fun TimeClockListItem(
 @Composable
 fun HappyCase() {
     val title = "Programming"
-    val accentColor = generateColorFromString(title)
-    val subtitle = "01:23:45"
-    TimeClockListItem(
-        title = title,
-        subtitle = subtitle,
-        accentColor = accentColor
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TimerRunning() {
-    val title = "Programming"
-    val accentColor = generateColorFromString(title)
-    val subtitle = "Is Running..."
-    TimeClockListItem(
-        title = title,
-        subtitle = subtitle,
-        accentColor = accentColor
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LongTitleName() {
-    val title =
-        "Writing my very long thesis on how to make text fields truncate properly."
-    val accentColor = generateColorFromString(title)
-    val subtitle = "01:23:45"
-    TimeClockListItem(
-        title = title,
-        subtitle = subtitle,
-        accentColor = accentColor
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun NoAccentColor() {
-    val title = "There is no accent color."
-    val subtitle = "How neat is that?"
-    TimeClockListItem(
-        title = title,
-        subtitle = subtitle
-    )
+    TimeClockListItem()
 }
