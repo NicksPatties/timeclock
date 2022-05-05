@@ -1,7 +1,6 @@
 package com.nickspatties.timeclock.ui.components
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,34 +9,37 @@ import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
 import com.nickspatties.timeclock.util.decorateMillisToDateString
+import com.nickspatties.timeclock.util.generateColorFromString
 
 /**
  * The individual item in a list of TimeClock items.
  *
- * @param title The text that appears at the top of the line
- * @param subtitle The text that appears at the bottom line
+ * @param isClosed determine if the list item is open or closed
  * @param accentColor The color that appears on the left side of the item
  * @param onClick The function to execute when a list item is clicked
+ * @param closedContent Composable which shows the closed content of the list item
+ * @param openContent Composable that shows the content of the list item when a
+ *   user clicks an item
  */
 @Composable
 fun TimeClockListItem(
+    isClosed: Boolean = true,
     accentColor: Color? = null,
     onClick: () -> Unit = {},
     closedContent: @Composable () -> Unit = {
-        ClosedContent()
+        ClosedContent("Title", "Subtitle")
     },
-    openContent: @Composable () -> Unit = {
-        OpenContent()
-    }
+    openContent: @Composable () -> Unit = {}
 ) {
-    var isClosed by remember { mutableStateOf(true) }
     val itemHeight by animateDpAsState(
         targetValue = if (isClosed) TextFieldDefaults.MinHeight else 120.dp
     )
@@ -45,7 +47,6 @@ fun TimeClockListItem(
         modifier = Modifier
             .clickable {
                 onClick()
-                isClosed = !isClosed
             }
             .fillMaxWidth()
             .height(itemHeight)
@@ -60,7 +61,11 @@ fun TimeClockListItem(
                 )
             }
             Crossfade(targetState = isClosed) { closed ->
-                if (closed) closedContent() else openContent()
+                if (closed) {
+                    closedContent()
+                } else {
+                    openContent()
+                }
             }
         }
     }
@@ -68,8 +73,8 @@ fun TimeClockListItem(
 
 @Composable
 fun ClosedContent(
-    title: String = "Title string",
-    subtitle: String = "Subtitle string"
+    title: String,
+    subtitle: String
 ) {
     Column(
         modifier = Modifier
@@ -90,13 +95,23 @@ fun ClosedContent(
     }
 }
 
+/**
+ * Displays the open content of the list item
+ *
+ * @param eventName The name of the event displayed on the top
+ * @param startTime The start time in milliseconds of the event
+ * @param endTime The end time in milliseconds of the event
+ * @param onCancelButtonClick callback function when the cancel button is clicked
+ * @param onDeleteButtonClick callback function when delete button is clicked
+ */
 @Composable
-fun OpenContent() {
-    val eventName = "Some event name"
-    val startTime = 0L
-    val endTime = 10000000L
-    val onCancelButtonClick = {}
-    val onDeleteButtonClick = {}
+fun OpenContent(
+    eventName: String,
+    startTime: Long,
+    endTime: Long,
+    onCancelButtonClick: () -> Unit = {},
+    onDeleteButtonClick: () -> Unit = {}
+) {
     Column (
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -124,7 +139,43 @@ fun OpenContent() {
 
 @Preview(showBackground = true)
 @Composable
-fun HappyCase() {
-    val title = "Programming"
-    TimeClockListItem()
+fun ClosedListItem() {
+    val titleName = "Programming"
+    val accentColor = generateColorFromString(titleName)
+    val startTime = 0L
+    val endTime = 10000L
+    val elapsedTime = endTime - startTime
+    val subtitleName = decorateMillisLikeStopwatch(elapsedTime)
+    val closedContent = @Composable {
+        ClosedContent(title = titleName, subtitle = subtitleName)
+    }
+    TimeClockListItem(
+        accentColor = accentColor,
+        onClick = {},
+        closedContent = closedContent,
+        openContent = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun OpenListItem() {
+    val titleName = "Programming"
+    val accentColor = generateColorFromString(titleName)
+    val startTime = 0L
+    val endTime = 10000L
+    val openContent = @Composable {
+        OpenContent(
+            eventName = titleName,
+            startTime = startTime,
+            endTime = endTime
+        )
+    }
+    TimeClockListItem(
+        isClosed = false,
+        accentColor = accentColor,
+        onClick = {},
+        closedContent = {},
+        openContent = openContent
+    )
 }

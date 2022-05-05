@@ -16,9 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nickspatties.timeclock.data.TimeClockEvent
-import com.nickspatties.timeclock.ui.components.ListPageDateHeader
-import com.nickspatties.timeclock.ui.components.TimeClockListItem
-import com.nickspatties.timeclock.ui.components.TimeClockListItemEditor
+import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.util.MockTimeClockEventsGroupedByDate
 import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
 import com.nickspatties.timeclock.util.generateColorFromString
@@ -75,7 +73,7 @@ fun NothingHereText() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TimeClockList (
+fun TimeClockList(
     groupedEvents: Map<String, List<TimeClockEvent>>,
     editingId: Long = -1,
     onCancelButtonClick: (Long) -> Unit,
@@ -90,30 +88,33 @@ fun TimeClockList (
                 ListPageDateHeader(dateString = dateString)
             }
             items(events) { item ->
-                when {
-                    editingId == item.id -> {
-                        TimeClockListItemEditor(
-                            event = item,
-                            onCancelButtonClick = { onCancelButtonClick(-1) },
-                            onDeleteButtonClick = { onDeleteButtonClick(item) }
-                        )
-                    }
-                    else -> {
-                        val accentColor = generateColorFromString(item.name)
-                        val titleName = item.name
-                        val elapsedTime = item.endTime - item.startTime
-                        val subtitleName =
-                            if (item.isRunning) "Running..."
-                            else decorateMillisLikeStopwatch(elapsedTime)
-
-                        TimeClockListItem(
-                            accentColor = accentColor,
-                            onClick = {
-                                //if(!item.isRunning) onListItemClick(item.id)
-                            }
-                        )
-                    }
+                val accentColor = generateColorFromString(item.name)
+                val titleName = item.name
+                val elapsedTime = item.endTime - item.startTime
+                val subtitleName =
+                    if (item.isRunning) "Running..."
+                    else decorateMillisLikeStopwatch(elapsedTime)
+                val closedContent = @Composable {
+                    ClosedContent(title = titleName, subtitle = subtitleName)
                 }
+                val openContent = @Composable {
+                    OpenContent(
+                        eventName = titleName,
+                        startTime = item.startTime,
+                        endTime = item.endTime,
+                        onCancelButtonClick = { onCancelButtonClick(-1) },
+                        onDeleteButtonClick = { onDeleteButtonClick(item) }
+                    )
+                }
+                TimeClockListItem(
+                    isClosed = editingId != item.id,
+                    accentColor = accentColor,
+                    onClick = {
+                        if (!item.isRunning) onListItemClick(item.id)
+                    },
+                    closedContent = closedContent,
+                    openContent = openContent
+                )
             }
         }
     }
