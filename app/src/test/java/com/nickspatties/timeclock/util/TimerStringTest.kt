@@ -6,6 +6,7 @@ import junitparams.JUnitParamsRunner
 import junitparams.Parameters
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
 
 @RunWith(JUnitParamsRunner::class)
 class TimerStringTest {
@@ -29,5 +30,15 @@ class TimerStringTest {
         val testEvent = TimeClockEvent(name = "event name", startTime = 0)
         val mockCurrTime = 1000L
         assertThat(calculateCurrSeconds(testEvent, mockCurrTime)).isEqualTo(1)
+    }
+
+    @Test
+    @Parameters(
+        "0,12:00 AM", // testing millis since epoch, which is in UTC
+        "43200000,12:00 PM"
+    )
+    fun decorateMillisToTimeString_returnsCorrectValue(millis: Long, expectedString: String) {
+        assertThat(decorateMillisToTimeString(millis, TimeZone.getTimeZone("UTC")))
+            .isEqualTo(expectedString)
     }
 }

@@ -14,9 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
-import com.nickspatties.timeclock.util.decorateMillisToDateString
-import com.nickspatties.timeclock.util.generateColorFromString
+import com.nickspatties.timeclock.util.*
 
 /**
  * The individual item in a list of TimeClock items.
@@ -128,11 +126,11 @@ fun OpenContent(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             ClockComponent(
-                timeString = "3:00 PM",
+                timeString = decorateMillisToTimeString(startTime),
                 subtitle = "Start time"
             )
             ClockComponent(
-                timeString = "5:25 PM",
+                timeString = decorateMillisToTimeString(endTime),
                 subtitle = "End time"
             )
         }
@@ -197,7 +195,7 @@ fun OpenListItem() {
         "A long task name that is easy to test to make sure everything works as expected."
     val accentColor = generateColorFromString(titleName)
     val startTime = 0L
-    val endTime = 10000L
+    val endTime = convertHoursMinutesSecondsToMillis(1) + startTime
     val openContent = @Composable {
         OpenContent(
             eventName = titleName,
@@ -220,7 +218,7 @@ fun OpenListItemShortTitle() {
     val titleName = "Programming"
     val accentColor = generateColorFromString(titleName)
     val startTime = 0L
-    val endTime = 10000L
+    val endTime = convertHoursMinutesSecondsToMillis(1) + startTime
     val openContent = @Composable {
         OpenContent(
             eventName = titleName,

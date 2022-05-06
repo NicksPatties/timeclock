@@ -63,3 +63,13 @@ fun decorateMillisToDateString(millis: Long) : String {
     val yearString = cal.get(Calendar.YEAR)
     return "%s %d, %d".format(monthString, dayString, yearString)
 }
+
+fun decorateMillisToTimeString(millis: Long, timeZone: TimeZone = TimeZone.getDefault()) : String {
+    val cal = Calendar.getInstance(timeZone)
+    cal.timeInMillis = millis
+    val amPmString = if (cal.get(Calendar.AM_PM) == 0) "AM" else "PM"
+    val calHour = cal.get(Calendar.HOUR)
+    val hours = if (calHour == 0) 12 else calHour
+    val minutes = cal.get(Calendar.MINUTE)
+    return "%d:%02d %s".format(hours, minutes, amPmString)
+}
