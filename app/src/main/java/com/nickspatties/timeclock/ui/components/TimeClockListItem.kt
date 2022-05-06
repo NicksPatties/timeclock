@@ -5,12 +5,10 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,7 +39,7 @@ fun TimeClockListItem(
     openContent: @Composable () -> Unit = {}
 ) {
     val itemHeight by animateDpAsState(
-        targetValue = if (isClosed) TextFieldDefaults.MinHeight else 120.dp
+        targetValue = if (isClosed) TextFieldDefaults.MinHeight else 180.dp
     )
     Box(
         modifier = Modifier
@@ -61,10 +59,17 @@ fun TimeClockListItem(
                 )
             }
             Crossfade(targetState = isClosed) { closed ->
-                if (closed) {
-                    closedContent()
-                } else {
-                    openContent()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .padding(8.dp)
+                ) {
+                    if (closed) {
+                        closedContent()
+                    } else {
+                        openContent()
+                    }
                 }
             }
         }
@@ -78,8 +83,7 @@ fun ClosedContent(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxHeight()
-            .padding(8.dp),
+            .fillMaxHeight(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
@@ -113,22 +117,36 @@ fun OpenContent(
     onDeleteButtonClick: () -> Unit = {}
 ) {
     Column (
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = eventName, style = MaterialTheme.typography.body1)
-        Text(text = "startTime ${decorateMillisToDateString(startTime)}", style = MaterialTheme.typography.body1)
-        Text(text = "endTime: ${decorateMillisToDateString(endTime)}", style = MaterialTheme.typography.body1)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            ClockComponent(
+                timeString = "3:00 PM",
+                subtitle = "Start time"
+            )
+            ClockComponent(
+                timeString = "5:25 PM",
+                subtitle = "End time"
+            )
+        }
         Row (
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(
+            OutlinedButton(
                 onClick = onCancelButtonClick
             ) {
                 Text(text = "Cancel", style = MaterialTheme.typography.body1)
             }
-            Button(
+            OutlinedButton(
                 onClick = onDeleteButtonClick
             ) {
                 Text(text = "Delete", style = MaterialTheme.typography.body1)
@@ -137,10 +155,25 @@ fun OpenContent(
     }
 }
 
+@Composable
+fun ClockComponent(
+    timeString: String,
+    subtitle: String
+) {
+    Column(
+        modifier = Modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = timeString, style = MaterialTheme.typography.h4)
+        Text(text = subtitle, style = MaterialTheme.typography.subtitle1)
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ClosedListItem() {
-    val titleName = "Programming"
+    val titleName =
+        "A long task name that is easy to test to make sure everything works as expected."
     val accentColor = generateColorFromString(titleName)
     val startTime = 0L
     val endTime = 10000L
@@ -160,6 +193,30 @@ fun ClosedListItem() {
 @Preview(showBackground = true)
 @Composable
 fun OpenListItem() {
+    val titleName =
+        "A long task name that is easy to test to make sure everything works as expected."
+    val accentColor = generateColorFromString(titleName)
+    val startTime = 0L
+    val endTime = 10000L
+    val openContent = @Composable {
+        OpenContent(
+            eventName = titleName,
+            startTime = startTime,
+            endTime = endTime
+        )
+    }
+    TimeClockListItem(
+        isClosed = false,
+        accentColor = accentColor,
+        onClick = {},
+        closedContent = {},
+        openContent = openContent
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun OpenListItemShortTitle() {
     val titleName = "Programming"
     val accentColor = generateColorFromString(titleName)
     val startTime = 0L
@@ -177,5 +234,14 @@ fun OpenListItem() {
         onClick = {},
         closedContent = {},
         openContent = openContent
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ClockItemPreview() {
+    ClockComponent(
+        timeString = "5:25 PM",
+        subtitle = "End time"
     )
 }
