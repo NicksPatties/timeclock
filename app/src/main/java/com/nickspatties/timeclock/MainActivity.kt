@@ -118,6 +118,8 @@ fun NavigationComponent(
     val onDeleteButtonClick = viewModel::deleteEvent
     val onCancelButtonClick =  viewModel::changeEditId
 
+    val nameDurationPairs = viewModel.groupedEventsByNameAndMillis.observeAsState().value
+
     val clockRoute = stringResource(id = R.string.route_clock)
     val listRoute = stringResource(id = R.string.route_list)
     val metricsRoute = stringResource(id = R.string.route_metrics)
@@ -154,7 +156,9 @@ fun NavigationComponent(
             )
         }
         composable(metricsRoute) {
-            AnalysisPage(viewModel.timeClockEvents)
+            AnalysisPage(
+                nameDurationPairs = nameDurationPairs
+            )
         }
     }
 }

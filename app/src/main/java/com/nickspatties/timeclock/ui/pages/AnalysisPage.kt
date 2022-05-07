@@ -1,132 +1,58 @@
 package com.nickspatties.timeclock.ui.pages
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
-import com.google.accompanist.flowlayout.FlowCrossAxisAlignment
-import com.google.accompanist.flowlayout.FlowMainAxisAlignment
-import com.google.accompanist.flowlayout.FlowRow
-import com.nickspatties.timeclock.data.TimeClockEvent
-import com.nickspatties.timeclock.util.MockTimeClockEvents
-import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
-import com.nickspatties.timeclock.util.sortTotalDurationByName
+import com.nickspatties.timeclock.ui.components.ClosedContent
+import com.nickspatties.timeclock.ui.components.TimeClockListItem
+import com.nickspatties.timeclock.util.convertHoursMinutesSecondsToMillis
+import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
-fun AnalysisPage(eventsData: LiveData<List<TimeClockEvent>>) {
-    val events = eventsData.value!!
-    val verticalScrollState = rememberScrollState()
-
-    val analysisCards = listOf<@Composable () -> Unit>(
-        {
-            JustNumbersCard(events)
-        },
-        {
-            JustNumbersCard(events)
-        },
-        {
-            JustNumbersCard(events)
-        },
-        {
-            JustNumbersCard(events)
-        },
-        {
-            JustNumbersCard(events)
+fun AnalysisPage(
+    nameDurationPairs: List<Pair<String, Long>>?
+) {
+    Scaffold {
+        if (nameDurationPairs != null && nameDurationPairs.isNotEmpty()) {
+            LazyColumn {
+                nameDurationPairs.forEach { pair ->
+                    val name = pair.first
+                    val duration = pair.second.toString()
+                    item {
+                        TimeClockListItem(
+                            accentColor = generateColorFromString(name),
+                            closedContent = {
+                                ClosedContent(name, duration)
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            Text("No items")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AnalysisPagePreview() {
+    val mockNameDurationPairs = listOf(
+        Pair("Programming", convertHoursMinutesSecondsToMillis(1))
     )
-
-    Scaffold() {
-        // List of analysis cards that are shown
-        Column (
-            Modifier
-                .verticalScroll(verticalScrollState)
-        ){
-            analysisCards.forEach { card ->
-                card()
-            }
-        }
-    }
+    AnalysisPage(mockNameDurationPairs)
 }
 
+@Preview(showBackground = true)
 @Composable
-fun AnalysisCardContainer(name: String, content: @Composable () -> Unit) {
-    Card (modifier = Modifier.fillMaxWidth()) {
-        Column () {
-            Text(name)
-            Box (
-                modifier = Modifier
-                    .padding(bottom = 10.dp)
-                    .height(1.dp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colors.primary),
-            )
-            content()
-        }
-    }
+fun AnalysisPagePairsAreNull() {
+    AnalysisPage(null)
 }
 
+@Preview(showBackground = true)
 @Composable
-fun JustNumbersCard(events: List<TimeClockEvent>) {
-    val transformedEvents = sortTotalDurationByName(events)
-    AnalysisCardContainer(name = "Just some numbers") {
-        FlowRow (
-            mainAxisAlignment = FlowMainAxisAlignment.Start,
-            crossAxisAlignment = FlowCrossAxisAlignment.Start,
-            crossAxisSpacing = 5.dp
-        ) {
-            transformedEvents.keys.forEach { key ->
-                val duration = transformedEvents[key]!!
-                JustNumbersCardEntry(millis = duration, taskName = key)
-            }
-        }
-    }
-}
-
-@Composable
-fun JustNumbersCardEntry(millis: Long, taskName: String) {
-    Column (
-        modifier = Modifier
-            .width(103.dp), // just a guess for now
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Text(
-            text = decorateMillisWithDecimalHours(millis),
-            style = MaterialTheme.typography.h4,
-            color = MaterialTheme.colors.onBackground
-        )
-        Text(
-            modifier = Modifier,
-            text = taskName,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.body1,
-            color = MaterialTheme.colors.onBackground,
-            maxLines = 2
-        )
-    }
-}
-
-@Preview
-@Composable
-fun JustNumbersCardPreview() {
-    val events = MockTimeClockEvents
-    JustNumbersCard(events)
-}
-
-@Preview
-@Composable
-fun JustNumbersCardEntryPreview() {
-    val event = MockTimeClockEvents[0]
-    JustNumbersCardEntry(event.endTime - event.startTime, event.name)
+fun AnalysisPageNoPairs() {
+    AnalysisPage(listOf())
 }

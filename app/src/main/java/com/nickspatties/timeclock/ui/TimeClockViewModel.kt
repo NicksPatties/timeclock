@@ -16,10 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
-import com.nickspatties.timeclock.util.Chronometer
-import com.nickspatties.timeclock.util.calculateCurrSeconds
-import com.nickspatties.timeclock.util.decorateMillisToDateString
-import com.nickspatties.timeclock.util.findEventStartTimeDelay
+import com.nickspatties.timeclock.util.*
 import kotlinx.coroutines.launch
 
 class TimeClockViewModel (
@@ -62,6 +59,14 @@ class TimeClockViewModel (
         }
     }
     var editingEventId by mutableStateOf(-1L)
+
+    /**
+     * Analysis page properties
+     */
+
+    val groupedEventsByNameAndMillis = Transformations.map(timeClockEvents) { events ->
+        sortByNamesAndTotalMillis(events)
+    }
 
     init {
         chronometer.setOnChronometerTickListener {
