@@ -2,32 +2,36 @@ package com.nickspatties.timeclock.util
 
 import com.nickspatties.timeclock.data.TimeClockEvent
 
-fun createMockTimeClockEventList(eventCount: Int = 5): List<TimeClockEvent> {
+/**
+ * Creates a list of TimeClockEvents. Useful for testing and filling in mock data. Note that the
+ * list will be reversed to simulate sorting in descending date order, just like in the data layer.
+ *
+ * @param eventCount The number of events to create in the list. Default is 5.
+ * @param eventNames The names of the events to appear in the list. Default is "Programming", "Reading", "Journaling."
+ * @param eventDurations The durations of the events in milliseconds. Default is 2 hours.
+ * @param durationsBetween The duration of time in between events in milliseconds,
+ *   starting with the time between the first and second event. Default is 1 hour.
+ *
+ * @see com.nickspatties.timeclock.util.convertHoursMinutesSecondsToMillis
+ */
+fun createMockTimeClockEventList(
+    eventCount: Int = 5,
+    eventNames: List<String> = listOf("Programming", "Reading", "Journaling"),
+    eventDurations: List<Long> = listOf(2 * MILLIS_PER_HOUR),
+    durationsBetween: List<Long> = listOf(MILLIS_PER_HOUR),
+): List<TimeClockEvent> {
     val eventList = mutableListOf<TimeClockEvent>()
     var startTime = 0L
-    val eventNames = listOf("Programming", "Reading", "Journaling")
     for(i in 0 until eventCount) {
-        val endTime = startTime + 2 * MILLIS_PER_HOUR // each event is two hours long
+        val endTime = startTime + eventDurations[i % eventDurations.size]
         eventList += TimeClockEvent(
             eventNames[i % eventNames.size],
             startTime,
             endTime
         )
-        startTime = endTime + MILLIS_PER_HOUR // each event will be an hour apart from each other
+        startTime = endTime + durationsBetween[i % durationsBetween.size] // each event will be an hour apart from each other
     }
     return eventList.reversed()
-}
-
-fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<TimeClockEvent>> {
-    return events.groupBy {
-        decorateMillisToDateString(it.startTime)
-    }
-}
-
-fun getAutofillValues(events: List<TimeClockEvent>): Set<String> {
-    return events.map {
-        it.name
-    }.toSet()
 }
 
 val MockTimeClockEvents = createMockTimeClockEventList()
