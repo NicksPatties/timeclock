@@ -14,7 +14,11 @@ fun getAutofillValues(events: List<TimeClockEvent>): Set<String> {
     }.toSet()
 }
 
-fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<Pair<String, Long>> {
+/**
+ * Returns a list of names and total millis used in the Analysis screen. An additional long
+ * is included as an id to help keep track of the selected item in the screen.
+ */
+fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<Triple<String, Long, Long>> {
     val eventNameAndDurationMap : MutableMap<String, Long> = mutableMapOf()
     for (event in events) {
         val name = event.name
@@ -27,5 +31,10 @@ fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<Pair<String, L
         }
     }
     // return a list of events sorted by the durations
-    return eventNameAndDurationMap.toList().sortedByDescending { it.second }
+    val eventDurationList = eventNameAndDurationMap.toList().sortedByDescending { it.second }
+    var i = -1L
+    return eventDurationList.map { pair ->
+        i++
+        Triple(pair.first, pair.second, i)
+    }
 }

@@ -1,10 +1,10 @@
 package com.nickspatties.timeclock.ui.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -16,15 +16,19 @@ import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
-fun AnalysisPageListItemClosedContent(
+fun AnalysisPageListItemContent(
     taskName: String,
-    totalHours: String
+    totalHours: String,
+    isClosed: Boolean = true
 ) {
     ConstraintLayout(
-        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
 
     ) {
         val (name, time) = createRefs()
+        val maxLines = if(isClosed) 1 else Int.MAX_VALUE
         Text(
             modifier = Modifier.constrainAs(name) {
                 start.linkTo(parent.start)
@@ -34,7 +38,7 @@ fun AnalysisPageListItemClosedContent(
             },
             text = taskName,
             style = MaterialTheme.typography.body1,
-            maxLines = 1,
+            maxLines = maxLines,
             overflow = TextOverflow.Ellipsis
         )
         Text(
@@ -61,12 +65,35 @@ fun ClosedAnalysisPageListItem() {
     val totalTimeString =
         if (totalTime.toFloat() == 1f) "$totalTime hr" else "$totalTime hrs"
     val closedContent = @Composable {
-        AnalysisPageListItemClosedContent(titleName, totalTimeString)
+        AnalysisPageListItemContent(titleName, totalTimeString)
     }
     TimeClockListItem(
         accentColor = accentColor,
         onClick = {},
         closedContent = closedContent,
         openContent = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun OpenAnalysisPageListItem() {
+    val titleName = "Mega hyper long ass name that takes up a ton of space yeah which means that there is a lot of stuff to cover otherwise I'm pissed!"
+    val accentColor = generateColorFromString(titleName)
+    val totalTime = decorateMillisWithDecimalHours(
+        convertHoursMinutesSecondsToMillis(999)
+    )
+    val totalTimeString =
+        if (totalTime.toFloat() == 1f) "$totalTime hr" else "$totalTime hrs"
+    val openContent = @Composable {
+        AnalysisPageListItemContent(titleName, totalTimeString, false)
+    }
+    TimeClockListItem(
+        accentColor = accentColor,
+        onClick = {},
+        closedContent = {},
+        openContent = openContent,
+        isClosed = false,
+        openContentHeight = 100.dp
     )
 }

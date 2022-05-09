@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -31,10 +32,11 @@ fun TimeClockListItem(
     closedContent: @Composable () -> Unit = {
         ListPageListItemClosedContent("Title", "Subtitle")
     },
-    openContent: @Composable () -> Unit = {}
+    openContent: @Composable () -> Unit = {},
+    openContentHeight: Dp = 180.dp
 ) {
     val itemHeight by animateDpAsState(
-        targetValue = if (isClosed) TextFieldDefaults.MinHeight else 180.dp
+        targetValue = if (isClosed) TextFieldDefaults.MinHeight else openContentHeight
     )
     Box(
         modifier = Modifier
