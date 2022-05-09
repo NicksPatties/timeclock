@@ -95,10 +95,10 @@ fun TimeClockList(
                     if (item.isRunning) "Running..."
                     else decorateMillisLikeStopwatch(elapsedTime)
                 val closedContent = @Composable {
-                    ClosedContent(title = titleName, subtitle = subtitleName)
+                    ListPageListItemClosedContent(title = titleName, subtitle = subtitleName)
                 }
                 val openContent = @Composable {
-                    OpenContent(
+                    ListPageListItemOpenContent(
                         eventName = titleName,
                         startTime = item.startTime,
                         endTime = item.endTime,
