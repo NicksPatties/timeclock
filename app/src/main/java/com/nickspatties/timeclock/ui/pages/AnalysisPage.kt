@@ -1,9 +1,12 @@
 package com.nickspatties.timeclock.ui.pages
 
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.ui.components.AnalysisPageListItemContent
@@ -19,41 +22,76 @@ fun AnalysisPage(
         val openId = remember { mutableStateOf(-1L) }
 
         if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
-            LazyColumn {
-                analysisPageRows.forEach { triple ->
-                    val name = triple.first
-                    val duration = decorateMillisWithDecimalHours(triple.second)
-                    val id = triple.third
-                    val totalTimeString =
-                        if (duration.toFloat() == 1f) "$duration hr" else "$duration hrs"
-                    item {
-                        val isClosed = openId.value != id
-                        TimeClockListItem(
-                            isClosed = isClosed,
-                            accentColor = generateColorFromString(name),
-                            onClick = {
-                                if (isClosed)
-                                    openId.value = id
-                                else
-                                    openId.value = -1
-                            },
-                            closedContent = {
-                                AnalysisPageListItemContent(name, totalTimeString)
-                            },
-                            openContent = {
-                                AnalysisPageListItemContent(
-                                    taskName = name,
-                                    totalHours = totalTimeString,
-                                    isClosed = false
-                                )
-                            },
-                            openContentHeight = 100.dp
-                        )
+            // split this view into two boxes
+            Column {
+                Box( // chart container?
+                    modifier = Modifier
+                        .fillMaxHeight(0.5f)
+                        .padding(16.dp)
+                ) {
+                    PieChart(
+                        analysisPageRows = analysisPageRows,
+                        currId = openId.value
+                    )
+                }
+                LazyColumn(
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    analysisPageRows.forEach { triple ->
+                        val name = triple.first
+                        val duration = decorateMillisWithDecimalHours(triple.second)
+                        val id = triple.third
+                        val totalTimeString =
+                            if (duration.toFloat() == 1f) "$duration hr" else "$duration hrs"
+                        item {
+                            val isClosed = openId.value != id
+                            TimeClockListItem(
+                                isClosed = isClosed,
+                                accentColor = generateColorFromString(name),
+                                onClick = {
+                                    if (isClosed)
+                                        openId.value = id
+                                    else
+                                        openId.value = -1
+                                },
+                                closedContent = {
+                                    AnalysisPageListItemContent(name, totalTimeString)
+                                },
+                                openContent = {
+                                    AnalysisPageListItemContent(
+                                        taskName = name,
+                                        totalHours = totalTimeString,
+                                        isClosed = false
+                                    )
+                                },
+                                openContentHeight = 100.dp
+                            )
+                        }
                     }
                 }
             }
         } else {
             Text("No items")
+        }
+    }
+}
+
+@Composable
+fun PieChart(
+    analysisPageRows: List<Triple<String, Long, Long>>,
+    currId: Long = -1L
+) {
+    Column() {
+        analysisPageRows.forEach { row ->
+            val currColor = if (row.third == currId) {
+                MaterialTheme.colors.onBackground
+            } else {
+                generateColorFromString(row.first)
+            }
+            Text(
+                text = "${row.first} ${row.second}",
+                color = currColor
+            )
         }
     }
 }
