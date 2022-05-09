@@ -1,5 +1,6 @@
 package com.nickspatties.timeclock.ui.pages
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.MaterialTheme
@@ -81,17 +82,27 @@ fun PieChart(
     analysisPageRows: List<Triple<String, Long, Long>>,
     currId: Long = -1L
 ) {
-    Column() {
+    var totalTime = 0L
+    analysisPageRows.forEach {
+        totalTime += it.second
+    }
+    Canvas(
+        modifier = Modifier.fillMaxHeight().fillMaxWidth()
+    ) {
+        // define bounds of circle
+        var startAngle = 0f
         analysisPageRows.forEach { row ->
-            val currColor = if (row.third == currId) {
-                MaterialTheme.colors.onBackground
-            } else {
-                generateColorFromString(row.first)
-            }
-            Text(
-                text = "${row.first} ${row.second}",
-                color = currColor
+            val color = generateColorFromString(row.first)
+            val percentage = row.second / totalTime.toFloat() * 360f
+            val alpha = if (currId == row.third || currId == -1L) 1.0f else 0.5f
+            drawArc(
+                color = color,
+                startAngle = startAngle,
+                sweepAngle = percentage,
+                useCenter = true,
+                alpha = alpha
             )
+            startAngle += percentage
         }
     }
 }
