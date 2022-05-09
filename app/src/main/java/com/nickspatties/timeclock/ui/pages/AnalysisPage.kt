@@ -8,6 +8,8 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.ui.components.AnalysisPageListItemContent
@@ -82,23 +84,38 @@ fun PieChart(
     analysisPageRows: List<Triple<String, Long, Long>>,
     currId: Long = -1L
 ) {
+    // get total millis for chart
     var totalTime = 0L
     analysisPageRows.forEach {
         totalTime += it.second
     }
+
+    // todo: define animations
+    var startAngle = -90f
+    var pieSegment = 360f
+
     Canvas(
         modifier = Modifier.fillMaxHeight().fillMaxWidth()
     ) {
         // define bounds of circle
-        var startAngle = 0f
+        val innerRadius = (size.minDimension) / 2
+        val halfSize = size / 2.0f
+        val topLeft = Offset(
+            halfSize.width - innerRadius,
+            halfSize.height - innerRadius
+        )
+        val size = Size(innerRadius * 2, innerRadius * 2)
+
         analysisPageRows.forEach { row ->
             val color = generateColorFromString(row.first)
-            val percentage = row.second / totalTime.toFloat() * 360f
+            val percentage = row.second / totalTime.toFloat() * pieSegment
             val alpha = if (currId == row.third || currId == -1L) 1.0f else 0.5f
             drawArc(
                 color = color,
                 startAngle = startAngle,
                 sweepAngle = percentage,
+                size = size,
+                topLeft = topLeft,
                 useCenter = true,
                 alpha = alpha
             )
