@@ -71,8 +71,8 @@ fun AnalysisPage(
                         val name = triple.first
                         val duration = decorateMillisWithDecimalHours(triple.second)
                         val id = triple.third
-                        val totalTimeString =
-                            if (duration.toFloat() == 1f) "$duration hr" else "$duration hrs"
+                        val percentage = triple.second / totalMillis.toFloat() * 100f
+                        val percentageString = "%.2f".format(percentage) + "%"
                         item {
                             val isClosed = openId.value != id
                             TimeClockListItem(
@@ -88,12 +88,12 @@ fun AnalysisPage(
                                     }
                                 },
                                 closedContent = {
-                                    AnalysisPageListItemContent(name, totalTimeString)
+                                    AnalysisPageListItemContent(name, percentageString)
                                 },
                                 openContent = {
                                     AnalysisPageListItemContent(
                                         taskName = name,
-                                        totalHours = totalTimeString,
+                                        totalHours = percentageString,
                                         isClosed = false
                                     )
                                 },
