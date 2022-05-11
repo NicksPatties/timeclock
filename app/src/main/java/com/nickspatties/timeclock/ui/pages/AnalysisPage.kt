@@ -1,15 +1,14 @@
 package com.nickspatties.timeclock.ui.pages
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,9 +23,16 @@ fun AnalysisPage(
     analysisPageRows: List<Triple<String, Long, Long>>?
 ) {
     Scaffold {
-        val openId = remember { mutableStateOf(-1L) }
-
         if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
+            // data
+            val openId = remember { mutableStateOf(-1L) }
+            // all hours
+            var totalMillis = 0L
+            analysisPageRows.forEach {
+                totalMillis += it.second
+            }
+            val totalHours = decorateMillisWithDecimalHours(totalMillis)
+            val hoursDisplay = remember { mutableStateOf(totalHours) }
             // split this view into two boxes
             Column {
                 Box( // chart container?
@@ -38,6 +44,25 @@ fun AnalysisPage(
                         analysisPageRows = analysisPageRows,
                         currId = openId.value
                     )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        // total hours recorded
+                        Text(
+                            text = hoursDisplay.value.toString(),
+                            style = MaterialTheme.typography.h3
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 5.dp),
+                            style = MaterialTheme.typography.subtitle1,
+                            text = "hours"
+                        )
+                    }
+
                 }
                 LazyColumn(
                     modifier = Modifier.fillMaxHeight()
@@ -54,10 +79,13 @@ fun AnalysisPage(
                                 isClosed = isClosed,
                                 accentColor = generateColorFromString(name),
                                 onClick = {
-                                    if (isClosed)
+                                    if (isClosed) {
                                         openId.value = id
-                                    else
+                                        hoursDisplay.value = duration
+                                    } else {
                                         openId.value = -1
+                                        hoursDisplay.value = totalHours
+                                    }
                                 },
                                 closedContent = {
                                     AnalysisPageListItemContent(name, totalTimeString)
