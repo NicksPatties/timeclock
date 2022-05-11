@@ -119,6 +119,8 @@ fun NavigationComponent(
     val onCancelButtonClick =  viewModel::changeEditId
 
     val analysisPageRows = viewModel.groupedEventsByNameAndMillis.observeAsState().value
+    val openId = viewModel.selectedAnalysisRowId
+    val changeId = viewModel::changeSelectedAnalysisRowId
 
     val clockRoute = stringResource(id = R.string.route_clock)
     val listRoute = stringResource(id = R.string.route_list)
@@ -157,7 +159,9 @@ fun NavigationComponent(
         }
         composable(metricsRoute) {
             AnalysisPage(
-                analysisPageRows = analysisPageRows
+                analysisPageRows = analysisPageRows,
+                openId = openId,
+                changeRowId = changeId
             )
         }
     }

@@ -9,23 +9,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nickspatties.timeclock.util.convertHoursMinutesSecondsToMillis
 import com.nickspatties.timeclock.util.generateColorFromString
 
+/**
+ * Draws a pie chart. Highlights a specific segment if the currId
+ * parameter matches the id of a segment. The animation automatically
+ * occurs when the component appears on the screen.
+ *
+ * @param segmentData List of colors, percentage decimal values, and ids. The
+ * percentage is a float between 0 and 1, and will be handled automatically
+ * @param currId The current id of the segment to highlight
+ */
 @Composable
 fun PieChart(
-    analysisPageRows: List<Triple<String, Long, Long>>,
+    segmentData: List<Triple<Color, Float, Long>> = listOf(),
     currId: Long = -1L
 ) {
-    // get total millis for chart
-    var totalTime = 0L
-    analysisPageRows.forEach {
-        totalTime += it.second
-    }
     val stroke = with(LocalDensity.current) { Stroke(15.dp.toPx()) }
 
     // instantly change the state from START to END, applying the transitions
@@ -80,9 +84,9 @@ fun PieChart(
         )
         val size = Size(innerRadius * 2, innerRadius * 2)
         var startAngle = shift - 90f
-        analysisPageRows.forEach { row ->
-            val color = generateColorFromString(row.first)
-            val percentage = row.second / totalTime.toFloat() * pieSegment
+        segmentData.forEach { row ->
+            val color = row.first // should just be input
+            val percentage = row.second * pieSegment
             val alpha = if (currId == row.third || currId == -1L) 1.0f else 0.5f
             drawArc(
                 style = stroke,
@@ -101,18 +105,19 @@ fun PieChart(
 
 private enum class AnimatedCircleProgress { START, END }
 
+
 @Preview(showBackground = true)
 @Composable
-fun PieChartPreview() {
-    val rows = mutableListOf<Triple<String, Long, Long>>()
-    rows.add(
-        Triple("Programming", convertHoursMinutesSecondsToMillis(1), 0)
+fun PieChartPreviewUsingNewParams() {
+    val segments = mutableListOf<Triple<Color, Float, Long>>()
+    segments.add(
+        Triple(generateColorFromString("Programming"), .33f, 0)
     )
-    rows.add(
-        Triple("Reading", convertHoursMinutesSecondsToMillis(1), 1)
+    segments.add(
+        Triple(generateColorFromString("Reading"), .33f, 1)
     )
-    rows.add(
-        Triple("Homework", convertHoursMinutesSecondsToMillis(1), 2)
+    segments.add(
+        Triple(generateColorFromString("Homework"), .34f, 2)
     )
     val boxSize = 500.dp
     Box(
@@ -121,6 +126,8 @@ fun PieChartPreview() {
             .width(boxSize)
             .padding(16.dp)
     ) {
-        PieChart(rows)
+        PieChart(
+            segmentData = segments,
+        )
     }
 }

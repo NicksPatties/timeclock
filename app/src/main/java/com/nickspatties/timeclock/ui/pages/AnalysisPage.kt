@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.ui.components.AnalysisPageListItemContent
@@ -20,29 +21,37 @@ import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
 fun AnalysisPage(
-    analysisPageRows: List<Triple<String, Long, Long>>?
+    analysisPageRows: List<Triple<String, Long, Long>>?,
+    openId: Long = -1,
+    changeRowId: (Long) -> Unit = {}
 ) {
     Scaffold {
         if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
-            // data
-            val openId = remember { mutableStateOf(-1L) }
             // all hours
             var totalMillis = 0L
             analysisPageRows.forEach {
                 totalMillis += it.second
             }
+            val segmentData = mutableListOf<Triple<Color, Float, Long>>()
+            analysisPageRows.forEach {
+                val color = generateColorFromString(it.first)
+                val percentage = it.second / totalMillis.toFloat()
+                val id = it.third
+                segmentData.add(Triple(
+                    color, percentage, id
+                ))
+            }
             val totalHours = decorateMillisWithDecimalHours(totalMillis)
             val hoursDisplay = remember { mutableStateOf(totalHours) }
-            // split this view into two boxes
             Column {
-                Box( // chart container?
+                Box(
                     modifier = Modifier
                         .fillMaxHeight(0.5f)
                         .padding(16.dp)
                 ) {
                     PieChart(
-                        analysisPageRows = analysisPageRows,
-                        currId = openId.value
+                        segmentData = segmentData,
+                        currId = openId
                     )
                     Column(
                         modifier = Modifier
@@ -53,7 +62,7 @@ fun AnalysisPage(
                     ) {
                         // total hours recorded
                         Text(
-                            text = hoursDisplay.value.toString(),
+                            text = hoursDisplay.value,
                             style = MaterialTheme.typography.h3
                         )
                         Text(
@@ -62,7 +71,6 @@ fun AnalysisPage(
                             text = "hours"
                         )
                     }
-
                 }
                 LazyColumn(
                     modifier = Modifier.fillMaxHeight()
@@ -74,16 +82,16 @@ fun AnalysisPage(
                         val percentage = triple.second / totalMillis.toFloat() * 100f
                         val percentageString = "%.2f".format(percentage) + "%"
                         item {
-                            val isClosed = openId.value != id
+                            val isClosed = openId != id
                             TimeClockListItem(
                                 isClosed = isClosed,
                                 accentColor = generateColorFromString(name),
                                 onClick = {
                                     if (isClosed) {
-                                        openId.value = id
+                                        changeRowId(id)
                                         hoursDisplay.value = duration
                                     } else {
-                                        openId.value = -1
+                                        changeRowId(-1)
                                         hoursDisplay.value = totalHours
                                     }
                                 },

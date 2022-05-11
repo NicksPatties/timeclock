@@ -63,10 +63,10 @@ class TimeClockViewModel (
     /**
      * Analysis page properties
      */
-
     val groupedEventsByNameAndMillis = Transformations.map(timeClockEvents) { events ->
         sortByNamesAndTotalMillis(events)
     }
+    var selectedAnalysisRowId by mutableStateOf(-1L)
 
     init {
         chronometer.setOnChronometerTickListener {
@@ -174,6 +174,13 @@ class TimeClockViewModel (
             database.delete(event)
             editingEventId = -1
         }
+    }
+
+    /**
+     * Analysis Page
+     */
+    fun changeSelectedAnalysisRowId(id: Long) {
+        selectedAnalysisRowId = id
     }
 }
 
