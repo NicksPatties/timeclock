@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.ui.components.AnalysisPageListItemContent
 import com.nickspatties.timeclock.ui.components.PieChart
 import com.nickspatties.timeclock.ui.components.TimeClockListItem
+import com.nickspatties.timeclock.ui.components.TimeRangeSelector
 import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.generateColorFromString
 
@@ -44,10 +45,19 @@ fun AnalysisPage(
             val totalHours = decorateMillisWithDecimalHours(totalMillis)
             val hoursDisplay = remember { mutableStateOf(totalHours) }
             Column {
+                TimeRangeSelector(
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                    centerText = "Today"
+                )
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight(0.5f)
-                        .padding(16.dp)
+                        .fillMaxHeight(0.6f)
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 32.dp,
+                            bottom = 32.dp
+                        )
                 ) {
                     PieChart(
                         segmentData = segmentData,
@@ -72,6 +82,7 @@ fun AnalysisPage(
                         )
                     }
                 }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxHeight()
                 ) {
