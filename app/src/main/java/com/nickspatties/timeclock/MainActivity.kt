@@ -121,7 +121,7 @@ fun NavigationComponent(
     val currentSelectionString = viewModel.currentDateRangeString()
     val selectionStartButtonVisible = viewModel.isDateRangeStartButtonVisible()
     val selectionEndButtonVisible = viewModel.isDateRangeEndButtonVisible()
-    val analysisPageRows = viewModel.groupedEventsByNameAndMillis.observeAsState().value
+    val analysisPageRows = viewModel.filteredGroupedEventsByNameAndMillis.observeAsState().value
     val openId = viewModel.selectedAnalysisRowId
     val changeId = viewModel::changeSelectedAnalysisRowId
     val onSelectionStartButtonClick = viewModel::onDateRangeStartButtonClick
