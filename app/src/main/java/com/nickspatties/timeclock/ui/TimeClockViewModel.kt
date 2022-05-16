@@ -74,11 +74,6 @@ class TimeClockViewModel (
         return@map rows
     }
     var selectedMillis by mutableStateOf(0L)
-    val groupedEventsByNameAndMillisYesterday = Transformations.map(timeClockEvents) { events ->
-        val filteredEvents = listOf(events.first())
-        sortByNamesAndTotalMillis(filteredEvents)
-    }
-    var filteredGroupedEventsByNameAndMillis by mutableStateOf(groupedEventsByNameAndMillis)
     var selectedAnalysisRowId by mutableStateOf(-1L)
     var dateRangeOptions = listOf("All Time", "Today", "Yesterday")
     var currDateRangeIndex by mutableStateOf(0)
@@ -194,12 +189,6 @@ class TimeClockViewModel (
     /**
      * Analysis Page functions
      */
-    private fun changeFilteredEvents() {
-        filteredGroupedEventsByNameAndMillis = when(currDateRangeIndex) {
-            0 -> groupedEventsByNameAndMillis
-            else -> groupedEventsByNameAndMillisYesterday
-        }
-    }
 
     fun currentDateRangeString(): String {
         return dateRangeOptions[currDateRangeIndex]
@@ -207,8 +196,7 @@ class TimeClockViewModel (
 
     fun onDateRangeStartButtonClick() {
         if (currDateRangeIndex > 0) {
-            currDateRangeIndex --
-            changeFilteredEvents()
+            currDateRangeIndex--
         }
     }
 
@@ -219,7 +207,6 @@ class TimeClockViewModel (
     fun onDateRangeEndButtonClick() {
         if (currDateRangeIndex < dateRangeOptions.size - 1) {
             currDateRangeIndex++
-            changeFilteredEvents()
         }
     }
 
