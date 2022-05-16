@@ -45,9 +45,19 @@ fun AnalysisPage(
             val totalHours = decorateMillisWithDecimalHours(totalMillis)
             val hoursDisplay = remember { mutableStateOf(totalHours) }
             Column {
+                val options = listOf("Today", "Yesterday", "Last week")
+                val currIndex = remember { mutableStateOf(0) }
                 TimeRangeSelector(
                     modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-                    centerText = "Today"
+                    centerText = options[currIndex.value],
+                    startButtonFunction = {
+                        if(currIndex.value > 0) currIndex.value--
+                    },
+                    startButtonVisible = currIndex.value > 0,
+                    endButtonFunction = {
+                        if(currIndex.value < options.size - 1) currIndex.value++
+                    },
+                    endButtonVisible = currIndex.value < options.size - 1
                 )
                 Box(
                     modifier = Modifier
