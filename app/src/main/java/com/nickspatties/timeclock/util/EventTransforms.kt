@@ -1,6 +1,8 @@
 package com.nickspatties.timeclock.util
 
 import com.nickspatties.timeclock.data.TimeClockEvent
+import com.nickspatties.timeclock.ui.AnalysisRow
+import com.nickspatties.timeclock.ui.TimeClockViewModel
 
 fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<TimeClockEvent>> {
     return events.groupBy {
@@ -20,7 +22,7 @@ fun getAutofillValues(events: List<TimeClockEvent>): Set<String> {
  *
  * @return A list of the task names, durations, and an id indicating it's been selected
  */
-fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<Triple<String, Long, Long>> {
+fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<AnalysisRow> {
     val eventNameAndDurationMap : MutableMap<String, Long> = mutableMapOf()
     for (event in events) {
         val name = event.name
@@ -37,6 +39,6 @@ fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<Triple<String,
     var i = -1L
     return eventDurationList.map { pair ->
         i++
-        Triple(pair.first, pair.second, i)
+        AnalysisRow(pair.first, pair.second, i)
     }
 }

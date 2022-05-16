@@ -67,7 +67,7 @@ class TimeClockViewModel (
     val groupedEventsByNameAndMillis = Transformations.map(timeClockEvents) { events ->
         val rows = sortByNamesAndTotalMillis(events)
         rows.forEach {
-            val millis = it.second
+            val millis = it.millis
             selectedMillis += millis
         }
         totalMillis = selectedMillis
@@ -75,7 +75,7 @@ class TimeClockViewModel (
     }
     var selectedMillis by mutableStateOf(0L)
     var selectedAnalysisRowId by mutableStateOf(-1L)
-    var dateRangeOptions = listOf("All Time", "Today", "Yesterday")
+    var dateRangeOptions = listOf("All Time", "Today", "Last week", "Last month")
     var currDateRangeIndex by mutableStateOf(0)
 
     init {
@@ -222,9 +222,9 @@ class TimeClockViewModel (
         } else {
             // find the event that has been selected
             val matchingRow = groupedEventsByNameAndMillis.value?.find {
-                id == it.third
+                id == it.id
             }
-            matchingRow?.second ?: totalMillis
+            matchingRow?.millis ?: totalMillis
         }
     }
 }
@@ -242,4 +242,12 @@ sealed class Screen(
 
     object Metrics :
         Screen(R.string.route_metrics, R.string.label_metrics, R.drawable.ic_baseline_pie_chart_24)
+}
+
+class AnalysisRow(val name: String, val millis: Long, val id: Long) {
+    val color = generateColorFromString(name)
+    val hoursString = decorateMillisWithDecimalHours(millis)
+    fun getPercentage(totalMillis: Long): Float {
+        return millis / totalMillis.toFloat()
+    }
 }
