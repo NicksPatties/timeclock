@@ -67,6 +67,8 @@ class TimeClockViewModel (
         sortByNamesAndTotalMillis(events)
     }
     var selectedAnalysisRowId by mutableStateOf(-1L)
+    var dateRangeOptions = listOf("All Time", "Today", "Yesterday")
+    var currDateRangeIndex by mutableStateOf(0)
 
     init {
         chronometer.setOnChronometerTickListener {
@@ -177,10 +179,30 @@ class TimeClockViewModel (
     }
 
     /**
-     * Analysis Page
+     * Analysis Page functions
      */
+    fun currentDateRangeString(): String {
+        return dateRangeOptions[currDateRangeIndex]
+    }
+
     fun changeSelectedAnalysisRowId(id: Long) {
         selectedAnalysisRowId = id
+    }
+
+    fun onDateRangeStartButtonClick() {
+        if (currDateRangeIndex > 0) currDateRangeIndex --
+    }
+
+    fun isDateRangeStartButtonVisible(): Boolean {
+        return currDateRangeIndex > 0
+    }
+
+    fun onDateRangeEndButtonClick() {
+        if (currDateRangeIndex < dateRangeOptions.size - 1) currDateRangeIndex ++
+    }
+
+    fun isDateRangeEndButtonVisible(): Boolean {
+        return currDateRangeIndex < dateRangeOptions.size - 1
     }
 }
 
