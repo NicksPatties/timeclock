@@ -8,6 +8,8 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -118,6 +120,11 @@ fun NavigationComponent(
     val onDeleteButtonClick = viewModel::deleteEvent
     val onCancelButtonClick =  viewModel::changeEditId
 
+    val options = listOf("Today", "Yesterday", "Last week")
+    val currIndex = remember { mutableStateOf(0) }
+    val currentSelectionString = options[currIndex.value]
+    val selectionStartButtonVisible = currIndex.value > 0
+    val selectionEndButtonVisible = currIndex.value < options.size - 1
     val analysisPageRows = viewModel.groupedEventsByNameAndMillis.observeAsState().value
     val openId = viewModel.selectedAnalysisRowId
     val changeId = viewModel::changeSelectedAnalysisRowId
@@ -159,6 +166,15 @@ fun NavigationComponent(
         }
         composable(metricsRoute) {
             AnalysisPage(
+                currentSelectionString = currentSelectionString,
+                selectionStartButtonVisible = selectionStartButtonVisible,
+                selectionEndButtonVisible = selectionEndButtonVisible,
+                onSelectionStartButtonClick = {
+                    if (currIndex.value > 0) currIndex.value--
+                },
+                onSelectionEndButtonClick = {
+                    if (currIndex.value <= options.size - 1) currIndex.value++
+                },
                 analysisPageRows = analysisPageRows,
                 openId = openId,
                 changeRowId = changeId

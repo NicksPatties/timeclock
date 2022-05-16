@@ -22,6 +22,11 @@ import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
 fun AnalysisPage(
+    currentSelectionString: String = "",
+    onSelectionStartButtonClick: () -> Unit = {},
+    onSelectionEndButtonClick: () -> Unit = {},
+    selectionStartButtonVisible: Boolean = false,
+    selectionEndButtonVisible: Boolean = false,
     analysisPageRows: List<Triple<String, Long, Long>>?,
     openId: Long = -1,
     changeRowId: (Long) -> Unit = {}
@@ -45,19 +50,13 @@ fun AnalysisPage(
             val totalHours = decorateMillisWithDecimalHours(totalMillis)
             val hoursDisplay = remember { mutableStateOf(totalHours) }
             Column {
-                val options = listOf("Today", "Yesterday", "Last week")
-                val currIndex = remember { mutableStateOf(0) }
                 TimeRangeSelector(
                     modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-                    centerText = options[currIndex.value],
-                    startButtonFunction = {
-                        if(currIndex.value > 0) currIndex.value--
-                    },
-                    startButtonVisible = currIndex.value > 0,
-                    endButtonFunction = {
-                        if(currIndex.value < options.size - 1) currIndex.value++
-                    },
-                    endButtonVisible = currIndex.value < options.size - 1
+                    centerText = currentSelectionString,
+                    startButtonFunction = onSelectionStartButtonClick,
+                    startButtonVisible = selectionStartButtonVisible,
+                    endButtonFunction = onSelectionEndButtonClick,
+                    endButtonVisible = selectionEndButtonVisible
                 )
                 Box(
                     modifier = Modifier
@@ -151,17 +150,17 @@ fun AnalysisPagePreview() {
         id++
         items--
     }
-    AnalysisPage(pairsList)
+    AnalysisPage(analysisPageRows = pairsList)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AnalysisPagePairsAreNull() {
-    AnalysisPage(null)
+    AnalysisPage(analysisPageRows = null)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AnalysisPageNoPairs() {
-    AnalysisPage(listOf())
+    AnalysisPage(analysisPageRows = listOf())
 }
