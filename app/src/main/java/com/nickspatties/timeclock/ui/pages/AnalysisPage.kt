@@ -6,8 +6,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,6 +26,7 @@ fun AnalysisPage(
     selectionStartButtonVisible: Boolean = false,
     selectionEndButtonVisible: Boolean = false,
     analysisPageRows: List<Triple<String, Long, Long>>?,
+    totalSelectedHours: String = "",
     openId: Long = -1,
     changeRowId: (Long) -> Unit = {}
 ) {
@@ -47,8 +46,6 @@ fun AnalysisPage(
                     color, percentage, id
                 ))
             }
-            val totalHours = decorateMillisWithDecimalHours(totalMillis)
-            val hoursDisplay = remember { mutableStateOf(totalHours) }
             Column {
                 TimeRangeSelector(
                     modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
@@ -81,7 +78,7 @@ fun AnalysisPage(
                     ) {
                         // total hours recorded
                         Text(
-                            text = hoursDisplay.value,
+                            text = totalSelectedHours,
                             style = MaterialTheme.typography.h3
                         )
                         Text(
@@ -106,15 +103,7 @@ fun AnalysisPage(
                             TimeClockListItem(
                                 isClosed = isClosed,
                                 accentColor = generateColorFromString(name),
-                                onClick = {
-                                    if (isClosed) {
-                                        changeRowId(id)
-                                        hoursDisplay.value = duration
-                                    } else {
-                                        changeRowId(-1)
-                                        hoursDisplay.value = totalHours
-                                    }
-                                },
+                                onClick = { changeRowId(id) },
                                 closedContent = {
                                     AnalysisPageListItemContent(name, percentageString)
                                 },

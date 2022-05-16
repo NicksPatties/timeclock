@@ -26,6 +26,7 @@ import com.nickspatties.timeclock.ui.pages.AnalysisPage
 import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
+import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,13 +120,14 @@ fun NavigationComponent(
     val onCancelButtonClick =  viewModel::changeEditId
 
     val currentSelectionString = viewModel.currentDateRangeString()
-    val selectionStartButtonVisible = viewModel.isDateRangeStartButtonVisible()
-    val selectionEndButtonVisible = viewModel.isDateRangeEndButtonVisible()
-    val analysisPageRows = viewModel.filteredGroupedEventsByNameAndMillis.observeAsState().value
+    val selectionStartButtonVisible = false
+    val selectionEndButtonVisible = false
+    val analysisPageRows = viewModel.groupedEventsByNameAndMillis.observeAsState().value
     val openId = viewModel.selectedAnalysisRowId
     val changeId = viewModel::changeSelectedAnalysisRowId
     val onSelectionStartButtonClick = viewModel::onDateRangeStartButtonClick
     val onSelectionEndButtonClick = viewModel::onDateRangeEndButtonClick
+    val totalSelectedHours = decorateMillisWithDecimalHours(viewModel.selectedMillis)
 
     val clockRoute = stringResource(id = R.string.route_clock)
     val listRoute = stringResource(id = R.string.route_list)
@@ -170,6 +172,7 @@ fun NavigationComponent(
                 onSelectionStartButtonClick = onSelectionStartButtonClick,
                 onSelectionEndButtonClick = onSelectionEndButtonClick,
                 analysisPageRows = analysisPageRows,
+                totalSelectedHours = totalSelectedHours,
                 openId = openId,
                 changeRowId = changeId
             )

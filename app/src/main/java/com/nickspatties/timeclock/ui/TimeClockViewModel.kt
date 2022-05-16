@@ -63,9 +63,17 @@ class TimeClockViewModel (
     /**
      * Analysis page properties
      */
+    private var totalMillis = 0L
     val groupedEventsByNameAndMillis = Transformations.map(timeClockEvents) { events ->
-        sortByNamesAndTotalMillis(events)
+        val rows = sortByNamesAndTotalMillis(events)
+        rows.forEach {
+            val millis = it.second
+            selectedMillis += millis
+        }
+        totalMillis = selectedMillis
+        return@map rows
     }
+    var selectedMillis by mutableStateOf(0L)
     val groupedEventsByNameAndMillisYesterday = Transformations.map(timeClockEvents) { events ->
         val filteredEvents = listOf(events.first())
         sortByNamesAndTotalMillis(filteredEvents)
@@ -197,10 +205,6 @@ class TimeClockViewModel (
         return dateRangeOptions[currDateRangeIndex]
     }
 
-    fun changeSelectedAnalysisRowId(id: Long) {
-        selectedAnalysisRowId = id
-    }
-
     fun onDateRangeStartButtonClick() {
         if (currDateRangeIndex > 0) {
             currDateRangeIndex --
@@ -221,6 +225,20 @@ class TimeClockViewModel (
 
     fun isDateRangeEndButtonVisible(): Boolean {
         return currDateRangeIndex < dateRangeOptions.size - 1
+    }
+
+    fun changeSelectedAnalysisRowId(id: Long) {
+        selectedAnalysisRowId =
+            if (selectedAnalysisRowId == id) -1L else id
+        selectedMillis = if (selectedAnalysisRowId == -1L) {
+            totalMillis
+        } else {
+            // find the event that has been selected
+            val matchingRow = groupedEventsByNameAndMillis.value?.find {
+                id == it.third
+            }
+            matchingRow?.second ?: totalMillis
+        }
     }
 }
 
