@@ -122,12 +122,12 @@ fun NavigationComponent(
     val currentSelectionString = viewModel.currentDateRangeString()
     val selectionStartButtonVisible = false
     val selectionEndButtonVisible = false
-    val analysisPageRows = viewModel.groupedEventsByNameAndMillis.observeAsState().value
+    val analysisPageRows = viewModel.allTimeAnalysisPane.rowData.observeAsState().value
     val openId = viewModel.selectedAnalysisRowId
     val changeId = viewModel::changeSelectedAnalysisRowId
     val onSelectionStartButtonClick = viewModel::onDateRangeStartButtonClick
     val onSelectionEndButtonClick = viewModel::onDateRangeEndButtonClick
-    val totalSelectedHours = decorateMillisWithDecimalHours(viewModel.selectedMillis)
+    val totalSelectedHours = decorateMillisWithDecimalHours(viewModel.allTimeAnalysisPane.getTotalMillis())
 
     val clockRoute = stringResource(id = R.string.route_clock)
     val listRoute = stringResource(id = R.string.route_list)

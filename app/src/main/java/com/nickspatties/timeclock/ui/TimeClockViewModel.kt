@@ -9,10 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
@@ -73,6 +70,19 @@ class TimeClockViewModel (
         totalMillis = selectedMillis
         return@map rows
     }
+    class AnalysisPane(val eventLiveData: LiveData<List<TimeClockEvent>>) {
+        val rowData = Transformations.map(eventLiveData) { events ->
+            sortByNamesAndTotalMillis(events)
+        }
+        fun getTotalMillis() : Long {
+            var totalMillis = 0L
+            rowData.value?.forEach {
+                totalMillis += it.millis
+            }
+            return totalMillis
+        }
+    }
+    val allTimeAnalysisPane = AnalysisPane(timeClockEvents)
     var selectedMillis by mutableStateOf(0L)
     var selectedAnalysisRowId by mutableStateOf(-1L)
     var dateRangeOptions = listOf("All Time", "Today", "Last week", "Last month")
