@@ -61,30 +61,11 @@ class TimeClockViewModel (
      * Analysis page properties
      */
     private var totalMillis = 0L
-    val groupedEventsByNameAndMillis = Transformations.map(timeClockEvents) { events ->
-        val rows = sortByNamesAndTotalMillis(events)
-        rows.forEach {
-            val millis = it.millis
-            selectedMillis += millis
-        }
-        totalMillis = selectedMillis
-        return@map rows
-    }
-    class AnalysisPane(val eventLiveData: LiveData<List<TimeClockEvent>>) {
-        val rowData = Transformations.map(eventLiveData) { events ->
-            sortByNamesAndTotalMillis(events)
-        }
-        fun getTotalMillis() : Long {
-            var totalMillis = 0L
-            rowData.value?.forEach {
-                totalMillis += it.millis
-            }
-            return totalMillis
-        }
-    }
-    val allTimeAnalysisPane = AnalysisPane(timeClockEvents)
-    var selectedMillis by mutableStateOf(0L)
-    var selectedAnalysisRowId by mutableStateOf(-1L)
+    val allTimeAnalysisPane = AnalysisPane(
+        eventData = timeClockEvents,
+        rowTransformation = ::sortByNamesAndTotalMillis,
+        rangeName = "All time"
+    )
     var dateRangeOptions = listOf("All Time", "Today", "Last week", "Last month")
     var currDateRangeIndex by mutableStateOf(0)
 
@@ -199,11 +180,6 @@ class TimeClockViewModel (
     /**
      * Analysis Page functions
      */
-
-    fun currentDateRangeString(): String {
-        return dateRangeOptions[currDateRangeIndex]
-    }
-
     fun onDateRangeStartButtonClick() {
         if (currDateRangeIndex > 0) {
             currDateRangeIndex--
@@ -222,20 +198,6 @@ class TimeClockViewModel (
 
     fun isDateRangeEndButtonVisible(): Boolean {
         return currDateRangeIndex < dateRangeOptions.size - 1
-    }
-
-    fun changeSelectedAnalysisRowId(id: Long) {
-        selectedAnalysisRowId =
-            if (selectedAnalysisRowId == id) -1L else id
-        selectedMillis = if (selectedAnalysisRowId == -1L) {
-            totalMillis
-        } else {
-            // find the event that has been selected
-            val matchingRow = groupedEventsByNameAndMillis.value?.find {
-                id == it.id
-            }
-            matchingRow?.millis ?: totalMillis
-        }
     }
 }
 
@@ -259,5 +221,46 @@ class AnalysisRow(val name: String, val millis: Long, val id: Long) {
     val hoursString = decorateMillisWithDecimalHours(millis)
     fun getPercentage(totalMillis: Long): Float {
         return millis / totalMillis.toFloat()
+    }
+}
+
+class AnalysisPane(
+    val eventData: LiveData<List<TimeClockEvent>>,
+    val rowTransformation: (List<TimeClockEvent>) -> List<AnalysisRow>,
+    val rangeName: String
+) {
+
+    val rowData: LiveData<List<AnalysisRow>> = Transformations.map(eventData) { events ->
+        var totalMillis = 0L
+        events.forEach {
+            totalMillis += it.endTime - it.startTime
+        }
+        selectedMillis = totalMillis
+        return@map rowTransformation(events)
+    }
+
+    private fun getTotalMillis() : Long {
+        var totalMillis = 0L
+        rowData.value?.forEach { event : AnalysisRow ->
+            totalMillis += event.millis
+        }
+        return totalMillis
+    }
+    var selectedMillis by mutableStateOf(getTotalMillis())
+    var selectedAnalysisRowId by mutableStateOf(-1L)
+
+    fun changeSelectedAnalysisRowId(id: Long) {
+        val totalMillis = getTotalMillis()
+        selectedAnalysisRowId =
+            if (selectedAnalysisRowId == id) -1L else id
+        selectedMillis = if (selectedAnalysisRowId == -1L) {
+            totalMillis
+        } else {
+            // find the event that has been selected
+            val matchingRow = rowData.value?.find {
+                id == it.id
+            }
+            matchingRow?.millis ?: totalMillis
+        }
     }
 }
