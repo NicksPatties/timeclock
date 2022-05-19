@@ -2,7 +2,6 @@ package com.nickspatties.timeclock.util
 
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.AnalysisRow
-import com.nickspatties.timeclock.ui.TimeClockViewModel
 
 fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<TimeClockEvent>> {
     return events.groupBy {
@@ -41,4 +40,11 @@ fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<AnalysisRow> {
         i++
         AnalysisRow(pair.first, pair.second, i)
     }
+}
+
+fun filterEventsByNumberOfDays(events: List<TimeClockEvent>, numberOfDays: Int = -1): List<TimeClockEvent> {
+    // find number of days in millis
+    val cutoffMillis = convertHoursMinutesSecondsToMillis(numberOfDays * 24)
+    val now = System.currentTimeMillis()
+    return events.filter { it.startTime > now - cutoffMillis }
 }

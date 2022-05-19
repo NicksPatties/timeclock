@@ -66,8 +66,33 @@ class TimeClockViewModel (
         rowTransformation = ::sortByNamesAndTotalMillis,
         rangeName = "All time"
     )
-    var dateRangeOptions = listOf("All Time", "Today", "Last week", "Last month")
-    var currDateRangeIndex by mutableStateOf(0)
+    val todayAnalysisPane = AnalysisPane(
+        eventData = timeClockEvents,
+        rowTransformation = ::sortByNamesAndTotalMillis,
+        rangeName = "Today",
+        daysInRange = 1
+    )
+    val lastWeekAnalysisPane = AnalysisPane(
+        eventData = timeClockEvents,
+        rowTransformation = ::sortByNamesAndTotalMillis,
+        rangeName = "Last week",
+        daysInRange = 7
+    )
+    val lastMonthAnalysisPane = AnalysisPane(
+        eventData = timeClockEvents,
+        rowTransformation = ::sortByNamesAndTotalMillis,
+        rangeName = "Last month",
+        daysInRange = 30
+    )
+    var analysisPanes = listOf(
+        allTimeAnalysisPane,
+        todayAnalysisPane,
+        lastWeekAnalysisPane,
+        lastMonthAnalysisPane
+    )
+    private var currDateRangeIndex = 0
+    var currAnalysisPane by mutableStateOf(analysisPanes[currDateRangeIndex])
+
 
     init {
         chronometer.setOnChronometerTickListener {
@@ -182,7 +207,7 @@ class TimeClockViewModel (
      */
     fun onDateRangeStartButtonClick() {
         if (currDateRangeIndex > 0) {
-            currDateRangeIndex--
+            updateAnalysisPane(currDateRangeIndex - 1)
         }
     }
 
@@ -191,13 +216,21 @@ class TimeClockViewModel (
     }
 
     fun onDateRangeEndButtonClick() {
-        if (currDateRangeIndex < dateRangeOptions.size - 1) {
-            currDateRangeIndex++
+        if (currDateRangeIndex < analysisPanes.size - 1) {
+            updateAnalysisPane(currDateRangeIndex + 1)
         }
     }
 
     fun isDateRangeEndButtonVisible(): Boolean {
-        return currDateRangeIndex < dateRangeOptions.size - 1
+        return currDateRangeIndex < analysisPanes.size - 1
+    }
+
+    fun updateAnalysisPane(index: Int) {
+        // reset selected row for curr pane
+        analysisPanes[currDateRangeIndex].selectedAnalysisRowId = -1
+        // change the current index
+        currDateRangeIndex = index
+        currAnalysisPane = analysisPanes[currDateRangeIndex]
     }
 }
 
@@ -227,16 +260,23 @@ class AnalysisRow(val name: String, val millis: Long, val id: Long) {
 class AnalysisPane(
     val eventData: LiveData<List<TimeClockEvent>>,
     val rowTransformation: (List<TimeClockEvent>) -> List<AnalysisRow>,
-    val rangeName: String
+    val rangeName: String,
+    private val daysInRange: Int = -1
 ) {
 
     val rowData: LiveData<List<AnalysisRow>> = Transformations.map(eventData) { events ->
+        // filter events by range
+        //val filteredEvents = filterEventsByNumberOfDays(events, daysInRange)
+        val filteredEvents = events
+
+        // count total milliseconds
         var totalMillis = 0L
-        events.forEach {
+        filteredEvents.forEach {
             totalMillis += it.endTime - it.startTime
         }
         selectedMillis = totalMillis
-        return@map rowTransformation(events)
+        // transform the rows
+        return@map rowTransformation(filteredEvents)
     }
 
     private fun getTotalMillis() : Long {
