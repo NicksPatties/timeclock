@@ -266,8 +266,7 @@ class AnalysisPane(
 
     val rowData: LiveData<List<AnalysisRow>> = Transformations.map(eventData) { events ->
         // filter events by range
-        //val filteredEvents = filterEventsByNumberOfDays(events, daysInRange)
-        val filteredEvents = events
+        val filteredEvents = filterEventsByNumberOfDays(events, daysInRange)
 
         // count total milliseconds
         var totalMillis = 0L

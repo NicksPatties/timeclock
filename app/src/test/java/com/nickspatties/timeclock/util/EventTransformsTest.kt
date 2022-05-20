@@ -35,9 +35,9 @@ class EventTransformsTest {
         for ((i, item) in analysisPageList.withIndex()) {
             val expectedPair = expectedPairs[i]
             // assert the names are the same
-            assertThat(item.first).isEqualTo(expectedPair.first)
+            assertThat(item.name).isEqualTo(expectedPair.first)
             // assert the duration in millis is the same
-            assertThat(item.second).isEqualTo(expectedPair.second)
+            assertThat(item.name).isEqualTo(expectedPair.second)
         }
     }
 }

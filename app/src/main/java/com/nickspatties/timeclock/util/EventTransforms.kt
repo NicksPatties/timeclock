@@ -43,6 +43,7 @@ fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<AnalysisRow> {
 }
 
 fun filterEventsByNumberOfDays(events: List<TimeClockEvent>, numberOfDays: Int = -1): List<TimeClockEvent> {
+    if (numberOfDays < 0) return events
     // find number of days in millis
     val cutoffMillis = convertHoursMinutesSecondsToMillis(numberOfDays * 24)
     val now = System.currentTimeMillis()

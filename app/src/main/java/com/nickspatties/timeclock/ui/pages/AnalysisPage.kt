@@ -32,7 +32,7 @@ fun AnalysisPage(
     changeRowId: (Long) -> Unit = {}
 ) {
     Scaffold {
-        if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
+        if (analysisPageRows != null) {
             // all hours
             var totalMillis = 0L
             analysisPageRows.forEach {
