@@ -37,7 +37,7 @@ class EventTransformsTest {
             // assert the names are the same
             assertThat(item.name).isEqualTo(expectedPair.first)
             // assert the duration in millis is the same
-            assertThat(item.name).isEqualTo(expectedPair.second)
+            assertThat(item.millis).isEqualTo(expectedPair.second)
         }
     }
 }
