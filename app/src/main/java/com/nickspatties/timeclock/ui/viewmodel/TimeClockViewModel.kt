@@ -51,7 +51,10 @@ class TimeClockViewModel (
      * List page properties
      */
     val groupedEventsByDate = Transformations.map(timeClockEvents) { events ->
-        events.groupBy {
+        val listRows: List<ListRow> = events.map {
+            ListRow(it.name, it.startTime, it.endTime, it.id)
+        }
+        listRows.groupBy {
             decorateMillisToDateString(it.startTime)
         }
     }
@@ -194,10 +197,15 @@ class TimeClockViewModel (
         editingEventId = id
     }
 
-    fun deleteEvent(event: TimeClockEvent) {
+    fun deleteEvent(id: Long) {
         viewModelScope.launch {
-            database.delete(event)
-            editingEventId = -1
+            val eventToDelete = database.get(id)
+            if(eventToDelete != null) {
+                database.delete(eventToDelete)
+                editingEventId = -1
+            } else {
+                showToast("Failed to delete event")
+            }
         }
     }
 
@@ -246,58 +254,4 @@ sealed class Screen(
 
     object Metrics :
         Screen(R.string.route_metrics, R.string.label_metrics, R.drawable.ic_baseline_pie_chart_24)
-}
-
-class AnalysisRow(val name: String, val millis: Long, val id: Long) {
-    val color = generateColorFromString(name)
-    fun getPercentage(totalMillis: Long): Float {
-        return millis / totalMillis.toFloat()
-    }
-}
-
-class AnalysisPane(
-    val eventData: LiveData<List<TimeClockEvent>>,
-    val rowTransformation: (List<TimeClockEvent>) -> List<AnalysisRow>,
-    val rangeName: String,
-    private val daysInRange: Int = -1
-) {
-
-    val rowData: LiveData<List<AnalysisRow>> = Transformations.map(eventData) { events ->
-        // filter events by range
-        val filteredEvents = filterEventsByNumberOfDays(events, daysInRange)
-
-        // count total milliseconds
-        var totalMillis = 0L
-        filteredEvents.forEach {
-            totalMillis += it.endTime - it.startTime
-        }
-        selectedMillis = totalMillis
-        // transform the rows
-        return@map rowTransformation(filteredEvents)
-    }
-
-    private fun getTotalMillis() : Long {
-        var totalMillis = 0L
-        rowData.value?.forEach { event : AnalysisRow ->
-            totalMillis += event.millis
-        }
-        return totalMillis
-    }
-    var selectedMillis by mutableStateOf(getTotalMillis())
-    var selectedAnalysisRowId by mutableStateOf(-1L)
-
-    fun changeSelectedAnalysisRowId(id: Long) {
-        val totalMillis = getTotalMillis()
-        selectedAnalysisRowId =
-            if (selectedAnalysisRowId == id) -1L else id
-        selectedMillis = if (selectedAnalysisRowId == -1L) {
-            totalMillis
-        } else {
-            // find the event that has been selected
-            val matchingRow = rowData.value?.find {
-                id == it.id
-            }
-            matchingRow?.millis ?: totalMillis
-        }
-    }
 }

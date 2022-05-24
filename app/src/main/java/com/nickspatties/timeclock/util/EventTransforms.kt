@@ -2,9 +2,13 @@ package com.nickspatties.timeclock.util
 
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
+import com.nickspatties.timeclock.ui.viewmodel.ListRow
 
-fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<TimeClockEvent>> {
-    return events.groupBy {
+fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<ListRow>> {
+    val rows = events.map {
+        ListRow(it.name, it.startTime, it.endTime, it.id)
+    }
+    return rows.groupBy {
         decorateMillisToDateString(it.startTime)
     }
 }

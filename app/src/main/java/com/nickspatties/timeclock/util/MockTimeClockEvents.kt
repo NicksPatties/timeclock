@@ -1,6 +1,7 @@
 package com.nickspatties.timeclock.util
 
 import com.nickspatties.timeclock.data.TimeClockEvent
+import com.nickspatties.timeclock.ui.viewmodel.ListRow
 
 /**
  * Creates a list of TimeClockEvents. Useful for testing and filling in mock data. Note that the
@@ -35,5 +36,6 @@ fun createMockTimeClockEventList(
 }
 
 val MockTimeClockEvents = createMockTimeClockEventList()
-val MockTimeClockEventsGroupedByDate = groupEventsByDate(MockTimeClockEvents)
+val MockTimeClockEventsGroupedByDate: Map<String, List<ListRow>> =
+    groupEventsByDate(MockTimeClockEvents)
 val MockAutofillValues = getAutofillValues(MockTimeClockEvents)

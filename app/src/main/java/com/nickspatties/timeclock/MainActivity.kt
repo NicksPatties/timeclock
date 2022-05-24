@@ -157,7 +157,7 @@ fun NavigationComponent(
         }
         composable(listRoute) {
             ListPage(
-                groupedEvents = groupedEvents,
+                groupedRows = groupedEvents,
                 editingEventId = editingEventId,
                 onListItemClick = onListItemClick,
                 onDeleteButtonClick = onDeleteButtonClick,

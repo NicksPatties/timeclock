@@ -17,24 +17,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.components.*
+import com.nickspatties.timeclock.ui.viewmodel.ListRow
 import com.nickspatties.timeclock.util.MockTimeClockEventsGroupedByDate
 import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
 import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
 fun ListPage(
-    groupedEvents: Map<String, List<TimeClockEvent>>?,
+    groupedRows: Map<String, List<ListRow>>?,
     editingEventId: Long,
     onListItemClick: (Long) -> Unit,
-    onDeleteButtonClick: (TimeClockEvent) -> Unit,
+    onDeleteButtonClick: (Long) -> Unit,
     onCancelButtonClick: (Long) -> Unit,
 ) {
     Scaffold() {
-        if (groupedEvents.isNullOrEmpty()) {
+        if (groupedRows.isNullOrEmpty()) {
             NothingHereText()
         } else {
             TimeClockList(
-                groupedEvents = groupedEvents,
+                groupedEvents = groupedRows,
                 editingId = editingEventId,
                 onDeleteButtonClick = onDeleteButtonClick,
                 onCancelButtonClick = onCancelButtonClick,
@@ -74,10 +75,10 @@ fun NothingHereText() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TimeClockList(
-    groupedEvents: Map<String, List<TimeClockEvent>>,
+    groupedEvents: Map<String, List<ListRow>>,
     editingId: Long = -1,
     onCancelButtonClick: (Long) -> Unit,
-    onDeleteButtonClick: (TimeClockEvent) -> Unit,
+    onDeleteButtonClick: (Long) -> Unit,
     onListItemClick: (Long) -> Unit
 ) {
     LazyColumn(
@@ -88,12 +89,11 @@ fun TimeClockList(
                 ListPageDateHeader(dateString = dateString)
             }
             items(events) { item ->
-                val accentColor = generateColorFromString(item.name)
-                val titleName = item.name
-                val elapsedTime = item.endTime - item.startTime
+                val accentColor = item.color
+                val titleName = item.title
                 val subtitleName =
                     if (item.isRunning) "Running..."
-                    else decorateMillisLikeStopwatch(elapsedTime)
+                    else item.elapsedTimeString
                 val closedContent = @Composable {
                     ListPageListItemClosedContent(title = titleName, subtitle = subtitleName)
                 }
@@ -103,7 +103,7 @@ fun TimeClockList(
                         startTime = item.startTime,
                         endTime = item.endTime,
                         onCancelButtonClick = { onCancelButtonClick(-1) },
-                        onDeleteButtonClick = { onDeleteButtonClick(item) }
+                        onDeleteButtonClick = { onDeleteButtonClick(item.id) }
                     )
                 }
                 TimeClockListItem(
@@ -124,7 +124,7 @@ fun TimeClockList(
 @Composable
 fun ListPagePreview() {
     ListPage(
-        groupedEvents = MockTimeClockEventsGroupedByDate,
+        groupedRows = MockTimeClockEventsGroupedByDate,
         editingEventId = -1,
         onListItemClick = {},
         onDeleteButtonClick = {},
@@ -136,7 +136,7 @@ fun ListPagePreview() {
 @Composable
 fun ListPageEmptyPreview() {
     ListPage(
-        groupedEvents = emptyMap(),
+        groupedRows = emptyMap(),
         editingEventId = -1,
         onListItemClick = {},
         onDeleteButtonClick = {},
