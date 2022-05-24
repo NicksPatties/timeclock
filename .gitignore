@@ -19,3 +19,4 @@ local.properties
 /.idea/misc.xml
 timeclock_notes
 app/debug
+app/release
