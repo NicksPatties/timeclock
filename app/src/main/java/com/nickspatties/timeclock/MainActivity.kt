@@ -98,36 +98,39 @@ fun NavigationComponent(
     navController: NavHostController,
     startDestination: String
 ) {
-    val clockEnabled = viewModel.clockButtonEnabled
-    val isRunning = viewModel.isClockRunning
-    val dropdownExpanded = viewModel.dropdownExpanded
-    val taskTextFieldValue = viewModel.taskTextFieldValue
+    val clockPageViewModel = viewModel.clockPage
+    val clockEnabled = clockPageViewModel.clockButtonEnabled
+    val isRunning = clockPageViewModel.isClockRunning
+    val dropdownExpanded = clockPageViewModel.dropdownExpanded
+    val taskTextFieldValue = clockPageViewModel.taskTextFieldValue
     val autofillTaskNames = viewModel.autofillTaskNames.observeAsState().value
-    val currSeconds = viewModel.currSeconds
+    val currSeconds = clockPageViewModel.currSeconds
+    val onTaskNameChange = clockPageViewModel::onTaskNameChange
+    val onTaskNameDonePressed = clockPageViewModel::onTaskNameDonePressed
+    val onDismissDropdown = clockPageViewModel::onDismissDropdown
+    val onDropdownMenuItemClick = clockPageViewModel::onDropdownMenuItemClick
+    val startClock = clockPageViewModel::startClock
+    val stopClock = clockPageViewModel::stopClock
+    val onTimerAnimationFinished = clockPageViewModel::resetCurrSeconds
 
-    val onTaskNameChange = viewModel::onTaskNameChange
-    val onTaskNameDonePressed = viewModel::onTaskNameDonePressed
-    val onDismissDropdown = viewModel::onDismissDropdown
-    val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
-    val startClock = viewModel::startClock
-    val stopClock = viewModel::stopClock
-    val onTimerAnimationFinished = viewModel::resetCurrSeconds
+    val listPageViewModel = viewModel.listPage
+    val groupedEvents = listPageViewModel.groupedEventsByDate.observeAsState().value
+    val editingEventId = listPageViewModel.editingEventId
+    val onListItemClick =  listPageViewModel::changeEditId
+    val onDeleteButtonClick = listPageViewModel::deleteEvent
+    val onCancelButtonClick =  listPageViewModel::changeEditId
 
-    val groupedEvents = viewModel.ListPage.groupedEventsByDate.observeAsState().value
-    val editingEventId = viewModel.ListPage.editingEventId
-    val onListItemClick =  viewModel.ListPage::changeEditId
-    val onDeleteButtonClick = viewModel.ListPage::deleteEvent
-    val onCancelButtonClick =  viewModel.ListPage::changeEditId
-
-    val currentSelectionString = viewModel.AnalysisPage.currAnalysisPane.rangeName
-    val selectionStartButtonVisible = viewModel.AnalysisPage.isDateRangeStartButtonVisible()
-    val selectionEndButtonVisible = viewModel.AnalysisPage.isDateRangeEndButtonVisible()
-    val analysisPageRows = viewModel.AnalysisPage.currAnalysisPane.rowData.observeAsState().value
-    val openId = viewModel.AnalysisPage.currAnalysisPane.selectedAnalysisRowId
-    val changeId = viewModel.AnalysisPage.currAnalysisPane::changeSelectedAnalysisRowId
-    val onSelectionStartButtonClick = viewModel.AnalysisPage::onDateRangeStartButtonClick
-    val onSelectionEndButtonClick = viewModel.AnalysisPage::onDateRangeEndButtonClick
-    val totalSelectedHours = decorateMillisWithDecimalHours(viewModel.AnalysisPage.currAnalysisPane.selectedMillis)
+    val analysisPageViewModel = viewModel.analysisPage
+    val currentSelectionString = analysisPageViewModel.currAnalysisPane.rangeName
+    val selectionStartButtonVisible = analysisPageViewModel.isDateRangeStartButtonVisible()
+    val selectionEndButtonVisible = analysisPageViewModel.isDateRangeEndButtonVisible()
+    val analysisPageRows = analysisPageViewModel.currAnalysisPane.rowData.observeAsState().value
+    val openId = analysisPageViewModel.currAnalysisPane.selectedAnalysisRowId
+    val changeId = analysisPageViewModel.currAnalysisPane::changeSelectedAnalysisRowId
+    val onSelectionStartButtonClick = analysisPageViewModel::onDateRangeStartButtonClick
+    val onSelectionEndButtonClick = analysisPageViewModel::onDateRangeEndButtonClick
+    val totalSelectedHours =
+        decorateMillisWithDecimalHours(analysisPageViewModel.currAnalysisPane.selectedMillis)
 
     val clockRoute = stringResource(id = R.string.route_clock)
     val listRoute = stringResource(id = R.string.route_list)
