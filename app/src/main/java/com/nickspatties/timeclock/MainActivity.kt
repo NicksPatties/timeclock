@@ -113,11 +113,11 @@ fun NavigationComponent(
     val stopClock = viewModel::stopClock
     val onTimerAnimationFinished = viewModel::resetCurrSeconds
 
-    val groupedEvents = viewModel.groupedEventsByDate.observeAsState().value
-    val editingEventId = viewModel.editingEventId
-    val onListItemClick =  viewModel::changeEditId
-    val onDeleteButtonClick = viewModel::deleteEvent
-    val onCancelButtonClick =  viewModel::changeEditId
+    val groupedEvents = viewModel.ListPage.groupedEventsByDate.observeAsState().value
+    val editingEventId = viewModel.ListPage.editingEventId
+    val onListItemClick =  viewModel.ListPage::changeEditId
+    val onDeleteButtonClick = viewModel.ListPage::deleteEvent
+    val onCancelButtonClick =  viewModel.ListPage::changeEditId
 
     val currentSelectionString = viewModel.currAnalysisPane.rangeName
     val selectionStartButtonVisible = viewModel.isDateRangeStartButtonVisible()

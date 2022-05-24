@@ -50,15 +50,11 @@ class TimeClockViewModel (
     /**
      * List page properties
      */
-    val groupedEventsByDate = Transformations.map(timeClockEvents) { events ->
-        val listRows: List<ListRow> = events.map {
-            ListRow(it.name, it.startTime, it.endTime, it.id)
-        }
-        listRows.groupBy {
-            decorateMillisToDateString(it.startTime)
-        }
-    }
-    var editingEventId by mutableStateOf(-1L)
+    val ListPage = ListPageViewModel(
+        database,
+        timeClockEvents,
+        application
+    )
 
     /**
      * Analysis page properties
@@ -188,25 +184,6 @@ class TimeClockViewModel (
 
     private fun showToast(message: String) {
         Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * List page functions
-     */
-    fun changeEditId(id: Long) {
-        editingEventId = id
-    }
-
-    fun deleteEvent(id: Long) {
-        viewModelScope.launch {
-            val eventToDelete = database.get(id)
-            if(eventToDelete != null) {
-                database.delete(eventToDelete)
-                editingEventId = -1
-            } else {
-                showToast("Failed to delete event")
-            }
-        }
     }
 
     /**
