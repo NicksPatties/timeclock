@@ -1,7 +1,7 @@
 package com.nickspatties.timeclock.util
 
 import com.nickspatties.timeclock.data.TimeClockEvent
-import com.nickspatties.timeclock.ui.AnalysisRow
+import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
 
 fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<TimeClockEvent>> {
     return events.groupBy {

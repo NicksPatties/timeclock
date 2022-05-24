@@ -1,4 +1,4 @@
-package com.nickspatties.timeclock.ui
+package com.nickspatties.timeclock.ui.viewmodel
 
 import android.app.Application
 import android.widget.Toast
@@ -60,7 +60,6 @@ class TimeClockViewModel (
     /**
      * Analysis page properties
      */
-    private var totalMillis = 0L
     val allTimeAnalysisPane = AnalysisPane(
         eventData = timeClockEvents,
         rowTransformation = ::sortByNamesAndTotalMillis,
@@ -251,7 +250,6 @@ sealed class Screen(
 
 class AnalysisRow(val name: String, val millis: Long, val id: Long) {
     val color = generateColorFromString(name)
-    val hoursString = decorateMillisWithDecimalHours(millis)
     fun getPercentage(totalMillis: Long): Float {
         return millis / totalMillis.toFloat()
     }

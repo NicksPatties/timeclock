@@ -1,9 +1,10 @@
-package com.nickspatties.timeclock.ui
+package com.nickspatties.timeclock.ui.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.nickspatties.timeclock.data.TimeClockEventDao
+import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModel
 
 class TimeClockViewModelFactory(
     private val dataSource: TimeClockEventDao,

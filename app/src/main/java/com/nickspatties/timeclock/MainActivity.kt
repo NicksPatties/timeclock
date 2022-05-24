@@ -19,9 +19,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nickspatties.timeclock.data.TimeClockEventDatabase
-import com.nickspatties.timeclock.ui.Screen
-import com.nickspatties.timeclock.ui.TimeClockViewModel
-import com.nickspatties.timeclock.ui.TimeClockViewModelFactory
+import com.nickspatties.timeclock.ui.viewmodel.Screen
+import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModel
+import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModelFactory
 import com.nickspatties.timeclock.ui.pages.AnalysisPage
 import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
