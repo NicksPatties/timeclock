@@ -56,41 +56,10 @@ class TimeClockViewModel (
         application
     )
 
-    /**
-     * Analysis page properties
-     */
-    val allTimeAnalysisPane = AnalysisPane(
-        eventData = timeClockEvents,
-        rowTransformation = ::sortByNamesAndTotalMillis,
-        rangeName = "All time"
+    val AnalysisPage = AnalysisPageViewModel(
+        timeClockEvents,
+        application
     )
-    val todayAnalysisPane = AnalysisPane(
-        eventData = timeClockEvents,
-        rowTransformation = ::sortByNamesAndTotalMillis,
-        rangeName = "Today",
-        daysInRange = 1
-    )
-    val lastWeekAnalysisPane = AnalysisPane(
-        eventData = timeClockEvents,
-        rowTransformation = ::sortByNamesAndTotalMillis,
-        rangeName = "Last week",
-        daysInRange = 7
-    )
-    val lastMonthAnalysisPane = AnalysisPane(
-        eventData = timeClockEvents,
-        rowTransformation = ::sortByNamesAndTotalMillis,
-        rangeName = "Last month",
-        daysInRange = 30
-    )
-    var analysisPanes = listOf(
-        allTimeAnalysisPane,
-        todayAnalysisPane,
-        lastWeekAnalysisPane,
-        lastMonthAnalysisPane
-    )
-    private var currDateRangeIndex = 0
-    var currAnalysisPane by mutableStateOf(analysisPanes[currDateRangeIndex])
-
 
     init {
         chronometer.setOnChronometerTickListener {
@@ -184,37 +153,6 @@ class TimeClockViewModel (
 
     private fun showToast(message: String) {
         Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * Analysis Page functions
-     */
-    fun onDateRangeStartButtonClick() {
-        if (currDateRangeIndex > 0) {
-            updateAnalysisPane(currDateRangeIndex - 1)
-        }
-    }
-
-    fun isDateRangeStartButtonVisible(): Boolean {
-        return currDateRangeIndex > 0
-    }
-
-    fun onDateRangeEndButtonClick() {
-        if (currDateRangeIndex < analysisPanes.size - 1) {
-            updateAnalysisPane(currDateRangeIndex + 1)
-        }
-    }
-
-    fun isDateRangeEndButtonVisible(): Boolean {
-        return currDateRangeIndex < analysisPanes.size - 1
-    }
-
-    fun updateAnalysisPane(index: Int) {
-        // reset selected row for curr pane
-        analysisPanes[currDateRangeIndex].selectedAnalysisRowId = -1
-        // change the current index
-        currDateRangeIndex = index
-        currAnalysisPane = analysisPanes[currDateRangeIndex]
     }
 }
 

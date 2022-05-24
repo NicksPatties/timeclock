@@ -119,15 +119,15 @@ fun NavigationComponent(
     val onDeleteButtonClick = viewModel.ListPage::deleteEvent
     val onCancelButtonClick =  viewModel.ListPage::changeEditId
 
-    val currentSelectionString = viewModel.currAnalysisPane.rangeName
-    val selectionStartButtonVisible = viewModel.isDateRangeStartButtonVisible()
-    val selectionEndButtonVisible = viewModel.isDateRangeEndButtonVisible()
-    val analysisPageRows = viewModel.currAnalysisPane.rowData.observeAsState().value
-    val openId = viewModel.currAnalysisPane.selectedAnalysisRowId
-    val changeId = viewModel.currAnalysisPane::changeSelectedAnalysisRowId
-    val onSelectionStartButtonClick = viewModel::onDateRangeStartButtonClick
-    val onSelectionEndButtonClick = viewModel::onDateRangeEndButtonClick
-    val totalSelectedHours = decorateMillisWithDecimalHours(viewModel.currAnalysisPane.selectedMillis)
+    val currentSelectionString = viewModel.AnalysisPage.currAnalysisPane.rangeName
+    val selectionStartButtonVisible = viewModel.AnalysisPage.isDateRangeStartButtonVisible()
+    val selectionEndButtonVisible = viewModel.AnalysisPage.isDateRangeEndButtonVisible()
+    val analysisPageRows = viewModel.AnalysisPage.currAnalysisPane.rowData.observeAsState().value
+    val openId = viewModel.AnalysisPage.currAnalysisPane.selectedAnalysisRowId
+    val changeId = viewModel.AnalysisPage.currAnalysisPane::changeSelectedAnalysisRowId
+    val onSelectionStartButtonClick = viewModel.AnalysisPage::onDateRangeStartButtonClick
+    val onSelectionEndButtonClick = viewModel.AnalysisPage::onDateRangeEndButtonClick
+    val totalSelectedHours = decorateMillisWithDecimalHours(viewModel.AnalysisPage.currAnalysisPane.selectedMillis)
 
     val clockRoute = stringResource(id = R.string.route_clock)
     val listRoute = stringResource(id = R.string.route_list)
