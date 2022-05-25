@@ -6,4 +6,5 @@
     <string name="label_clock">Clock</string>
     <string name="label_list">List</string>
     <string name="label_metrics">Metrics</string>
+    <string name="task_saved_toast">Task \"%s\" saved!</string>
 </resources>

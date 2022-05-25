@@ -10,6 +10,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
@@ -110,7 +111,9 @@ class ClockPageViewModel (
             // saving...
             database.update(finishedEvent)
             // successfully saved!
-            showToast("Task \"${taskTextFieldValue.text}\" saved!")
+            val saved = getApplication<Application>().applicationContext
+                .getString(R.string.task_saved_toast, taskTextFieldValue.text)
+            showToast(saved)
             currentTimeClockEvent.value = null
             isClockRunning = false
         }
