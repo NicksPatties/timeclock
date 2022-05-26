@@ -3,6 +3,7 @@ package com.nickspatties.timeclock.util
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
 import com.nickspatties.timeclock.ui.viewmodel.ListRow
+import java.util.*
 
 fun groupEventsByDate(events: List<TimeClockEvent>): Map<String, List<ListRow>> {
     val rows = events.map {
@@ -46,10 +47,25 @@ fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<AnalysisRow> {
     }
 }
 
-fun filterEventsByNumberOfDays(events: List<TimeClockEvent>, numberOfDays: Int = -1): List<TimeClockEvent> {
+fun filterEventsByNumberOfDays(
+    events: List<TimeClockEvent>,
+    numberOfDays: Int = -1
+): List<TimeClockEvent> {
     if (numberOfDays < 0) return events
-    // find number of days in millis
-    val cutoffMillis = convertHoursMinutesSecondsToMillis(numberOfDays * 24)
     val now = System.currentTimeMillis()
+    val lastMidnight = findPreviousMidnight()
+    val firstDayMillis = now - lastMidnight
+    val cutoffMillis = convertHoursMinutesSecondsToMillis(
+        (numberOfDays - 1) * 24
+    ) + firstDayMillis
     return events.filter { it.startTime > now - cutoffMillis }
+}
+
+fun findPreviousMidnight(): Long {
+    val date = Calendar.getInstance()
+    date.set(Calendar.HOUR_OF_DAY, 0)
+    date.set(Calendar.MINUTE, 0)
+    date.set(Calendar.SECOND, 0)
+    date.set(Calendar.MILLISECOND, 0)
+    return date.timeInMillis
 }

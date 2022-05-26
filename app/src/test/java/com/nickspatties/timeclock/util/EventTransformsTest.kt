@@ -2,6 +2,7 @@ package com.nickspatties.timeclock.util
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import java.util.*
 
 class EventTransformsTest {
 
@@ -39,5 +40,32 @@ class EventTransformsTest {
             // assert the duration in millis is the same
             assertThat(item.millis).isEqualTo(expectedPair.second)
         }
+    }
+
+    @Test
+    fun filterEventsByNumberOfDays_onlyGetsEventsFromToday() {
+        val previousMidnight = findPreviousMidnight()
+        val events = createMockTimeClockEventList(
+            eventCount = 3,
+            eventDurations = listOf(1L),
+            durationsBetween = listOf(
+                previousMidnight - 2L,
+                1000L,
+            )
+        )
+        val filteredEvents = filterEventsByNumberOfDays(events = events, numberOfDays = 1)
+        assertThat(filteredEvents.size).isEqualTo(1)
+    }
+
+    @Test
+    fun findPreviousMidnight_findsThePreviousMidnight() {
+        val expectedMidnight = Calendar.getInstance()
+        expectedMidnight.set(Calendar.HOUR_OF_DAY, 0)
+        expectedMidnight.set(Calendar.MINUTE, 0)
+        expectedMidnight.set(Calendar.SECOND, 0)
+        expectedMidnight.set(Calendar.MILLISECOND, 0)
+
+        val previousMidnight = findPreviousMidnight()
+        assertThat(previousMidnight).isEqualTo(expectedMidnight.timeInMillis)
     }
 }
