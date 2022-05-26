@@ -12,15 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.ui.viewmodel.ListRow
 import com.nickspatties.timeclock.util.MockTimeClockEventsGroupedByDate
-import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
-import com.nickspatties.timeclock.util.generateColorFromString
+import com.nickspatties.timeclock.R
 
 @Composable
 fun ListPage(
@@ -60,12 +59,12 @@ fun NothingHereText() {
         val size = 24.sp
         val color = MaterialTheme.colors.onSurface.copy(alpha = 0.33f)
         Text(
-            text = "Looks like there's nothing here.",
+            text = stringResource(R.string.list_page_nothing_here),
             fontSize = size,
             color = color
         )
         Text(
-            text = "Record some events to fill this list!",
+            text = stringResource(R.string.list_page_fill_this_list),
             fontSize = size,
             color = color
         )
@@ -92,7 +91,7 @@ fun TimeClockList(
                 val accentColor = item.color
                 val titleName = item.title
                 val subtitleName =
-                    if (item.isRunning) "Running..."
+                    if (item.isRunning) stringResource(R.string.list_page_in_progress)
                     else item.elapsedTimeString
                 val closedContent = @Composable {
                     ListPageListItemClosedContent(title = titleName, subtitle = subtitleName)

@@ -9,14 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
+import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.ui.components.AnalysisPageListItemContent
 import com.nickspatties.timeclock.ui.components.PieChart
 import com.nickspatties.timeclock.ui.components.TimeClockListItem
 import com.nickspatties.timeclock.ui.components.TimeRangeSelector
-import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
+import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
 import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
@@ -85,7 +86,7 @@ fun AnalysisPage(
                         Text(
                             modifier = Modifier.padding(start = 5.dp),
                             style = MaterialTheme.typography.subtitle1,
-                            text = "hours"
+                            text = stringResource(R.string.hours)
                         )
                     }
                 }
@@ -95,11 +96,10 @@ fun AnalysisPage(
                 ) {
                     analysisPageRows.forEach { row ->
                         val name = row.name
-                        val duration = decorateMillisWithDecimalHours(row.millis)
                         val id = row.id
                         val percentage = row.millis / totalMillis.toFloat() * 100f
-                        val percentageString = "%.2f".format(percentage) + "%"
                         item {
+                            val percentageString = stringResource(R.string.percentage, percentage)
                             val isClosed = openId != id
                             TimeClockListItem(
                                 isClosed = isClosed,
@@ -122,7 +122,7 @@ fun AnalysisPage(
                 }
             }
         } else {
-            Text("No items")
+            Text(stringResource(R.string.analysis_page_nothing_here))
         }
     }
 }

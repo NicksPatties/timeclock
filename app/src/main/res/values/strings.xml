@@ -7,4 +7,21 @@
     <string name="label_list">List</string>
     <string name="label_metrics">Metrics</string>
     <string name="task_saved_toast">Task \"%s\" saved!</string>
+    <string name="task_text_field_label">What are you gonna do now?</string>
+    <string name="task_text_field_placeholder">Right now, I\'m gonna be…</string>
+    <string name="list_page_nothing_here">Looks like there\'s nothing here.</string>
+    <string name="list_page_fill_this_list">Record some events to fill this list!</string>
+    <string name="list_page_in_progress">In progress…</string>
+    <string name="start_time">Start time</string>
+    <string name="end_time">End time</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_delete">Delete</string>
+    <string name="analysis_page_all_time">All time</string>
+    <string name="analysis_page_today">Today</string>
+    <string name="analysis_page_last_week">Last week</string>
+    <string name="analysis_page_last_month">Last month</string>
+    <string name="hours">hours</string>
+    <string name="percentage">%.2f%%</string>
+    <string name="analysis_page_nothing_here">No items</string>
+
 </resources>

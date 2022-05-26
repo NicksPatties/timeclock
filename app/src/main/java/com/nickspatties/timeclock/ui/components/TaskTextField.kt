@@ -8,9 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import com.nickspatties.timeclock.R
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -30,10 +32,10 @@ fun TaskTextField(
         onValueChange = onTaskNameChange,
         singleLine = true,
         label = {
-            Text("I am going to...")
+            Text(stringResource(R.string.task_text_field_label))
         },
         placeholder = {
-            Text("what are you doing?")
+            Text(stringResource(R.string.task_text_field_placeholder))
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = {

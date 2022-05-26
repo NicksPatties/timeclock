@@ -7,12 +7,14 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.nickspatties.timeclock.util.convertHoursMinutesSecondsToMillis
 import com.nickspatties.timeclock.util.decorateMillisLikeStopwatch
 import com.nickspatties.timeclock.util.decorateMillisToTimeString
 import com.nickspatties.timeclock.util.generateColorFromString
+import com.nickspatties.timeclock.R
 
 /**
  * Displays the name of a task, and the amount of time spent on that task.
@@ -70,11 +72,11 @@ fun ListPageListItemOpenContent(
         ) {
             ClockComponent(
                 timeString = decorateMillisToTimeString(startTime),
-                subtitle = "Start time"
+                subtitle = stringResource(R.string.start_time)
             )
             ClockComponent(
                 timeString = decorateMillisToTimeString(endTime),
-                subtitle = "End time"
+                subtitle = stringResource(R.string.end_time)
             )
         }
         Row (
@@ -85,12 +87,18 @@ fun ListPageListItemOpenContent(
             OutlinedButton(
                 onClick = onCancelButtonClick
             ) {
-                Text(text = "Cancel", style = MaterialTheme.typography.body1)
+                Text(
+                    text = stringResource(R.string.button_cancel),
+                    style = MaterialTheme.typography.body1
+                )
             }
             OutlinedButton(
                 onClick = onDeleteButtonClick
             ) {
-                Text(text = "Delete", style = MaterialTheme.typography.body1)
+                Text(
+                    text = stringResource(R.string.button_delete),
+                    style = MaterialTheme.typography.body1
+                )
             }
         }
     }
