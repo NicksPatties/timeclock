@@ -24,7 +24,6 @@ fun TaskTextField(
     onDone: () -> Unit = {},
     keyboardController: SoftwareKeyboardController?
 ) {
-
     TextField(
         modifier = modifier,
         value = value,
