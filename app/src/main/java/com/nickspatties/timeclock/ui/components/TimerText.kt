@@ -7,7 +7,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -20,7 +19,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.util.getTimerString
-import java.lang.NumberFormatException
 
 @Composable
 fun TimerText(
@@ -43,11 +41,14 @@ fun TimerText(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TimerTextSelect() {
-    var textValue by remember { mutableStateOf(TextFieldValue(text = "0")) }
+    var textValue by remember { mutableStateOf(TextFieldValue(
+        text = "00",
+        selection = TextRange(1)
+    )) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
     BasicTextField(
-        modifier = Modifier.width(85.dp),
+        modifier = Modifier.width(70.dp),
         value = textValue,
         onValueChange = {
             /**
@@ -55,22 +56,33 @@ fun TimerTextSelect() {
              *   single character is 6 or above
              *   there are two characters
              */
+            val oneCharacter = it.text.length == 1
             val twoCharacters = it.text.length >= 2
 
-            textValue = if (twoCharacters) {
+            if (oneCharacter) {
+                textValue = if (it.text.toInt() >= 6) {
+                    val newTextFieldValue = TextFieldValue(
+                        text = it.text,
+                        selection = TextRange(0, 3) // select all
+                    )
+                    newTextFieldValue
+                } else {
+                    it
+                }
+            } else if (twoCharacters) {
                 val newTextFieldValue = TextFieldValue(
                     text = it.text,
-                    selection = TextRange(0, 3)
+                    selection = TextRange(0, 3) // select all
                 )
-                newTextFieldValue
+                textValue = newTextFieldValue
             } else {
-                it
+                textValue = it
             }
         },
         textStyle = MaterialTheme.typography.h2,
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Next,
-            keyboardType = KeyboardType.Number
+            keyboardType = KeyboardType.NumberPassword
         ),
         keyboardActions = KeyboardActions(onNext = {
             keyboardController?.hide()
@@ -78,7 +90,6 @@ fun TimerTextSelect() {
         singleLine = true
     )
 }
-
 
 @Preview
 @Composable
