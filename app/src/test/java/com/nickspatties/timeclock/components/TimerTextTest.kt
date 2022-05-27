@@ -1,0 +1,38 @@
+package com.nickspatties.timeclock.components
+
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import com.google.common.truth.Truth.assertThat
+import com.nickspatties.timeclock.ui.components.onTimerTextSelectValueChange
+import org.junit.Test
+
+class TimerTextTest {
+
+    @Test
+    fun onTimerTextSelectValueChange_allTextSelectedWhenDigitIsSixOrAbove() {
+        val expectedValue = TextFieldValue(
+            text = "6",
+            selection = TextRange(0, 3)
+        )
+        val actualValue = onTimerTextSelectValueChange(TextFieldValue(
+            text = "6"
+        ))
+
+        assertThat(actualValue.text).isEqualTo(expectedValue.text)
+        assertThat(actualValue.selection).isEqualTo(expectedValue.selection)
+    }
+
+    @Test
+    fun onTimerTextSelectValueChange_allTextSelectedWhenTwoDigits() {
+        val expectedValue = TextFieldValue(
+            text = "11",
+            selection = TextRange(0, 3)
+        )
+        val actualValue = onTimerTextSelectValueChange(TextFieldValue(
+            text = "11"
+        ))
+
+        assertThat(actualValue.text).isEqualTo(expectedValue.text)
+        assertThat(actualValue.selection).isEqualTo(expectedValue.selection)
+    }
+}

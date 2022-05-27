@@ -51,33 +51,7 @@ fun TimerTextSelect() {
         modifier = Modifier.width(70.dp),
         value = textValue,
         onValueChange = {
-            /**
-             * select all if
-             *   single character is 6 or above
-             *   there are two characters
-             */
-            val oneCharacter = it.text.length == 1
-            val twoCharacters = it.text.length >= 2
-
-            if (oneCharacter) {
-                textValue = if (it.text.toInt() >= 6) {
-                    val newTextFieldValue = TextFieldValue(
-                        text = it.text,
-                        selection = TextRange(0, 3) // select all
-                    )
-                    newTextFieldValue
-                } else {
-                    it
-                }
-            } else if (twoCharacters) {
-                val newTextFieldValue = TextFieldValue(
-                    text = it.text,
-                    selection = TextRange(0, 3) // select all
-                )
-                textValue = newTextFieldValue
-            } else {
-                textValue = it
-            }
+            textValue = onTimerTextSelectValueChange(it)
         },
         textStyle = MaterialTheme.typography.h2,
         keyboardOptions = KeyboardOptions.Default.copy(
@@ -89,6 +63,29 @@ fun TimerTextSelect() {
         }),
         singleLine = true
     )
+}
+
+fun onTimerTextSelectValueChange(value: TextFieldValue): TextFieldValue {
+    val selectAllValue = TextFieldValue(
+        text = value.text,
+        selection = TextRange(0, 3)
+    )
+    val cursorAtEnd = TextFieldValue(
+        text = value.text,
+        selection = TextRange(value.text.length)
+    )
+    return when(value.text.length) {
+        0 -> cursorAtEnd
+        1 -> {
+            if (value.text.toInt() >= 6) {
+                selectAllValue
+            } else {
+                cursorAtEnd
+            }
+        }
+        2 -> selectAllValue
+        else -> TextFieldValue()
+    }
 }
 
 @Preview
