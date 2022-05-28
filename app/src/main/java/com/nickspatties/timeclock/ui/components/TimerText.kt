@@ -1,6 +1,9 @@
 package com.nickspatties.timeclock.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -10,7 +13,9 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.*
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
@@ -46,20 +51,49 @@ fun TimerTextSelect() {
         selection = TextRange(1)
     )) }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    // another cheeky way to skip onValueChange when focus happens the first time
+    var skipOnValueChange = false
 
     BasicTextField(
-        modifier = Modifier.width(70.dp),
+        modifier = Modifier
+            .width(70.dp)
+            .onFocusChanged {
+                if (it.isFocused) {
+                    skipOnValueChange = true
+                    // select all when focused
+                    textValue = TextFieldValue(
+                        text = textValue.text,
+                        selection = TextRange(start = 0, end = textValue.text.length)
+                    )
+                } else {
+                    skipOnValueChange = true
+                    textValue = TextFieldValue(
+                        text = textValue.text,
+                        selection = TextRange(0, 0)
+                    )
+                }
+            },
         value = textValue,
         onValueChange = {
-            textValue = onTimerTextSelectValueChange(it)
+            if (skipOnValueChange) {
+                skipOnValueChange = false
+            } else {
+                textValue = onTimerTextSelectValueChange(it)
+            }
         },
         textStyle = MaterialTheme.typography.h2,
         keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Next,
+            imeAction = ImeAction.Done,
             keyboardType = KeyboardType.NumberPassword
         ),
-        keyboardActions = KeyboardActions(onNext = {
+        keyboardActions = KeyboardActions(onDone = {
             keyboardController?.hide()
+            textValue = TextFieldValue(
+                text = textValue.text,
+                selection = TextRange(0)
+            )
+            focusManager.clearFocus()
         }),
         singleLine = true
     )
@@ -68,7 +102,7 @@ fun TimerTextSelect() {
 fun onTimerTextSelectValueChange(value: TextFieldValue): TextFieldValue {
     val selectAllValue = TextFieldValue(
         text = value.text,
-        selection = TextRange(0, 3)
+        selection = TextRange(0, value.text.length)
     )
     val cursorAtEnd = TextFieldValue(
         text = value.text,
@@ -100,5 +134,9 @@ fun TimerTextPreview() {
 @Preview
 @Composable
 fun TimerTextSelectPreview() {
-    TimerTextSelect()
+    Box(
+        modifier = Modifier.padding(50.dp)
+    ) {
+        TimerTextSelect()
+    }
 }
