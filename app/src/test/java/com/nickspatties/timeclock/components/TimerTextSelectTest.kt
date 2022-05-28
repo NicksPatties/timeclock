@@ -3,10 +3,11 @@ package com.nickspatties.timeclock.components
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.google.common.truth.Truth.assertThat
+import com.nickspatties.timeclock.ui.components.formatDigitsAfterLeavingFocus
 import com.nickspatties.timeclock.ui.components.onTimerTextSelectValueChange
 import org.junit.Test
 
-class TimerTextTest {
+class TimerTextSelectTest {
 
     @Test
     fun onTimerTextSelectValueChange_allTextSelectedWhenDigitIsSixOrAbove() {
@@ -34,5 +35,20 @@ class TimerTextTest {
 
         assertThat(actualValue.text).isEqualTo(expectedValue.text)
         assertThat(actualValue.selection).isEqualTo(expectedValue.selection)
+    }
+
+    @Test
+    fun formatDigitsAfterLeavingFocus_happyCase() {
+        assertThat(formatDigitsAfterLeavingFocus("1")).isEqualTo("01")
+    }
+
+    @Test
+    fun formatDigitsAfterLeavingFocus_emptyCase() {
+        assertThat(formatDigitsAfterLeavingFocus("")).isEqualTo("00")
+    }
+
+    @Test
+    fun formatDigitsAfterLeavingFocus_twoDigitsCase() {
+        assertThat(formatDigitsAfterLeavingFocus("11")).isEqualTo("11")
     }
 }
