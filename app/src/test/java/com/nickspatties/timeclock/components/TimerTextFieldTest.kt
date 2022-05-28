@@ -7,7 +7,7 @@ import com.nickspatties.timeclock.ui.components.formatDigitsAfterLeavingFocus
 import com.nickspatties.timeclock.ui.components.onTimerTextSelectValueChange
 import org.junit.Test
 
-class TimerTextSelectTest {
+class TimerTextFieldTest {
 
     @Test
     fun onTimerTextSelectValueChange_allTextSelectedWhenDigitIsSixOrAbove() {

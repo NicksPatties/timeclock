@@ -22,7 +22,9 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun TimerTextSelect() {
+fun TimerTextField(
+    modifier: Modifier = Modifier
+) {
     var textValue by remember {
         mutableStateOf(
             TextFieldValue(
@@ -37,7 +39,7 @@ fun TimerTextSelect() {
     var skipOnValueChange = false
 
     BasicTextField(
-        modifier = Modifier
+        modifier = modifier
             .width(70.dp)
             .onFocusChanged {
                 if (it.isFocused) {
@@ -116,6 +118,6 @@ fun TimerTextSelectPreview() {
     Box(
         modifier = Modifier.padding(50.dp)
     ) {
-        TimerTextSelect()
+        TimerTextField()
     }
 }
