@@ -36,7 +36,6 @@ fun EditTimerTextField() {
             )
         )
     }
-
     var secondsTextValue by remember {
         mutableStateOf(
             TextFieldValue(
@@ -161,6 +160,12 @@ fun textFieldValueNoSelection(textField: TextFieldValue): TextFieldValue {
         text = textField.text,
         selection = TextRange(0)
     )
+}
+
+fun formatDigitsAfterLeavingFocus(digits: String): String {
+    if (digits.isEmpty()) return "00"
+    if (digits.length > 1) return digits
+    return "0$digits"
 }
 
 @Preview
