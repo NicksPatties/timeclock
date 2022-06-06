@@ -10,9 +10,10 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,7 +24,11 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TimerTextField(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    keyboardController: SoftwareKeyboardController? = null,
+    imeAction: ImeAction = ImeAction.Done,
+    focusManager: FocusManager,
+    shouldMoveFocus: Boolean = false
 ) {
     var textValue by remember {
         mutableStateOf(
@@ -33,8 +38,6 @@ fun TimerTextField(
             )
         )
     }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
     // another cheeky way to skip onValueChange when focus happens the first time
     var skipOnValueChange = false
 
@@ -68,7 +71,7 @@ fun TimerTextField(
         },
         textStyle = MaterialTheme.typography.h2,
         keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Done,
+            imeAction = imeAction,
             keyboardType = KeyboardType.NumberPassword
         ),
         keyboardActions = KeyboardActions(onDone = {
@@ -77,7 +80,10 @@ fun TimerTextField(
                 text = textValue.text,
                 selection = TextRange(0)
             )
-            focusManager.clearFocus()
+            if (shouldMoveFocus)
+                focusManager.moveFocus(FocusDirection.Next)
+            else
+                focusManager.clearFocus()
         }),
         singleLine = true
     )
@@ -118,6 +124,6 @@ fun TimerTextSelectPreview() {
     Box(
         modifier = Modifier.padding(50.dp)
     ) {
-        TimerTextField()
+        //TimerTextField()
     }
 }
