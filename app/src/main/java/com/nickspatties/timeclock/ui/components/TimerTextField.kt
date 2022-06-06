@@ -12,6 +12,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
@@ -25,19 +26,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TimerTextField(
     modifier: Modifier = Modifier,
+    textValue: TextFieldValue = TextFieldValue(),
     keyboardController: SoftwareKeyboardController? = null,
     imeAction: ImeAction = ImeAction.Done,
     focusManager: FocusManager,
-    shouldMoveFocus: Boolean = false
+    handleFocusChange : () -> Unit = {},
+    shouldMoveFocus: Boolean = false,
+    onValueChange: (TextFieldValue) -> Unit = {},
+    onKeyboardDone: () -> Unit = {}
 ) {
-    var textValue by remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = "00",
-                selection = TextRange(1)
-            )
-        )
-    }
     // another cheeky way to skip onValueChange when focus happens the first time
     var skipOnValueChange = false
 
@@ -45,28 +42,15 @@ fun TimerTextField(
         modifier = modifier
             .width(70.dp)
             .onFocusChanged {
-                if (it.isFocused) {
-                    skipOnValueChange = true
-                    // select all when focused
-                    textValue = TextFieldValue(
-                        text = textValue.text,
-                        selection = TextRange(start = 0, end = textValue.text.length)
-                    )
-                } else {
-                    skipOnValueChange = true
-                    val newText = formatDigitsAfterLeavingFocus(textValue.text)
-                    textValue = TextFieldValue(
-                        text = newText,
-                        selection = TextRange(0, 0)
-                    )
-                }
+                handleFocusChange()
+                skipOnValueChange = true
             },
         value = textValue,
         onValueChange = {
             if (skipOnValueChange) {
                 skipOnValueChange = false
             } else {
-                textValue = onTimerTextSelectValueChange(it)
+                onValueChange(it)
             }
         },
         textStyle = MaterialTheme.typography.h2,
@@ -76,10 +60,7 @@ fun TimerTextField(
         ),
         keyboardActions = KeyboardActions(onDone = {
             keyboardController?.hide()
-            textValue = TextFieldValue(
-                text = textValue.text,
-                selection = TextRange(0)
-            )
+            onKeyboardDone()
             if (shouldMoveFocus)
                 focusManager.moveFocus(FocusDirection.Next)
             else
@@ -87,29 +68,6 @@ fun TimerTextField(
         }),
         singleLine = true
     )
-}
-
-fun onTimerTextSelectValueChange(value: TextFieldValue): TextFieldValue {
-    val selectAllValue = TextFieldValue(
-        text = value.text,
-        selection = TextRange(0, value.text.length)
-    )
-    val cursorAtEnd = TextFieldValue(
-        text = value.text,
-        selection = TextRange(value.text.length)
-    )
-    return when(value.text.length) {
-        0 -> cursorAtEnd
-        1 -> {
-            if (value.text.toInt() >= 6) {
-                selectAllValue
-            } else {
-                cursorAtEnd
-            }
-        }
-        2 -> selectAllValue
-        else -> TextFieldValue()
-    }
 }
 
 fun formatDigitsAfterLeavingFocus(digits: String): String {
