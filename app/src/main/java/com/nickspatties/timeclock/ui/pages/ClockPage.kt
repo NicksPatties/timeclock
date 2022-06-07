@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import com.nickspatties.timeclock.ui.components.EditTimerTextField
 import com.nickspatties.timeclock.ui.components.StartTimerButton
 import com.nickspatties.timeclock.ui.components.TaskTextField
 import com.nickspatties.timeclock.ui.components.TimerText
@@ -96,15 +97,20 @@ fun ClockPage(
 
             // timer clock
             val spacing = 0.dp
-            TimerText(
-                modifier = Modifier.padding(
-                    top = spacing,
-                    bottom = spacing
-                ),
-                isRunning = isRunning,
-                currSeconds = currSeconds,
-                finishedListener = timerAnimationFinishedListener
-            )
+            if (countdownEnabled) {
+                EditTimerTextField()
+            } else {
+                TimerText(
+                    modifier = Modifier.padding(
+                        top = spacing,
+                        bottom = spacing
+                    ),
+                    isRunning = isRunning,
+                    currSeconds = currSeconds,
+                    finishedListener = timerAnimationFinishedListener
+                )
+            }
+
 
             StartTimerButton(
                 clockEnabled = clockEnabled,

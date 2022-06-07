@@ -12,6 +12,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -32,7 +33,6 @@ fun TimerTextField(
 ) {
     // another cheeky way to skip onValueChange when focus happens the first time
     var skipOnValueChange = false
-
     BasicTextField(
         modifier = modifier
             .width(70.dp)
@@ -48,7 +48,9 @@ fun TimerTextField(
                 onValueChange(it)
             }
         },
-        textStyle = MaterialTheme.typography.h2,
+        textStyle = MaterialTheme.typography.h2.merge(
+            TextStyle(color = MaterialTheme.colors.onBackground)
+        ),
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = imeAction,
             keyboardType = KeyboardType.NumberPassword
