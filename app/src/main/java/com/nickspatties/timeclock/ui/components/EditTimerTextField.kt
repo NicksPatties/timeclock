@@ -17,7 +17,9 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun EditTimerTextField() {
+fun EditTimerTextField(
+    onFocusRemoval: (String) -> Unit = {}
+) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     var hoursTextValue by remember {
@@ -47,7 +49,13 @@ fun EditTimerTextField() {
     Row {
         TimerTextField(
             modifier = Modifier.onFocusChanged {
-                hoursTextValue = onFocusChanged(it, hoursTextValue)
+                hoursTextValue = onFocusChanged(
+                    it,
+                    hoursTextValue,
+                    onFocusRemoved = {
+                        onFocusRemoval(hoursTextValue.text)
+                    }
+                )
             },
             textValue = hoursTextValue,
             keyboardController = keyboardController,
@@ -64,7 +72,10 @@ fun EditTimerTextField() {
         )
         TimerTextField(
             modifier = Modifier.onFocusChanged {
-                minutesTextValue = onFocusChanged(it, minutesTextValue)
+                minutesTextValue = onFocusChanged(
+                    it,
+                    minutesTextValue
+                )
             },
             textValue = minutesTextValue,
             keyboardController = keyboardController,
@@ -83,7 +94,10 @@ fun EditTimerTextField() {
         )
         TimerTextField(
             modifier = Modifier.onFocusChanged {
-                secondsTextValue = onFocusChanged(it, secondsTextValue)
+                secondsTextValue = onFocusChanged(
+                    it,
+                    secondsTextValue
+                )
             },
             textValue = secondsTextValue,
             keyboardController = keyboardController,
@@ -139,7 +153,11 @@ fun onHourValueChange(value: TextFieldValue): TextFieldValue {
     }
 }
 
-fun onFocusChanged(it: FocusState, textValue: TextFieldValue): TextFieldValue {
+fun onFocusChanged(
+    it: FocusState,
+    textValue: TextFieldValue,
+    onFocusRemoved: () -> Unit = {}
+): TextFieldValue {
     return if (it.isFocused) {
         // select all when focused
         TextFieldValue(
@@ -147,6 +165,7 @@ fun onFocusChanged(it: FocusState, textValue: TextFieldValue): TextFieldValue {
             selection = TextRange(start = 0, end = textValue.text.length)
         )
     } else {
+        onFocusRemoved()
         val newText = formatDigitsAfterLeavingFocus(textValue.text)
         TextFieldValue(
             text = newText,

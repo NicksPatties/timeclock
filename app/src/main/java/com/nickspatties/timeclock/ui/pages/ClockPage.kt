@@ -37,7 +37,8 @@ fun ClockPage(
     startClock: () -> Unit,
     stopClock: () -> Unit,
     timerAnimationFinishedListener: () -> Unit = {},
-    onCountdownIconClicked: () -> Unit
+    onCountdownIconClicked: () -> Unit,
+    onCountdownTimerFocusRemoval: (String) -> Unit
 ) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -98,7 +99,9 @@ fun ClockPage(
             // timer clock
             val spacing = 0.dp
             if (countdownEnabled) {
-                EditTimerTextField()
+                EditTimerTextField(
+                    onFocusRemoval = onCountdownTimerFocusRemoval
+                )
             } else {
                 TimerText(
                     modifier = Modifier.padding(
@@ -110,7 +113,6 @@ fun ClockPage(
                     finishedListener = timerAnimationFinishedListener
                 )
             }
-
 
             StartTimerButton(
                 clockEnabled = clockEnabled,
@@ -137,6 +139,8 @@ fun ClockPageMockUp() {
         onDismissDropdown = { },
         onDropdownMenuItemClick = { },
         startClock = { },
-        stopClock = { }
-    ) { }
+        stopClock = { },
+        onCountdownIconClicked = {},
+        onCountdownTimerFocusRemoval = { it }
+    )
 }

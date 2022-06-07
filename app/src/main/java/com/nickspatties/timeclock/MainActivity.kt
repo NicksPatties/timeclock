@@ -135,7 +135,7 @@ fun NavigationComponent(
     val startClock = clockPageViewModel::startClock
     val stopClock = clockPageViewModel::stopClock
     val onTimerAnimationFinished = clockPageViewModel::resetCurrSeconds
-    val onCountdownValueChanged = clockPageViewModel::updateCountdownValues
+    val onCountdownValueChanged = clockPageViewModel::updateCountdownHours
     val countdownEnabled = clockPageViewModel.countdownTimerEnabled
     val onCountdownIconClicked = clockPageViewModel::switchCountdownTimer
 
@@ -183,8 +183,8 @@ fun NavigationComponent(
                 stopClock = stopClock,
                 timerAnimationFinishedListener = onTimerAnimationFinished,
                 onCountdownIconClicked = onCountdownIconClicked,
-                countdownEnabled = countdownEnabled
-                // TODO onCountdownValueChanged = onCountdownValueChanged
+                countdownEnabled = countdownEnabled,
+                onCountdownTimerFocusRemoval = onCountdownValueChanged
             )
         }
         composable(listRoute) {
