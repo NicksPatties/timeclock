@@ -24,6 +24,7 @@ import com.nickspatties.timeclock.util.MockAutofillValues
 fun ClockPage(
     clockEnabled: Boolean,
     isRunning: Boolean,
+    countdownEnabled: Boolean = false,
     dropdownExpanded: Boolean,
     taskTextFieldValue: TextFieldValue,
     autofillTaskNames: Set<String>?,
@@ -34,7 +35,8 @@ fun ClockPage(
     onDropdownMenuItemClick: (String) -> Unit,
     startClock: () -> Unit,
     stopClock: () -> Unit,
-    timerAnimationFinishedListener: () -> Unit = {}
+    timerAnimationFinishedListener: () -> Unit = {},
+    onCountdownIconClicked: () -> Unit
 ) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -59,7 +61,9 @@ fun ClockPage(
                     onDone = {
                         onTaskNameDonePressed()
                     },
-                    keyboardController = keyboardController
+                    keyboardController = keyboardController,
+                    countdownTimerEnabled = countdownEnabled,
+                    onIconClick = onCountdownIconClicked
                 )
 
                 DropdownMenu(
@@ -116,7 +120,7 @@ fun ClockPage(
 @Preview
 fun ClockPageMockUp() {
     ClockPage(
-        clockEnabled = true,
+        clockEnabled = false,
         isRunning = false,
         dropdownExpanded = false,
         taskTextFieldValue = TextFieldValue(),
@@ -128,5 +132,5 @@ fun ClockPageMockUp() {
         onDropdownMenuItemClick = { },
         startClock = { },
         stopClock = { }
-    )
+    ) { }
 }

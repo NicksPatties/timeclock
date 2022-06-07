@@ -61,6 +61,13 @@ class ClockPageViewModel (
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
 
+    // countdown specific variables
+    var countdownTimerEnabled by mutableStateOf(false)
+    var currCountdownSeconds by mutableStateOf(0)
+    private var countdownHours = 0
+    private var countdownMinutes = 0
+    private var countdownSeconds = 0
+
     init {
         chronometer.setOnChronometerTickListener {
             currSeconds = calculateCurrSeconds(currentTimeClockEvent.value)
@@ -159,6 +166,16 @@ class ClockPageViewModel (
 
     fun resetCurrSeconds() {
         currSeconds = 0
+    }
+
+    fun updateCountdownValues(hoursString: String, minutesString: String, secondsString: String) {
+        countdownHours = hoursString.toInt()
+        countdownMinutes = minutesString.toInt()
+        countdownMinutes = secondsString.toInt()
+    }
+
+    fun switchCountdownTimer() {
+        countdownTimerEnabled = !countdownTimerEnabled
     }
 
     private fun showToast(message: String) {

@@ -2,12 +2,12 @@ package com.nickspatties.timeclock.ui.components
 
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -22,7 +22,9 @@ fun TaskTextField(
     enabled: Boolean,
     onTaskNameChange: (TextFieldValue) -> Unit,
     onDone: () -> Unit = {},
-    keyboardController: SoftwareKeyboardController?
+    keyboardController: SoftwareKeyboardController?,
+    countdownTimerEnabled: Boolean = false,
+    onIconClick: () -> Unit = {}
 ) {
     TextField(
         modifier = modifier,
@@ -35,6 +37,19 @@ fun TaskTextField(
         },
         placeholder = {
             Text(stringResource(R.string.task_text_field_placeholder))
+        },
+        trailingIcon = {
+            IconButton(onClick = onIconClick) {
+                val tint = if (countdownTimerEnabled)
+                    MaterialTheme.colors.primary
+                else
+                    MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.medium)
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_baseline_av_timer_24),
+                    contentDescription = null,
+                    tint = tint
+                )
+            }
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = {
