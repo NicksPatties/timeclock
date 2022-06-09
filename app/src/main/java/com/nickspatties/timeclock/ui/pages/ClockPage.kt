@@ -38,7 +38,7 @@ fun ClockPage(
     stopClock: () -> Unit,
     timerAnimationFinishedListener: () -> Unit = {},
     onCountdownIconClicked: () -> Unit,
-    onCountdownTimerFocusRemoval: (String) -> Unit
+    onCountdownTimerFocusRemoval: (String, String, String) -> Unit
 ) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -141,6 +141,6 @@ fun ClockPageMockUp() {
         startClock = { },
         stopClock = { },
         onCountdownIconClicked = {},
-        onCountdownTimerFocusRemoval = { it }
+        onCountdownTimerFocusRemoval = { s1: String, s2: String, s3: String -> }
     )
 }

@@ -168,15 +168,9 @@ class ClockPageViewModel (
         currSeconds = 0
     }
 
-    fun updateCountdownHours(hoursString: String) {
+    fun updateCountdownValues(hoursString: String, minutesString: String, secondsString: String) {
         countdownHours = hoursString.toInt()
-    }
-
-    fun updateCountdownMinutes(minutesString: String) {
         countdownMinutes = minutesString.toInt()
-    }
-
-    fun updateCountdownSeconds(secondsString: String) {
         countdownSeconds = secondsString.toInt()
     }
 
