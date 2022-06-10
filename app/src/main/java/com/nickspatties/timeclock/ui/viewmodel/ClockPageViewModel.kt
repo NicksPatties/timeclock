@@ -19,6 +19,7 @@ import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
 import com.nickspatties.timeclock.util.calculateCurrSeconds
+import com.nickspatties.timeclock.util.convertHoursMinutesSecondsToSeconds
 import com.nickspatties.timeclock.util.findEventStartTimeDelay
 import com.nickspatties.timeclock.util.getNotificationManager
 import kotlinx.coroutines.launch
@@ -64,9 +65,6 @@ class ClockPageViewModel (
     // countdown specific variables
     var countdownTimerEnabled by mutableStateOf(false)
     var currCountdownSeconds by mutableStateOf(0)
-    private var countdownHours = 0
-    private var countdownMinutes = 0
-    private var countdownSeconds = 0
 
     init {
         chronometer.setOnChronometerTickListener {
@@ -169,9 +167,11 @@ class ClockPageViewModel (
     }
 
     fun updateCountdownValues(hoursString: String, minutesString: String, secondsString: String) {
-        countdownHours = hoursString.toInt()
-        countdownMinutes = minutesString.toInt()
-        countdownSeconds = secondsString.toInt()
+        currCountdownSeconds = convertHoursMinutesSecondsToSeconds(
+            hoursString.toInt(),
+            minutesString.toInt(),
+            secondsString.toInt()
+        )
     }
 
     fun switchCountdownTimer() {

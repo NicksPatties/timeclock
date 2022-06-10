@@ -10,6 +10,11 @@ fun convertHoursMinutesSecondsToMillis(hours: Int = 0, minutes: Int = 0, seconds
     return MILLIS_PER_HOUR * hours + MILLIS_PER_MINUTE * minutes + MILLIS_PER_SECOND * seconds
 }
 
+fun convertHoursMinutesSecondsToSeconds(hours: Int = 0, minutes: Int = 0, seconds: Int = 0): Int {
+    if (hours == 0 && minutes == 0) return seconds
+    return hours * 60 * 60 + minutes * 60 + seconds
+}
+
 fun convertMillisToHoursMinutesSeconds(millis: Long): Triple<Int, Int, Int> {
     val seconds = millis / MILLIS_PER_SECOND
     return convertSecondsToHoursMinutesSeconds(seconds.toInt())

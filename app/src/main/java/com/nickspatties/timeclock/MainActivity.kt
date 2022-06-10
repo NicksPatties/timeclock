@@ -137,6 +137,7 @@ fun NavigationComponent(
     val onTimerAnimationFinished = clockPageViewModel::resetCurrSeconds
     val onCountdownValueChanged = clockPageViewModel::updateCountdownValues
     val countdownEnabled = clockPageViewModel.countdownTimerEnabled
+    val currentCountDownSeconds = clockPageViewModel.currCountdownSeconds
     val onCountdownIconClicked = clockPageViewModel::switchCountdownTimer
 
     val listPageViewModel = viewModel.listPage
@@ -184,6 +185,7 @@ fun NavigationComponent(
                 timerAnimationFinishedListener = onTimerAnimationFinished,
                 onCountdownIconClicked = onCountdownIconClicked,
                 countdownEnabled = countdownEnabled,
+                currentCountDownSeconds = currentCountDownSeconds,
                 onCountdownTimerFocusRemoval = onCountdownValueChanged
             )
         }

@@ -38,6 +38,7 @@ fun ClockPage(
     stopClock: () -> Unit,
     timerAnimationFinishedListener: () -> Unit = {},
     onCountdownIconClicked: () -> Unit,
+    currentCountDownSeconds: Int = 3600,
     onCountdownTimerFocusRemoval: (String, String, String) -> Unit
 ) {
 
@@ -100,6 +101,7 @@ fun ClockPage(
             val spacing = 0.dp
             if (countdownEnabled) {
                 EditTimerTextField(
+                    currentCountDownSeconds = currentCountDownSeconds,
                     onFocusRemoval = onCountdownTimerFocusRemoval
                 )
             } else {

@@ -14,18 +14,21 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import com.nickspatties.timeclock.util.convertSecondsToHoursMinutesSeconds
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EditTimerTextField(
+    currentCountDownSeconds: Int = 0,
     onFocusRemoval: (String, String, String) -> Unit = { s: String, s1: String, s2: String -> }
 ) {
+    val (hours, minutes, seconds) = convertSecondsToHoursMinutesSeconds(currentCountDownSeconds)
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     var hoursTextValue by remember {
         mutableStateOf(
             TextFieldValue(
-                text = "00",
+                text = formatDigitsAfterLeavingFocus(hours.toString()),
                 selection = TextRange(1)
             )
         )
@@ -33,7 +36,7 @@ fun EditTimerTextField(
     var minutesTextValue by remember {
         mutableStateOf(
             TextFieldValue(
-                text = "00",
+                text = formatDigitsAfterLeavingFocus(minutes.toString()),
                 selection = TextRange(1)
             )
         )
@@ -41,7 +44,7 @@ fun EditTimerTextField(
     var secondsTextValue by remember {
         mutableStateOf(
             TextFieldValue(
-                text = "00",
+                text = formatDigitsAfterLeavingFocus(seconds.toString()),
                 selection = TextRange(1)
             )
         )
