@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 fun TimerTextField(
     modifier: Modifier = Modifier,
     textValue: TextFieldValue = TextFieldValue(),
+    enabled: Boolean = true,
     keyboardController: SoftwareKeyboardController? = null,
     imeAction: ImeAction = ImeAction.Done,
     focusManager: FocusManager,
@@ -41,6 +42,7 @@ fun TimerTextField(
                 skipOnValueChange = true
             },
         value = textValue,
+        enabled = enabled,
         onValueChange = {
             if (skipOnValueChange) {
                 skipOnValueChange = false

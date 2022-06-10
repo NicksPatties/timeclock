@@ -102,6 +102,7 @@ fun ClockPage(
             if (countdownEnabled) {
                 EditTimerTextField(
                     currentCountDownSeconds = currentCountDownSeconds,
+                    clickable = !isRunning,
                     onFocusRemoval = onCountdownTimerFocusRemoval
                 )
             } else {

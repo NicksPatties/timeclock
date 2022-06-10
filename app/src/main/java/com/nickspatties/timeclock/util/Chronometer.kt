@@ -2,7 +2,6 @@ package com.nickspatties.timeclock.util
 
 import android.os.Handler
 import android.os.Looper
-import android.os.SystemClock
 
 /**
  * Counts up from the current time by a specific delay until the timer is stopped. Used for running

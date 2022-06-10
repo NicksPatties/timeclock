@@ -20,6 +20,7 @@ import com.nickspatties.timeclock.util.convertSecondsToHoursMinutesSeconds
 @Composable
 fun EditTimerTextField(
     currentCountDownSeconds: Int = 0,
+    clickable: Boolean = true,
     onFocusRemoval: (String, String, String) -> Unit = { s: String, s1: String, s2: String -> }
 ) {
     val (hours, minutes, seconds) = convertSecondsToHoursMinutesSeconds(currentCountDownSeconds)
@@ -49,6 +50,18 @@ fun EditTimerTextField(
             )
         )
     }
+    val statelessHoursTextValue = TextFieldValue(
+        text = formatDigitsAfterLeavingFocus(hours.toString()),
+        selection = TextRange(1)
+    )
+    val statelessMinutesTextValue = TextFieldValue(
+        text = formatDigitsAfterLeavingFocus(minutes.toString()),
+        selection = TextRange(1)
+    )
+    val statelessSecondsTextValue = TextFieldValue(
+        text = formatDigitsAfterLeavingFocus(seconds.toString()),
+        selection = TextRange(1)
+    )
     Row {
         TimerTextField(
             modifier = Modifier.onFocusChanged {
@@ -62,7 +75,8 @@ fun EditTimerTextField(
                     secondsTextValue.text
                 )
             },
-            textValue = hoursTextValue,
+            textValue = if (clickable) hoursTextValue else statelessHoursTextValue,
+            enabled = clickable,
             keyboardController = keyboardController,
             imeAction = ImeAction.Next,
             focusManager = focusManager,
@@ -87,7 +101,8 @@ fun EditTimerTextField(
                     secondsTextValue.text
                 )
             },
-            textValue = minutesTextValue,
+            textValue = if (clickable) minutesTextValue else statelessMinutesTextValue,
+            enabled = clickable,
             keyboardController = keyboardController,
             imeAction = ImeAction.Next,
             focusManager = focusManager,
@@ -114,7 +129,8 @@ fun EditTimerTextField(
                     secondsTextValue.text
                 )
             },
-            textValue = secondsTextValue,
+            textValue = if (clickable) secondsTextValue else statelessSecondsTextValue,
+            enabled = clickable,
             keyboardController = keyboardController,
             imeAction = ImeAction.Done,
             focusManager = focusManager,
