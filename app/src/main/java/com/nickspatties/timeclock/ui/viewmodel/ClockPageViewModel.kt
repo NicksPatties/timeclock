@@ -63,12 +63,19 @@ class ClockPageViewModel (
         .setPriority(NotificationCompat.PRIORITY_LOW)
 
     // countdown specific variables
-    var countdownTimerEnabled by mutableStateOf(false)
-    var currCountdownSeconds by mutableStateOf(0)
+    var countDownTimerEnabled by mutableStateOf(false)
+    var currCountDownSeconds by mutableStateOf(0)
+    private val countDownChronometer = Chronometer()
 
     init {
         chronometer.setOnChronometerTickListener {
             currSeconds = calculateCurrSeconds(currentTimeClockEvent.value)
+        }
+        countDownChronometer.setOnChronometerTickListener {
+            currCountDownSeconds -= 1
+            if (currCountDownSeconds <= 0) {
+                stopClock()
+            }
         }
         viewModelScope.launch {
             // initialize the currentEvent in case the app was closed while counting
@@ -134,8 +141,12 @@ class ClockPageViewModel (
                 name = taskTextFieldValue.text // change this to the taskTextFieldValue.text property
             )
             database.insert(newEvent)
-            chronometer.start()
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
+            if (countDownTimerEnabled) {
+                countDownChronometer.start()
+            } else {
+                chronometer.start()
+            }
             isClockRunning = true
             clockInProgressNotification.setContentText(newEvent.name)
             notificationManager.notify(
@@ -150,6 +161,7 @@ class ClockPageViewModel (
             val finishedEvent = currentTimeClockEvent.value ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
             chronometer.stop()
+            countDownChronometer.stop()
             // saving...
             database.update(finishedEvent)
             // successfully saved!
@@ -167,7 +179,7 @@ class ClockPageViewModel (
     }
 
     fun updateCountdownValues(hoursString: String, minutesString: String, secondsString: String) {
-        currCountdownSeconds = convertHoursMinutesSecondsToSeconds(
+        currCountDownSeconds = convertHoursMinutesSecondsToSeconds(
             hoursString.toInt(),
             minutesString.toInt(),
             secondsString.toInt()
@@ -175,7 +187,7 @@ class ClockPageViewModel (
     }
 
     fun switchCountdownTimer() {
-        countdownTimerEnabled = !countdownTimerEnabled
+        countDownTimerEnabled = !countDownTimerEnabled
     }
 
     private fun showToast(message: String) {
