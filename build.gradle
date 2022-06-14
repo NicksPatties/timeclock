@@ -1,11 +1,12 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        core_arch_version = '1.7.0'
+        core_arch_version = '1.8.0'
         kotlin_version = '1.6.10'
         compose_version = '1.1.1'
         nav_version = '2.4.2'
         accompanist_version = '0.18.0'
+        datastore_version = '1.0.0'
         room_version = '2.4.2'
         coroutine_version = '1.6.1-native-mt'
     }

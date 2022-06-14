@@ -3,7 +3,6 @@ package com.nickspatties.timeclock
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,7 +15,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -25,15 +24,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nickspatties.timeclock.data.TimeClockEventDatabase
-import com.nickspatties.timeclock.ui.viewmodel.Screen
-import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModel
-import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModelFactory
+import com.nickspatties.timeclock.data.UserPreferencesRepository
 import com.nickspatties.timeclock.ui.pages.AnalysisPage
 import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
+import com.nickspatties.timeclock.ui.viewmodel.Screen
+import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModel
+import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModelFactory
 import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.getNotificationManager
+
+private val Context.dataStore by preferencesDataStore(
+    name = "user_preferences"
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,8 +50,15 @@ class MainActivity : ComponentActivity() {
         val application = requireNotNull(this).application
         val dataSource = TimeClockEventDatabase.getInstance(application).timeClockEventDao
 
+        // initialize preferences datastore, used to store
+        val userPrefsRepo = UserPreferencesRepository(dataStore)
+
         // initialize ViewModel from ViewModelProvider.Factory
-        val viewModelFactory = TimeClockViewModelFactory(dataSource, application)
+        val viewModelFactory = TimeClockViewModelFactory(
+            dataSource = dataSource,
+            userPrefsRepo = userPrefsRepo,
+            application = application
+        )
         val timeClockViewModel = ViewModelProvider(this, viewModelFactory).get(TimeClockViewModel::class.java)
 
         setContent {
@@ -136,7 +147,7 @@ fun NavigationComponent(
     val stopClock = clockPageViewModel::stopClock
     val onTimerAnimationFinished = clockPageViewModel::resetCurrSeconds
     val onCountdownValueChanged = clockPageViewModel::updateCountdownValues
-    val countdownEnabled = clockPageViewModel.countDownTimerEnabled
+    val countdownEnabled = clockPageViewModel.countDownTimerEnabled ?: false
     val currentCountDownSeconds = clockPageViewModel.currCountDownSeconds
     val onCountdownIconClicked = clockPageViewModel::switchCountdownTimer
 

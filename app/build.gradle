@@ -52,8 +52,8 @@ dependencies {
 
     // Default dependencies
     implementation "androidx.core:core-ktx:$core_arch_version"
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
 
     // Jetpack Compose
@@ -68,6 +68,12 @@ dependencies {
 
     // Accompanist
     implementation "com.google.accompanist:accompanist-flowlayout:$accompanist_version"
+
+    // LiveData
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+
+    // DataStore
+    implementation "androidx.datastore:datastore-preferences:$datastore_version"
 
     // Room database
     implementation "androidx.room:room-runtime:$room_version" // do I need

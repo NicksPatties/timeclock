@@ -17,17 +17,18 @@ import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
-import com.nickspatties.timeclock.util.Chronometer
-import com.nickspatties.timeclock.util.calculateCurrSeconds
-import com.nickspatties.timeclock.util.convertHoursMinutesSecondsToSeconds
-import com.nickspatties.timeclock.util.findEventStartTimeDelay
-import com.nickspatties.timeclock.util.getNotificationManager
+import com.nickspatties.timeclock.data.UserPreferencesRepository
+import com.nickspatties.timeclock.util.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class ClockPageViewModel (
     private val database: TimeClockEventDao,
-    application: Application
+    application: Application,
+    private val userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
+
+    private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
 
     private var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
     var taskTextFieldValue by mutableStateOf(TextFieldValue(text = ""))
@@ -78,6 +79,11 @@ class ClockPageViewModel (
             }
         }
         viewModelScope.launch {
+            // user preferences
+            userPreferencesFlow.collect {
+                countDownTimerEnabled = it.countDownEnabled
+            }
+
             // initialize the currentEvent in case the app was closed while counting
             val currEvent = getCurrentEventFromDatabase()
 
@@ -187,7 +193,9 @@ class ClockPageViewModel (
     }
 
     fun switchCountdownTimer() {
-        countDownTimerEnabled = !countDownTimerEnabled
+        viewModelScope.launch {
+            userPreferencesRepository.updateCountDownEnabled(!countDownTimerEnabled)
+        }
     }
 
     private fun showToast(message: String) {

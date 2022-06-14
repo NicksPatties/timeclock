@@ -7,10 +7,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Transformations
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEventDao
+import com.nickspatties.timeclock.data.UserPreferencesRepository
 
 class TimeClockViewModel (
+    application: Application,
     database: TimeClockEventDao,
-    application: Application
+    private val userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
 
     var timeClockEvents = database.getAllEvents()
@@ -23,8 +25,9 @@ class TimeClockViewModel (
     }
 
     val clockPage = ClockPageViewModel(
-        database,
-        application
+        application = application,
+        database = database,
+        userPreferencesRepository = userPreferencesRepository
     )
 
     val listPage = ListPageViewModel(
