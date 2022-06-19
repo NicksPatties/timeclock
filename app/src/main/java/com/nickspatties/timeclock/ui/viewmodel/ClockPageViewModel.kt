@@ -1,6 +1,7 @@
 package com.nickspatties.timeclock.ui.viewmodel
 
 import android.app.Application
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +11,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.nickspatties.timeclock.ClockService
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
@@ -34,6 +36,9 @@ class ClockPageViewModel (
     private var dropdownClicked = false
     private val chronometer = Chronometer()
 
+    // service for showing the notification and running the ticking as a foreground process
+    val intent = Intent(getApplication(), ClockService::class.java)
+
     init {
         chronometer.setOnChronometerTickListener {
             currSeconds = calculateCurrSeconds(currentTimeClockEvent.value)
@@ -51,6 +56,9 @@ class ClockPageViewModel (
                 isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
                 chronometer.start(startTimeDelay)
+                intent.putExtra("eventName", currEvent.name)
+                intent.putExtra("eventStartTime", currEvent.startTime)
+                getApplication<Application>().startService(intent)
             }
         }
     }
@@ -100,6 +108,9 @@ class ClockPageViewModel (
             chronometer.start()
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
             isClockRunning = true
+            intent.putExtra("eventName", newEvent.name)
+            intent.putExtra("eventStartTime", newEvent.startTime)
+            getApplication<Application>().startService(intent)
         }
     }
 
@@ -116,6 +127,7 @@ class ClockPageViewModel (
             showToast(saved)
             currentTimeClockEvent.value = null
             isClockRunning = false
+            getApplication<Application>().stopService(intent)
         }
     }
 
