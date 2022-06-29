@@ -2,7 +2,6 @@ package com.nickspatties.timeclock.ui.viewmodel
 
 import android.app.Application
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.getValue
@@ -14,7 +13,6 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.nickspatties.timeclock.ClockService
 import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
