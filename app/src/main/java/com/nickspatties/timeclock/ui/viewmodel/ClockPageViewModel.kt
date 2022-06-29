@@ -1,6 +1,8 @@
 package com.nickspatties.timeclock.ui.viewmodel
 
 import android.app.Application
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.getValue
@@ -8,16 +10,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.nickspatties.timeclock.ClockService
+import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.util.Chronometer
 import com.nickspatties.timeclock.util.calculateCurrSeconds
 import com.nickspatties.timeclock.util.findEventStartTimeDelay
+import com.nickspatties.timeclock.util.getNotificationManager
 import kotlinx.coroutines.launch
 
 class ClockPageViewModel (
@@ -36,8 +41,27 @@ class ClockPageViewModel (
     private var dropdownClicked = false
     private val chronometer = Chronometer()
 
-    // service for showing the notification and running the ticking as a foreground process
-    val intent = Intent(getApplication(), ClockService::class.java)
+    // main activity to return the user to the application on click
+    val mainIntent = Intent(getApplication(), MainActivity::class.java)
+    val pendingMainIntent = PendingIntent.getActivity(
+        getApplication(),
+        0,
+        mainIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    // notifications
+    private var notificationManager = getNotificationManager(getApplication())
+    private val CLOCK_IN_PROGRESS_NOTIFICATION_ID = 0
+    private var clockInProgressNotification = NotificationCompat.Builder(
+        getApplication(),
+        getApplication<Application>().getString(R.string.clock_channel_id)
+    )
+        .setSmallIcon(R.drawable.ic_baseline_clock_24)
+        .setContentTitle("Recording in progress")
+        .setContentIntent(pendingMainIntent)
+        .setOngoing(true)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
 
     init {
         chronometer.setOnChronometerTickListener {
@@ -56,9 +80,11 @@ class ClockPageViewModel (
                 isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
                 chronometer.start(startTimeDelay)
-                intent.putExtra("eventName", currEvent.name)
-                intent.putExtra("eventStartTime", currEvent.startTime)
-                getApplication<Application>().startService(intent)
+                clockInProgressNotification.setContentText(currEvent.name)
+                notificationManager.notify(
+                    CLOCK_IN_PROGRESS_NOTIFICATION_ID,
+                    clockInProgressNotification.build()
+                )
             }
         }
     }
@@ -108,9 +134,11 @@ class ClockPageViewModel (
             chronometer.start()
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
             isClockRunning = true
-            intent.putExtra("eventName", newEvent.name)
-            intent.putExtra("eventStartTime", newEvent.startTime)
-            getApplication<Application>().startService(intent)
+            clockInProgressNotification.setContentText(newEvent.name)
+            notificationManager.notify(
+                CLOCK_IN_PROGRESS_NOTIFICATION_ID,
+                clockInProgressNotification.build()
+            )
         }
     }
 
@@ -127,7 +155,7 @@ class ClockPageViewModel (
             showToast(saved)
             currentTimeClockEvent.value = null
             isClockRunning = false
-            getApplication<Application>().stopService(intent)
+            notificationManager.cancelAll()
         }
     }
 

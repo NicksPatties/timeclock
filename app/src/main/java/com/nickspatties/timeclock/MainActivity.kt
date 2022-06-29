@@ -1,7 +1,10 @@
 package com.nickspatties.timeclock
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +16,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -29,10 +33,14 @@ import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.pages.ListPage
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
 import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
+import com.nickspatties.timeclock.util.getNotificationManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // create notification channels
+        createNotificationChannels()
 
         // initialize database and viewmodel
         val application = requireNotNull(this).application
@@ -44,6 +52,19 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TimeClockApp(viewModel = timeClockViewModel)
+        }
+    }
+
+    private fun createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val clockChannel =  NotificationChannel(
+                getString(R.string.clock_channel_id),
+                getString(R.string.clock_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            )
+            // TODO: add alarm channel
+            val notificationManager = getNotificationManager(this)
+            notificationManager.createNotificationChannel(clockChannel)
         }
     }
 }
@@ -184,3 +205,5 @@ fun NavigationComponent(
         }
     }
 }
+
+

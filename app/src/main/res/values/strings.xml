@@ -24,4 +24,7 @@
     <string name="percentage">%.2f%%</string>
     <string name="analysis_page_nothing_here">No items</string>
 
+    <string name="clock_channel_id" translatable="false">clock_channel</string>
+    <string name="clock_channel_name">Clock Page Controls</string>
+
 </resources>
