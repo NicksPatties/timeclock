@@ -63,6 +63,18 @@ class ClockPageViewModel (
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
 
+    private val TIMER_COMPLETE_NOTIFICATION_ID = 1
+    private var timerCompleteNotification = NotificationCompat.Builder(
+        getApplication(),
+        getApplication<Application>().getString(R.string.clock_channel_id)
+    )
+        .setSmallIcon(R.drawable.ic_baseline_clock_24)
+        .setContentTitle("Timer complete!")
+        .setContentText("You have finished your task. Good job!")
+        .setContentIntent(pendingMainIntent)
+        .setAutoCancel(true)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+
     // countdown specific variables
     var countDownTimerEnabled by mutableStateOf(false)
     var currCountDownSeconds by mutableStateOf(0)
@@ -173,10 +185,19 @@ class ClockPageViewModel (
             // successfully saved!
             val saved = getApplication<Application>().applicationContext
                 .getString(R.string.task_saved_toast, taskTextFieldValue.text)
-            showToast(saved)
             currentTimeClockEvent.value = null
             isClockRunning = false
             notificationManager.cancelAll()
+            if (countDownTimerEnabled) {
+                timerCompleteNotification
+                    .setContentText("${finishedEvent.name} completed! Good work!")
+                notificationManager.notify(
+                    TIMER_COMPLETE_NOTIFICATION_ID,
+                    timerCompleteNotification.build()
+                )
+            } else {
+                showToast(saved)
+            }
         }
     }
 
