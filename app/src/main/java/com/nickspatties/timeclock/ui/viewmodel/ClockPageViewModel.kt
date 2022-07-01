@@ -230,8 +230,9 @@ class ClockPageViewModel (
     }
 
     fun switchCountdownTimer() {
+        countDownTimerEnabled = !countDownTimerEnabled
         viewModelScope.launch {
-            userPreferencesRepository.updateCountDownEnabled(!countDownTimerEnabled)
+            userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
         }
     }
 
