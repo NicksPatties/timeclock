@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import kotlinx.coroutines.flow.Flow
@@ -12,13 +13,15 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 data class UserPreferences(
-    val countDownEnabled: Boolean
+    val countDownEnabled: Boolean,
+    val countDownEndTime: Long
 )
 
 class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     // list of keys that are used to maintain state in the app
     private object PreferenceKeys {
+        val COUNT_DOWN_END_TIME = longPreferencesKey("count_down_end_time")
         val COUNT_DOWN_ENABLED = booleanPreferencesKey("count_down_enabled")
     }
 
@@ -36,12 +39,19 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     private fun mapUserPreferences(preferences: Preferences): UserPreferences {
         val countDownEnabled = preferences[PreferenceKeys.COUNT_DOWN_ENABLED] ?: false
-        return UserPreferences(countDownEnabled)
+        val countDownEndTime = preferences[PreferenceKeys.COUNT_DOWN_END_TIME] ?: 0
+        return UserPreferences(countDownEnabled, countDownEndTime)
     }
 
     suspend fun updateCountDownEnabled(enabled: Boolean) {
         dataStore.edit {
             it[PreferenceKeys.COUNT_DOWN_ENABLED] = enabled
+        }
+    }
+
+    suspend fun updateCountDownEndTime(endTime: Long) {
+        dataStore.edit {
+            it[PreferenceKeys.COUNT_DOWN_END_TIME] = endTime
         }
     }
 }

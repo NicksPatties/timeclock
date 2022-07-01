@@ -3,24 +3,31 @@ package com.nickspatties.timeclock.ui.viewmodel
 import android.app.Application
 import android.app.PendingIntent
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
+import com.nickspatties.timeclock.data.UserPreferences
 import com.nickspatties.timeclock.data.UserPreferencesRepository
 import com.nickspatties.timeclock.util.*
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+const val TAG = "ClockPageViewModel"
 
 class ClockPageViewModel (
     private val database: TimeClockEventDao,
@@ -66,17 +73,18 @@ class ClockPageViewModel (
     private val TIMER_COMPLETE_NOTIFICATION_ID = 1
     private var timerCompleteNotification = NotificationCompat.Builder(
         getApplication(),
-        getApplication<Application>().getString(R.string.clock_channel_id)
+        getApplication<Application>().getString(R.string.alarm_channel_id)
     )
         .setSmallIcon(R.drawable.ic_baseline_clock_24)
         .setContentTitle("Timer complete!")
         .setContentText("You have finished your task. Good job!")
         .setContentIntent(pendingMainIntent)
         .setAutoCancel(true)
-        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
 
     // countdown specific variables
     var countDownTimerEnabled by mutableStateOf(false)
+    var countDownEndTime by mutableStateOf(0L)
     var currCountDownSeconds by mutableStateOf(0)
     private val countDownChronometer = Chronometer()
 
@@ -91,10 +99,10 @@ class ClockPageViewModel (
             }
         }
         viewModelScope.launch {
-            // user preferences
-            userPreferencesFlow.collect {
-                countDownTimerEnabled = it.countDownEnabled
-            }
+
+            val pooPreferences = userPreferencesFlow.first()
+            countDownTimerEnabled = pooPreferences.countDownEnabled
+            countDownEndTime = pooPreferences.countDownEndTime
 
             // initialize the currentEvent in case the app was closed while counting
             val currEvent = getCurrentEventFromDatabase()
@@ -103,11 +111,16 @@ class ClockPageViewModel (
             if (currEvent != null) {
                 currentTimeClockEvent.value = currEvent
                 taskTextFieldValue = TextFieldValue(text = currEvent.name)
-                currSeconds = calculateCurrSeconds(currEvent)
                 clockButtonEnabled = true
                 isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
-                chronometer.start(startTimeDelay)
+                if (countDownTimerEnabled) {
+                    currCountDownSeconds = ((countDownEndTime - System.currentTimeMillis()) / 1000).toInt()
+                    countDownChronometer.start(startTimeDelay)
+                } else {
+                    currSeconds = calculateCurrSeconds(currEvent)
+                    chronometer.start(startTimeDelay)
+                }
                 clockInProgressNotification.setContentText(currEvent.name)
                 notificationManager.notify(
                     CLOCK_IN_PROGRESS_NOTIFICATION_ID,
@@ -161,6 +174,9 @@ class ClockPageViewModel (
             database.insert(newEvent)
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
             if (countDownTimerEnabled) {
+                // save the countdown time in user preferences
+                val upcomingEndTime = System.currentTimeMillis() + currCountDownSeconds * 1000L
+                userPreferencesRepository.updateCountDownEndTime(upcomingEndTime)
                 countDownChronometer.start()
             } else {
                 chronometer.start()

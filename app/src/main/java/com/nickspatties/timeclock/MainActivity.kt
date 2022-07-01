@@ -73,9 +73,13 @@ class MainActivity : ComponentActivity() {
                 getString(R.string.clock_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             )
-            // TODO: add alarm channel
+            val alarmChannel = NotificationChannel(
+                getString(R.string.alarm_channel_id),
+                getString(R.string.alarm_channel_name),
+                NotificationManager.IMPORTANCE_HIGH
+            )
             val notificationManager = getNotificationManager(this)
-            notificationManager.createNotificationChannel(clockChannel)
+            notificationManager.createNotificationChannels(listOf(clockChannel, alarmChannel))
         }
     }
 }

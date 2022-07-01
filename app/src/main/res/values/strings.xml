@@ -26,5 +26,7 @@
 
     <string name="clock_channel_id" translatable="false">clock_channel</string>
     <string name="clock_channel_name">Clock Page Controls</string>
+    <string name="alarm_channel_id" translatable="false">alarm_channel</string>
+    <string name="alarm_channel_name">Countdown Alarm</string>
 
 </resources>
