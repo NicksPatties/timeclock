@@ -177,7 +177,8 @@ class ClockPageViewModel (
             if (countDownTimerEnabled) {
                 // save the countdown time in user preferences
                 val upcomingEndTime = System.currentTimeMillis() + currCountDownSeconds * 1000L
-                userPreferencesRepository.updateCountDownEndTime(upcomingEndTime)
+                countDownEndTime = upcomingEndTime
+                userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
                 // start an alarm
                 AlarmManagerCompat.setExactAndAllowWhileIdle(
                     alarmManager,
@@ -207,11 +208,24 @@ class ClockPageViewModel (
             // saving...
             database.update(finishedEvent)
             // successfully saved!
+            // if the event finished before the end time was reached,
+            var finishedEarly = false
+            // then disable the alarm
+            if (finishedEvent.endTime < countDownEndTime) {
+                alarmManager.cancel(pendingAlarmIntent)
+                finishedEarly = true
+            }
             val saved = getApplication<Application>().applicationContext
                 .getString(R.string.task_saved_toast, taskTextFieldValue.text)
             currentTimeClockEvent.value = null
             isClockRunning = false
-            if (!countDownTimerEnabled) {
+            if (countDownTimerEnabled) {
+                countDownEndTime = 0L
+                currCountDownSeconds = 0
+                if (finishedEarly) {
+                    showToast(saved)
+                } // else the AlarmManager will take care of the notification
+            } else {
                 showToast(saved)
             }
         }
