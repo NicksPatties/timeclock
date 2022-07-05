@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
+import com.nickspatties.timeclock.util.CLOCK_IN_PROGRESS_NOTIFICATION_ID
 
 /**
  * Sends a notification to the user that will return them to the application when a countdown event
@@ -36,7 +37,6 @@ class AlarmReceiver: BroadcastReceiver() {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-        val CLOCK_IN_PROGRESS_NOTIFICATION_ID = 0
         val TIMER_COMPLETE_NOTIFICATION_ID = 1
         notificationManager.cancel(CLOCK_IN_PROGRESS_NOTIFICATION_ID)
         notificationManager.notify(

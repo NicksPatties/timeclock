@@ -5,6 +5,7 @@ import android.app.Application
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 const val TAG = "ClockPageViewModel"
+const val CLOCK_IN_PROGRESS_NOTIFICATION_ID = 0
+const val TIMER_COMPLETE_NOTIFICATION_ID = 1
 
 class ClockPageViewModel (
     private val database: TimeClockEventDao,
@@ -88,24 +91,15 @@ class ClockPageViewModel (
     var countDownTimerEnabled by mutableStateOf(false)
     var countDownEndTime by mutableStateOf(0L)
     var currCountDownSeconds by mutableStateOf(0)
-    private val countDownChronometer = Chronometer()
 
     // alarm manager
     private val alarmManager =
         getApplication<Application>().getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     init {
-        chronometer.setOnChronometerTickListener {
-            currSeconds = calculateCurrSeconds(currentTimeClockEvent.value)
-        }
-        countDownChronometer.setOnChronometerTickListener {
-            currCountDownSeconds -= 1
-            if (currCountDownSeconds <= 0) {
-                stopClock()
-            }
-        }
-        viewModelScope.launch {
+        setChronometerForCountUp()
 
+        viewModelScope.launch {
             val preferences = userPreferencesFlow.first()
             countDownTimerEnabled = preferences.countDownEnabled
             countDownEndTime = preferences.countDownEndTime
@@ -122,9 +116,11 @@ class ClockPageViewModel (
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
                 if (countDownTimerEnabled) {
                     currCountDownSeconds = ((countDownEndTime - System.currentTimeMillis()) / 1000).toInt()
-                    countDownChronometer.start(startTimeDelay)
+                    setChronometerForCountDown()
+                    chronometer.start(startTimeDelay)
                 } else {
                     currSeconds = calculateCurrSeconds(currEvent)
+                    setChronometerForCountUp()
                     chronometer.start(startTimeDelay)
                 }
                 clockInProgressNotification.setContentText(currEvent.name)
@@ -133,6 +129,7 @@ class ClockPageViewModel (
                     clockInProgressNotification.build()
                 )
             }
+            Log.i(TAG, "Finished loading")
         }
     }
 
@@ -175,27 +172,19 @@ class ClockPageViewModel (
 
     fun startClock() {
         viewModelScope.launch {
+            // create and save the new event
             val newEvent = TimeClockEvent(
-                name = taskTextFieldValue.text // change this to the taskTextFieldValue.text property
+                name = taskTextFieldValue.text
             )
             database.insert(newEvent)
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
+
             if (countDownTimerEnabled) {
-                // save the countdown time in user preferences
-                val upcomingEndTime = System.currentTimeMillis() + currCountDownSeconds * 1000L
-                countDownEndTime = upcomingEndTime
-                userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
-                // start an alarm
-                AlarmManagerCompat.setExactAndAllowWhileIdle(
-                    alarmManager,
-                    AlarmManager.RTC_WAKEUP,
-                    upcomingEndTime,
-                    pendingAlarmIntent
-                )
-                countDownChronometer.start()
+                startCountDown()
             } else {
-                chronometer.start()
+                startCountUp()
             }
+
             isClockRunning = true
             clockInProgressNotification.setContentText(newEvent.name)
             notificationManager.notify(
@@ -205,36 +194,68 @@ class ClockPageViewModel (
         }
     }
 
+    /**
+     * When I start counting up, I should
+     * start the chronometer
+     * start the notification
+     */
+    private fun startCountUp() {
+        setChronometerForCountUp()
+        chronometer.start()
+    }
+
+    private suspend fun startCountDown() {
+        val upcomingEndTime = System.currentTimeMillis() + currCountDownSeconds * 1000L
+        countDownEndTime = upcomingEndTime
+        userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
+        // start an alarm
+        AlarmManagerCompat.setExactAndAllowWhileIdle(
+            alarmManager,
+            AlarmManager.RTC_WAKEUP,
+            upcomingEndTime,
+            pendingAlarmIntent
+        )
+        setChronometerForCountDown()
+        chronometer.start()
+    }
+
     fun stopClock() {
         viewModelScope.launch {
             val finishedEvent = currentTimeClockEvent.value ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
             chronometer.stop()
-            countDownChronometer.stop()
-            // saving...
             database.update(finishedEvent)
-            // successfully saved!
-            // if the event finished before the end time was reached,
-            var finishedEarly = false
-            // then disable the alarm
-            if (finishedEvent.endTime < countDownEndTime) {
-                alarmManager.cancel(pendingAlarmIntent)
-                finishedEarly = true
-            }
-            val saved = getApplication<Application>().applicationContext
-                .getString(R.string.task_saved_toast, taskTextFieldValue.text)
+            // successfully saved! reset values to initial
             currentTimeClockEvent.value = null
             isClockRunning = false
+            val saved = getApplication<Application>().applicationContext
+                .getString(R.string.task_saved_toast, taskTextFieldValue.text)
+
             if (countDownTimerEnabled) {
-                countDownEndTime = 0L
-                currCountDownSeconds = 0
-                if (finishedEarly) {
-                    showToast(saved)
-                } // else the AlarmManager will take care of the notification
+                stopCountDown(finishedEvent.endTime, saved)
             } else {
-                showToast(saved)
+                stopCountUp(saved)
             }
+            countDownEndTime = 0L
+            currCountDownSeconds = 0
         }
+    }
+
+    private fun stopCountUp(message: String) {
+        showToast(message)
+    }
+
+    private fun stopCountDown(actualEndTime: Long, message: String) {
+        // if the event finished before the end time was reached,
+        var finishedEarly = false
+        // then disable the alarm
+        if (actualEndTime < countDownEndTime) {
+            alarmManager.cancel(pendingAlarmIntent)
+            finishedEarly = true
+        }
+        if (finishedEarly) {
+            showToast(message)
+        } // else the AlarmManager will take care of the notification
     }
 
     fun resetCurrSeconds() {
@@ -266,6 +287,27 @@ class ClockPageViewModel (
         } else {
             autofillTaskNames.value!!.filter {
                 it.contains(taskTextFieldValue.text)
+            }
+        }
+    }
+
+    private fun setChronometerForCountUp() {
+            chronometer.setOnChronometerTickListener { countUp() }
+    }
+
+    private fun countUp() {
+        currSeconds = calculateCurrSeconds(currentTimeClockEvent.value)
+    }
+
+    private fun setChronometerForCountDown() {
+        chronometer.setOnChronometerTickListener { countDown() }
+    }
+
+    private fun countDown() {
+        if (currCountDownSeconds > 0) {
+            currCountDownSeconds -= 1
+            if (currCountDownSeconds <= 0) {
+                stopClock()
             }
         }
     }
