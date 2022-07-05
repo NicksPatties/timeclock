@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.Transformations
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.data.UserPreferencesRepository
@@ -17,17 +16,11 @@ class TimeClockViewModel (
 
     var timeClockEvents = database.getAllEvents()
 
-    // task names used for autofill dropdown
-    val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
-        events.map {
-            it.name
-        }.toSet()
-    }
-
     val clockPage = ClockPageViewModel(
         application = application,
         database = database,
-        userPreferencesRepository = userPreferencesRepository
+        userPreferencesRepository = userPreferencesRepository,
+        timeClockEvents = timeClockEvents
     )
 
     val listPage = ListPageViewModel(

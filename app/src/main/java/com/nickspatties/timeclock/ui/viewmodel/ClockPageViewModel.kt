@@ -5,7 +5,6 @@ import android.app.Application
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,9 +13,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.app.AlarmManagerCompat
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
@@ -32,8 +29,15 @@ const val TAG = "ClockPageViewModel"
 class ClockPageViewModel (
     private val database: TimeClockEventDao,
     application: Application,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val timeClockEvents: LiveData<List<TimeClockEvent>>
 ): AndroidViewModel(application) {
+
+    val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
+        events.map {
+            it.name
+        }.toSet()
+    }
 
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
 
@@ -43,6 +47,7 @@ class ClockPageViewModel (
     var isClockRunning by mutableStateOf(false)
     var dropdownExpanded by mutableStateOf(false)
     var currSeconds by mutableStateOf(0)
+    var filteredEventNames by mutableStateOf(listOf<String>())
 
     // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
     private var dropdownClicked = false
@@ -146,8 +151,9 @@ class ClockPageViewModel (
         }
         taskTextFieldValue = tfv
         val taskName = tfv.text
+        updateFilteredEventNames()
         clockButtonEnabled = taskName.isNotBlank()
-        dropdownExpanded = taskName.isNotBlank()
+        dropdownExpanded = taskName.isNotBlank() && filteredEventNames.isNotEmpty()
     }
 
     fun onTaskNameDonePressed() {
@@ -252,5 +258,15 @@ class ClockPageViewModel (
 
     private fun showToast(message: String) {
         Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateFilteredEventNames() {
+        filteredEventNames = if (autofillTaskNames.value == null) {
+            listOf()
+        } else {
+            autofillTaskNames.value!!.filter {
+                it.contains(taskTextFieldValue.text)
+            }
+        }
     }
 }

@@ -140,8 +140,11 @@ fun NavigationComponent(
     val clockEnabled = clockPageViewModel.clockButtonEnabled
     val isRunning = clockPageViewModel.isClockRunning
     val dropdownExpanded = clockPageViewModel.dropdownExpanded
+    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
+    clockPageViewModel.autofillTaskNames.observeAsState()
+    val filteredTaskNames = clockPageViewModel.filteredEventNames
     val taskTextFieldValue = clockPageViewModel.taskTextFieldValue
-    val autofillTaskNames = viewModel.autofillTaskNames.observeAsState().value
+
     val currSeconds = clockPageViewModel.currSeconds
     val onTaskNameChange = clockPageViewModel::onTaskNameChange
     val onTaskNameDonePressed = clockPageViewModel::onTaskNameDonePressed
@@ -188,8 +191,8 @@ fun NavigationComponent(
                 clockEnabled = clockEnabled,
                 isRunning = isRunning,
                 dropdownExpanded = dropdownExpanded,
+                filteredTaskNames = filteredTaskNames,
                 taskTextFieldValue = taskTextFieldValue,
-                autofillTaskNames = autofillTaskNames,
                 currSeconds = currSeconds,
                 onTaskNameChange = onTaskNameChange,
                 onTaskNameDonePressed = onTaskNameDonePressed,

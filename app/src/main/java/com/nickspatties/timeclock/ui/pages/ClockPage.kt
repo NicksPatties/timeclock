@@ -18,7 +18,6 @@ import com.nickspatties.timeclock.ui.components.EditTimerTextField
 import com.nickspatties.timeclock.ui.components.StartTimerButton
 import com.nickspatties.timeclock.ui.components.TaskTextField
 import com.nickspatties.timeclock.ui.components.TimerText
-import com.nickspatties.timeclock.util.MockAutofillValues
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -28,7 +27,7 @@ fun ClockPage(
     countdownEnabled: Boolean = false,
     dropdownExpanded: Boolean,
     taskTextFieldValue: TextFieldValue,
-    autofillTaskNames: Set<String>?,
+    filteredTaskNames: List<String> = listOf(),
     currSeconds: Int,
     onTaskNameChange: (TextFieldValue) -> Unit,
     onTaskNameDonePressed: () -> Unit,
@@ -80,18 +79,12 @@ fun ClockPage(
                         onDismissDropdown()
                     },
                 ) {
-                    val filteredTaskNames = autofillTaskNames!!.filter {
-                        it.contains(taskTextFieldValue.text)
-                    }
-
-                    if (filteredTaskNames.isNotEmpty()) {
-                        filteredTaskNames.forEach { label ->
-                            DropdownMenuItem(onClick = {
-                                onDropdownMenuItemClick(label)
-                                keyboardController?.hide() // close keyboard
-                            }) {
-                                Text(text = label)
-                            }
+                    filteredTaskNames.forEach { label ->
+                        DropdownMenuItem(onClick = {
+                            onDropdownMenuItemClick(label)
+                            keyboardController?.hide() // close keyboard
+                        }) {
+                            Text(text = label)
                         }
                     }
                 }
@@ -135,7 +128,6 @@ fun ClockPageMockUp() {
         isRunning = false,
         dropdownExpanded = false,
         taskTextFieldValue = TextFieldValue(),
-        autofillTaskNames = MockAutofillValues,
         currSeconds = 0,
         onTaskNameChange = { },
         onTaskNameDonePressed = { },
