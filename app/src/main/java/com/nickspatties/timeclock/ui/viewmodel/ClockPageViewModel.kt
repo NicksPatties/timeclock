@@ -26,8 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 const val TAG = "ClockPageViewModel"
-const val CLOCK_IN_PROGRESS_NOTIFICATION_ID = 0
-const val TIMER_COMPLETE_NOTIFICATION_ID = 1
+
 
 class ClockPageViewModel (
     private val database: TimeClockEventDao,
@@ -76,16 +75,6 @@ class ClockPageViewModel (
 
     // notifications
     private var notificationManager = getNotificationManager(getApplication())
-    private val CLOCK_IN_PROGRESS_NOTIFICATION_ID = 0
-    private var clockInProgressNotification = NotificationCompat.Builder(
-        getApplication(),
-        getApplication<Application>().getString(R.string.clock_channel_id)
-    )
-        .setSmallIcon(R.drawable.ic_baseline_clock_24)
-        .setContentTitle("Recording in progress")
-        .setContentIntent(pendingMainIntent)
-        .setOngoing(true)
-        .setPriority(NotificationCompat.PRIORITY_LOW)
 
     // countdown specific variables
     var countDownTimerEnabled by mutableStateOf(false)
@@ -97,6 +86,7 @@ class ClockPageViewModel (
         getApplication<Application>().getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     init {
+        notificationManager.cancelAll()
         setChronometerForCountUp()
 
         viewModelScope.launch {
@@ -123,11 +113,7 @@ class ClockPageViewModel (
                     setChronometerForCountUp()
                     chronometer.start(startTimeDelay)
                 }
-                clockInProgressNotification.setContentText(currEvent.name)
-                notificationManager.notify(
-                    CLOCK_IN_PROGRESS_NOTIFICATION_ID,
-                    clockInProgressNotification.build()
-                )
+                notificationManager.sendClockInProgressNotification(application)
             }
             Log.i(TAG, "Finished loading")
         }
@@ -186,11 +172,7 @@ class ClockPageViewModel (
             }
 
             isClockRunning = true
-            clockInProgressNotification.setContentText(newEvent.name)
-            notificationManager.notify(
-                CLOCK_IN_PROGRESS_NOTIFICATION_ID,
-                clockInProgressNotification.build()
-            )
+            notificationManager.sendClockInProgressNotification(getApplication())
         }
     }
 
@@ -228,6 +210,8 @@ class ClockPageViewModel (
             // successfully saved! reset values to initial
             currentTimeClockEvent.value = null
             isClockRunning = false
+            countDownEndTime = 0L
+            currCountDownSeconds = 0
             val saved = getApplication<Application>().applicationContext
                 .getString(R.string.task_saved_toast, taskTextFieldValue.text)
 
@@ -236,8 +220,6 @@ class ClockPageViewModel (
             } else {
                 stopCountUp(saved)
             }
-            countDownEndTime = 0L
-            currCountDownSeconds = 0
         }
     }
 
