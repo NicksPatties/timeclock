@@ -1,6 +1,5 @@
 package com.nickspatties.timeclock.util
 
-import android.app.Application
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -41,4 +40,32 @@ fun NotificationManager.sendClockInProgressNotification(context: Context) {
         .setPriority(NotificationCompat.PRIORITY_LOW)
 
     notify(CLOCK_IN_PROGRESS_NOTIFICATION_ID, clockInProgressNotification.build())
+}
+
+fun NotificationManager.cancelClockInProgressNotification() {
+    cancel(CLOCK_IN_PROGRESS_NOTIFICATION_ID)
+}
+
+fun NotificationManager.sendTimerCompleteNotification(context: Context) {
+    val mainIntent = Intent(context, MainActivity::class.java)
+    val pendingMainIntent = PendingIntent.getActivity(
+        context,
+        0,
+        mainIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    val timerCompleteNotification = NotificationCompat.Builder(
+        context,
+        context.getString(R.string.alarm_channel_id)
+    )
+        .setSmallIcon(R.drawable.ic_baseline_clock_24)
+        .setContentTitle("Event completed! Good work!")
+        .setContentText("You have finished your task. Good job!")
+        .setContentIntent(pendingMainIntent)
+        .setAutoCancel(true)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+    notify(
+        TIMER_COMPLETE_NOTIFICATION_ID,
+        timerCompleteNotification.build()
+    )
 }

@@ -13,7 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.app.AlarmManagerCompat
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.*
 import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
@@ -208,10 +207,10 @@ class ClockPageViewModel (
             chronometer.stop()
             database.update(finishedEvent)
             // successfully saved! reset values to initial
+            notificationManager.cancelClockInProgressNotification()
             currentTimeClockEvent.value = null
             isClockRunning = false
-            countDownEndTime = 0L
-            currCountDownSeconds = 0
+
             val saved = getApplication<Application>().applicationContext
                 .getString(R.string.task_saved_toast, taskTextFieldValue.text)
 
@@ -228,16 +227,12 @@ class ClockPageViewModel (
     }
 
     private fun stopCountDown(actualEndTime: Long, message: String) {
-        // if the event finished before the end time was reached,
-        var finishedEarly = false
-        // then disable the alarm
         if (actualEndTime < countDownEndTime) {
             alarmManager.cancel(pendingAlarmIntent)
-            finishedEarly = true
-        }
-        if (finishedEarly) {
             showToast(message)
-        } // else the AlarmManager will take care of the notification
+        }
+        countDownEndTime = 0L
+        currCountDownSeconds = 0
     }
 
     fun resetCurrSeconds() {
