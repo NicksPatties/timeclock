@@ -19,6 +19,9 @@ class AlarmReceiver: BroadcastReceiver() {
             NotificationManager::class.java
         ) as NotificationManager
         notificationManager.cancelClockInProgressNotification()
-        notificationManager.sendTimerCompleteNotification(context)
+        notificationManager.sendTimerCompleteNotification(
+            context,
+            intent.getStringExtra("taskName") ?: "your task"
+        )
     }
 }

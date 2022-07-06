@@ -14,7 +14,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.app.AlarmManagerCompat
 import androidx.lifecycle.*
-import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
@@ -54,23 +53,9 @@ class ClockPageViewModel (
     private var dropdownClicked = false
     private val chronometer = Chronometer()
 
-    // main activity to return the user to the application on click
-    private val mainIntent = Intent(getApplication(), MainActivity::class.java)
-    private val pendingMainIntent = PendingIntent.getActivity(
-        getApplication(),
-        0,
-        mainIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
     // alarm intent, used to notify the AlarmReceiver when an event is done recording
     private val alarmIntent = Intent(getApplication(), AlarmReceiver::class.java)
-    private val pendingAlarmIntent = PendingIntent.getBroadcast(
-        getApplication(),
-        0,
-        alarmIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
+    private lateinit var pendingAlarmIntent : PendingIntent
 
     // notifications
     private var notificationManager = getNotificationManager(getApplication())
@@ -109,10 +94,12 @@ class ClockPageViewModel (
                     chronometer.start(startTimeDelay)
                 } else {
                     currSeconds = calculateCurrSeconds(currEvent)
-                    setChronometerForCountUp()
-                    chronometer.start(startTimeDelay)
+                    startCountUp()
                 }
-                notificationManager.sendClockInProgressNotification(application)
+                notificationManager.sendClockInProgressNotification(
+                    application,
+                    currEvent.name
+                )
             }
             Log.i(TAG, "Finished loading")
         }
@@ -165,13 +152,16 @@ class ClockPageViewModel (
             currentTimeClockEvent.value = getCurrentEventFromDatabase()
 
             if (countDownTimerEnabled) {
-                startCountDown()
+                startCountDown(newEvent.name)
             } else {
                 startCountUp()
             }
 
             isClockRunning = true
-            notificationManager.sendClockInProgressNotification(getApplication())
+            notificationManager.sendClockInProgressNotification(
+                getApplication(),
+                newEvent.name
+            )
         }
     }
 
@@ -185,7 +175,14 @@ class ClockPageViewModel (
         chronometer.start()
     }
 
-    private suspend fun startCountDown() {
+    private suspend fun startCountDown(taskName: String) {
+        alarmIntent.putExtra("taskName", taskName)
+        pendingAlarmIntent = PendingIntent.getBroadcast(
+            getApplication(),
+            0,
+            alarmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         val upcomingEndTime = System.currentTimeMillis() + currCountDownSeconds * 1000L
         countDownEndTime = upcomingEndTime
         userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes

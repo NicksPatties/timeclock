@@ -20,7 +20,10 @@ fun getNotificationManager(context: Context) : NotificationManager {
     ) as NotificationManager
 }
 
-fun NotificationManager.sendClockInProgressNotification(context: Context) {
+fun NotificationManager.sendClockInProgressNotification(
+    context: Context,
+    taskName: String
+) {
     val mainIntent = Intent(context, MainActivity::class.java)
     val pendingMainIntent = PendingIntent.getActivity(
         context,
@@ -33,8 +36,8 @@ fun NotificationManager.sendClockInProgressNotification(context: Context) {
         context.getString(R.string.clock_channel_id)
     )
         .setSmallIcon(R.drawable.ic_baseline_clock_24)
-        .setContentText("Some cool task")
-        .setContentTitle("Recording in progress")
+        .setContentTitle("Task in progress...")
+        .setContentText(taskName)
         .setContentIntent(pendingMainIntent)
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -46,7 +49,10 @@ fun NotificationManager.cancelClockInProgressNotification() {
     cancel(CLOCK_IN_PROGRESS_NOTIFICATION_ID)
 }
 
-fun NotificationManager.sendTimerCompleteNotification(context: Context) {
+fun NotificationManager.sendTimerCompleteNotification(
+    context: Context,
+    taskName: String
+) {
     val mainIntent = Intent(context, MainActivity::class.java)
     val pendingMainIntent = PendingIntent.getActivity(
         context,
@@ -59,8 +65,8 @@ fun NotificationManager.sendTimerCompleteNotification(context: Context) {
         context.getString(R.string.alarm_channel_id)
     )
         .setSmallIcon(R.drawable.ic_baseline_clock_24)
-        .setContentTitle("Event completed! Good work!")
-        .setContentText("You have finished your task. Good job!")
+        .setContentTitle("Timer complete!")
+        .setContentText("You finished $taskName. Good job!")
         .setContentIntent(pendingMainIntent)
         .setAutoCancel(true)
         .setPriority(NotificationCompat.PRIORITY_HIGH)
