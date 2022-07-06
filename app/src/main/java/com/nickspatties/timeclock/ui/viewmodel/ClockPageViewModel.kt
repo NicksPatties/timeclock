@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 
 const val TAG = "ClockPageViewModel"
 
-
 class ClockPageViewModel (
     private val database: TimeClockEventDao,
     application: Application,
@@ -51,11 +50,18 @@ class ClockPageViewModel (
 
     // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
     private var dropdownClicked = false
-    private val chronometer = Chronometer()
+    private val chronometer = Chronometer().apply {
+        setOnChronometerTickListener { countUp() }
+    }
 
     // alarm intent, used to notify the AlarmReceiver when an event is done recording
     private val alarmIntent = Intent(getApplication(), AlarmReceiver::class.java)
-    private lateinit var pendingAlarmIntent : PendingIntent
+    private var pendingAlarmIntent = PendingIntent.getBroadcast(
+        getApplication(),
+        0,
+        alarmIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
 
     // notifications
     private var notificationManager = getNotificationManager(getApplication())
@@ -64,14 +70,17 @@ class ClockPageViewModel (
     var countDownTimerEnabled by mutableStateOf(false)
     var countDownEndTime by mutableStateOf(0L)
     var currCountDownSeconds by mutableStateOf(0)
+    private val countDownChronometer = Chronometer().apply {
+        setOnChronometerTickListener { countDown() }
+    }
 
     // alarm manager
     private val alarmManager =
         getApplication<Application>().getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+    // only occurs when the class is created, not when moving from view to view
     init {
         notificationManager.cancelAll()
-        setChronometerForCountUp()
 
         viewModelScope.launch {
             val preferences = userPreferencesFlow.first()
@@ -88,18 +97,17 @@ class ClockPageViewModel (
                 clockButtonEnabled = true
                 isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
-                if (countDownTimerEnabled) {
-                    currCountDownSeconds = ((countDownEndTime - System.currentTimeMillis()) / 1000).toInt()
-                    setChronometerForCountDown()
-                    chronometer.start(startTimeDelay)
-                } else {
-                    currSeconds = calculateCurrSeconds(currEvent)
-                    startCountUp()
-                }
                 notificationManager.sendClockInProgressNotification(
                     application,
                     currEvent.name
                 )
+                if (countDownTimerEnabled) {
+                    currCountDownSeconds = ((countDownEndTime - System.currentTimeMillis()) / 1000).toInt()
+                    countDownChronometer.start(startTimeDelay)
+                } else {
+                    currSeconds = calculateCurrSeconds(currEvent)
+                    chronometer.start(startTimeDelay)
+                }
             }
             Log.i(TAG, "Finished loading")
         }
@@ -107,10 +115,11 @@ class ClockPageViewModel (
 
     private suspend fun getCurrentEventFromDatabase(): TimeClockEvent? {
         val event = database.getCurrentEvent()
-        if (event?.endTime != event?.startTime) {
-            return null // because this event has already been completed
+        return if (event == null || !event.isRunning) {
+            null
+        } else {
+            event
         }
-        return event
     }
 
     fun onTaskNameChange(tfv: TextFieldValue) {
@@ -150,33 +159,22 @@ class ClockPageViewModel (
             )
             database.insert(newEvent)
             currentTimeClockEvent = getCurrentEventFromDatabase()
-
-            if (countDownTimerEnabled) {
-                startCountDown(newEvent.name)
-            } else {
-                startCountUp()
-            }
-
             isClockRunning = true
             notificationManager.sendClockInProgressNotification(
                 getApplication(),
                 newEvent.name
             )
+            if (countDownTimerEnabled) {
+                startCountDown(newEvent.name)
+            } else {
+                chronometer.start()
+            }
         }
-    }
-
-    /**
-     * When I start counting up, I should
-     * start the chronometer
-     * start the notification
-     */
-    private fun startCountUp() {
-        setChronometerForCountUp()
-        chronometer.start()
     }
 
     private suspend fun startCountDown(taskName: String) {
         alarmIntent.putExtra("taskName", taskName)
+        // update the pendingAlarmIntent to capture the updated alarmIntent with extras
         pendingAlarmIntent = PendingIntent.getBroadcast(
             getApplication(),
             0,
@@ -193,8 +191,7 @@ class ClockPageViewModel (
             upcomingEndTime,
             pendingAlarmIntent
         )
-        setChronometerForCountDown()
-        chronometer.start()
+        countDownChronometer.start()
     }
 
     fun stopClock() {
@@ -207,33 +204,24 @@ class ClockPageViewModel (
             notificationManager.cancelClockInProgressNotification()
             currentTimeClockEvent = null
             isClockRunning = false
-
             val saved = getApplication<Application>().applicationContext
                 .getString(R.string.task_saved_toast, taskTextFieldValue.text)
-
             if (countDownTimerEnabled) {
                 stopCountDown(finishedEvent.endTime, saved)
             } else {
-                stopCountUp(saved)
+                showToast(saved)
             }
         }
     }
 
-    private fun stopCountUp(message: String) {
-        showToast(message)
-    }
-
     private fun stopCountDown(actualEndTime: Long, message: String) {
         if (actualEndTime < countDownEndTime) {
+
             alarmManager.cancel(pendingAlarmIntent)
             showToast(message)
         }
         countDownEndTime = 0L
         currCountDownSeconds = 0
-    }
-
-    fun resetCurrSeconds() {
-        currSeconds = 0
     }
 
     fun updateCountdownValues(hoursString: String, minutesString: String, secondsString: String) {
@@ -242,13 +230,6 @@ class ClockPageViewModel (
             minutesString.toInt(),
             secondsString.toInt()
         )
-    }
-
-    fun switchCountdownTimer() {
-        countDownTimerEnabled = !countDownTimerEnabled
-        viewModelScope.launch {
-            userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
-        }
     }
 
     private fun showToast(message: String) {
@@ -265,16 +246,22 @@ class ClockPageViewModel (
         }
     }
 
-    private fun setChronometerForCountUp() {
-            chronometer.setOnChronometerTickListener { countUp() }
+    fun switchCountDownTimer() {
+        countDownTimerEnabled = !countDownTimerEnabled
+        viewModelScope.launch {
+            userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
+        }
+    }
+
+    /**
+     * Executed when count up timer finishes the fadeOut animation
+     */
+    fun resetCurrSeconds() {
+        currSeconds = 0
     }
 
     private fun countUp() {
         currSeconds = calculateCurrSeconds(currentTimeClockEvent)
-    }
-
-    private fun setChronometerForCountDown() {
-        chronometer.setOnChronometerTickListener { countDown() }
     }
 
     private fun countDown() {

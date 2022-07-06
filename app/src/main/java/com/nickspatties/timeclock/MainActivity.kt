@@ -156,7 +156,7 @@ fun NavigationComponent(
     val onCountdownValueChanged = clockPageViewModel::updateCountdownValues
     val countdownEnabled = clockPageViewModel.countDownTimerEnabled ?: false
     val currentCountDownSeconds = clockPageViewModel.currCountDownSeconds
-    val onCountdownIconClicked = clockPageViewModel::switchCountdownTimer
+    val onCountdownIconClicked = clockPageViewModel::switchCountDownTimer
 
     val listPageViewModel = viewModel.listPage
     val groupedEvents = listPageViewModel.groupedEventsByDate.observeAsState().value
