@@ -41,7 +41,7 @@ class ClockPageViewModel (
 
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
 
-    private var currentTimeClockEvent = MutableLiveData<TimeClockEvent?>()
+    private var currentTimeClockEvent : TimeClockEvent? = null
     var taskTextFieldValue by mutableStateOf(TextFieldValue(text = ""))
     var clockButtonEnabled by mutableStateOf(false)
     var isClockRunning by mutableStateOf(false)
@@ -83,7 +83,7 @@ class ClockPageViewModel (
 
             // if there's an event that's already running, populate the UI with that event's data
             if (currEvent != null) {
-                currentTimeClockEvent.value = currEvent
+                currentTimeClockEvent = currEvent
                 taskTextFieldValue = TextFieldValue(text = currEvent.name)
                 clockButtonEnabled = true
                 isClockRunning = true
@@ -149,7 +149,7 @@ class ClockPageViewModel (
                 name = taskTextFieldValue.text
             )
             database.insert(newEvent)
-            currentTimeClockEvent.value = getCurrentEventFromDatabase()
+            currentTimeClockEvent = getCurrentEventFromDatabase()
 
             if (countDownTimerEnabled) {
                 startCountDown(newEvent.name)
@@ -199,13 +199,13 @@ class ClockPageViewModel (
 
     fun stopClock() {
         viewModelScope.launch {
-            val finishedEvent = currentTimeClockEvent.value ?: return@launch
+            val finishedEvent = currentTimeClockEvent ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
             chronometer.stop()
             database.update(finishedEvent)
             // successfully saved! reset values to initial
             notificationManager.cancelClockInProgressNotification()
-            currentTimeClockEvent.value = null
+            currentTimeClockEvent = null
             isClockRunning = false
 
             val saved = getApplication<Application>().applicationContext
@@ -270,7 +270,7 @@ class ClockPageViewModel (
     }
 
     private fun countUp() {
-        currSeconds = calculateCurrSeconds(currentTimeClockEvent.value)
+        currSeconds = calculateCurrSeconds(currentTimeClockEvent)
     }
 
     private fun setChronometerForCountDown() {
