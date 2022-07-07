@@ -3,19 +3,18 @@ package com.nickspatties.timeclock.ui.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
-import com.nickspatties.timeclock.util.convertSecondsToHoursMinutesSeconds
+
+const val TAG = "EditTimerTextField"
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -40,10 +39,7 @@ fun EditTimerTextField(
             keyboardController = keyboardController,
             imeAction = ImeAction.Next,
             focusManager = focusManager,
-            onValueChange = { viewModel.onHourValueChange(it) },
-            onKeyboardDone = {
-                // TODO update textFieldValue to have no selection
-            }
+            onValueChange = { viewModel.onHourValueChange(it) }
         )
         Text(
             text = ":",
@@ -58,8 +54,7 @@ fun EditTimerTextField(
             keyboardController = keyboardController,
             imeAction = ImeAction.Next,
             focusManager = focusManager,
-            onValueChange = { viewModel.onMinuteValueChange(it)},
-            onKeyboardDone = {}
+            onValueChange = { viewModel.onMinuteValueChange(it)}
         )
         Text(
             text = ":",
@@ -74,8 +69,7 @@ fun EditTimerTextField(
             keyboardController = keyboardController,
             imeAction = ImeAction.Done,
             focusManager = focusManager,
-            onValueChange = { viewModel.onSecondValueChange(it) },
-            onKeyboardDone = {}
+            onValueChange = { viewModel.onSecondValueChange(it) }
         )
     }
 }

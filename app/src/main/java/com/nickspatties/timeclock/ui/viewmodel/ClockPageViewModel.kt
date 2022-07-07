@@ -130,6 +130,18 @@ class ClockPageViewModel (
         }
     }
 
+    private fun checkClockButtonEnabled(): Boolean {
+        val countDownClockIsZero =
+            hoursTextFieldValue.text.toInt() == 0 &&
+            minutesTextFieldValue.text.toInt() == 0 &&
+            secondsTextFieldValue.text.toInt() == 0
+        return if (countDownTimerEnabled) {
+            taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
+        } else {
+            taskTextFieldValue.text.isNotBlank()
+        }
+    }
+
     fun onTaskNameChange(tfv: TextFieldValue) {
         if (dropdownClicked) {
             dropdownClicked = false
@@ -138,7 +150,7 @@ class ClockPageViewModel (
         taskTextFieldValue = tfv
         val taskName = tfv.text
         updateFilteredEventNames()
-        clockButtonEnabled = taskName.isNotBlank()
+        clockButtonEnabled = checkClockButtonEnabled()
         dropdownExpanded = taskName.isNotBlank() && filteredEventNames.isNotEmpty()
     }
 
@@ -228,6 +240,7 @@ class ClockPageViewModel (
         focusState: FocusState,
         textFieldValue: TextFieldValue
     ) : TextFieldValue {
+        clockButtonEnabled = checkClockButtonEnabled()
         return if(focusState.isFocused) {
             // select all text when focusing
             TextFieldValue(

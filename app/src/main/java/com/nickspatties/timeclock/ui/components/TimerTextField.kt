@@ -27,10 +27,8 @@ fun TimerTextField(
     keyboardController: SoftwareKeyboardController? = null,
     imeAction: ImeAction = ImeAction.Done,
     focusManager: FocusManager,
-    handleFocusChange : () -> Unit = {},
-    shouldMoveFocus: Boolean = false,
     onValueChange: (TextFieldValue) -> Unit = {},
-    onKeyboardDone: () -> Unit = {}
+    onImeAction: () -> Unit = {}
 ) {
     // another cheeky way to skip onValueChange when focus happens the first time
     var skipOnValueChange = false
@@ -38,7 +36,6 @@ fun TimerTextField(
         modifier = modifier
             .width(70.dp)
             .onFocusChanged {
-                handleFocusChange()
                 skipOnValueChange = true
             },
         value = textValue,
@@ -57,14 +54,17 @@ fun TimerTextField(
             imeAction = imeAction,
             keyboardType = KeyboardType.NumberPassword
         ),
-        keyboardActions = KeyboardActions(onDone = {
-            keyboardController?.hide()
-            onKeyboardDone()
-            if (shouldMoveFocus)
-                focusManager.moveFocus(FocusDirection.Next)
-            else
+        keyboardActions = KeyboardActions(
+            onDone = {
+                keyboardController?.hide()
+                onImeAction()
                 focusManager.clearFocus()
-        }),
+            },
+            onNext = {
+                onImeAction()
+                focusManager.moveFocus(FocusDirection.Next)
+            }
+        ),
         singleLine = true
     )
 }
