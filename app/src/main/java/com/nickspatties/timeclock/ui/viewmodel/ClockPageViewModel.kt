@@ -346,6 +346,7 @@ class ClockPageViewModel (
             val finishedEvent = currentTimeClockEvent ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
             chronometer.stop()
+            countDownChronometer.stop()
             database.update(finishedEvent)
             // successfully saved! reset values to initial
             notificationManager.cancelClockInProgressNotification()
@@ -394,6 +395,4 @@ class ClockPageViewModel (
         }
         updateCountDownTextFieldValues(currCountDownSeconds)
     }
-
-
 }
