@@ -111,6 +111,7 @@ class ClockPageViewModel (
                 )
                 if (countDownTimerEnabled) {
                     currCountDownSeconds = ((countDownEndTime - System.currentTimeMillis()) / 1000).toInt()
+                    updateCountDownTextFieldValues(currCountDownSeconds)
                     countDownChronometer.start(startTimeDelay)
                 } else {
                     currSeconds = calculateCurrSeconds(currEvent)
@@ -183,6 +184,7 @@ class ClockPageViewModel (
 
     fun switchCountDownTimer() {
         countDownTimerEnabled = !countDownTimerEnabled
+        clockButtonEnabled = checkClockButtonEnabled()
         viewModelScope.launch {
             userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
         }
@@ -274,6 +276,27 @@ class ClockPageViewModel (
         return "0$digits"
     }
 
+    private fun updateCountDownTextFieldValues(currSeconds: Int) {
+        val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
+        hoursTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.first.toString())
+        )
+        minutesTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.second.toString())
+        )
+        secondsTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.third.toString())
+        )
+    }
+
+    private fun timerTextFieldValuesToSeconds(): Int {
+        return convertHoursMinutesSecondsToSeconds(
+            hoursTextFieldValue.text.toInt(),
+            minutesTextFieldValue.text.toInt(),
+            secondsTextFieldValue.text.toInt()
+        )
+    }
+
     fun startClock() {
         viewModelScope.launch {
             // create and save the new event
@@ -304,6 +327,7 @@ class ClockPageViewModel (
             alarmIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        currCountDownSeconds = timerTextFieldValuesToSeconds()
         val upcomingEndTime = System.currentTimeMillis() + currCountDownSeconds * 1000L
         countDownEndTime = upcomingEndTime
         userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
@@ -339,7 +363,6 @@ class ClockPageViewModel (
 
     private fun stopCountDown(actualEndTime: Long, message: String) {
         if (actualEndTime < countDownEndTime) {
-
             alarmManager.cancel(pendingAlarmIntent)
             showToast(message)
         }
@@ -369,6 +392,7 @@ class ClockPageViewModel (
                 stopClock()
             }
         }
+        updateCountDownTextFieldValues(currCountDownSeconds)
     }
 
 
