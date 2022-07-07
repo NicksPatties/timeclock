@@ -144,7 +144,6 @@ fun NavigationComponent(
     clockPageViewModel.autofillTaskNames.observeAsState()
     val filteredTaskNames = clockPageViewModel.filteredEventNames
     val taskTextFieldValue = clockPageViewModel.taskTextFieldValue
-
     val currSeconds = clockPageViewModel.currSeconds
     val onTaskNameChange = clockPageViewModel::onTaskNameChange
     val onTaskNameDonePressed = clockPageViewModel::onTaskNameDonePressed
@@ -153,10 +152,11 @@ fun NavigationComponent(
     val startClock = clockPageViewModel::startClock
     val stopClock = clockPageViewModel::stopClock
     val onTimerAnimationFinished = clockPageViewModel::resetCurrSeconds
-    val onCountdownValueChanged = clockPageViewModel::updateCountdownValues
-    val countdownEnabled = clockPageViewModel.countDownTimerEnabled ?: false
-    val currentCountDownSeconds = clockPageViewModel.currCountDownSeconds
+    val countdownEnabled = clockPageViewModel.countDownTimerEnabled
     val onCountdownIconClicked = clockPageViewModel::switchCountDownTimer
+    val hoursTextFieldValue = clockPageViewModel.hoursTextFieldValue
+    val minutesTextFieldValue = clockPageViewModel.minutesTextFieldValue
+    val secondsTextFieldValue = clockPageViewModel.secondsTextFieldValue
 
     val listPageViewModel = viewModel.listPage
     val groupedEvents = listPageViewModel.groupedEventsByDate.observeAsState().value
@@ -188,6 +188,7 @@ fun NavigationComponent(
     ) {
         composable(clockRoute) {
             ClockPage(
+                viewModel = clockPageViewModel,
                 clockEnabled = clockEnabled,
                 isRunning = isRunning,
                 dropdownExpanded = dropdownExpanded,
@@ -203,8 +204,9 @@ fun NavigationComponent(
                 timerAnimationFinishedListener = onTimerAnimationFinished,
                 onCountdownIconClicked = onCountdownIconClicked,
                 countdownEnabled = countdownEnabled,
-                currentCountDownSeconds = currentCountDownSeconds,
-                onCountdownTimerFocusRemoval = onCountdownValueChanged
+                hoursTextFieldValue = hoursTextFieldValue,
+                minutesTextFieldValue = minutesTextFieldValue,
+                secondsTextFieldValue = secondsTextFieldValue
             )
         }
         composable(listRoute) {

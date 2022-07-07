@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.app.AlarmManagerCompat
@@ -70,6 +71,13 @@ class ClockPageViewModel (
     var countDownTimerEnabled by mutableStateOf(false)
     var countDownEndTime by mutableStateOf(0L)
     var currCountDownSeconds by mutableStateOf(0)
+    private val defaultTextFieldValue = TextFieldValue(
+        text = "00",
+        selection = TextRange(0)
+    )
+    var hoursTextFieldValue by mutableStateOf(defaultTextFieldValue)
+    var minutesTextFieldValue by mutableStateOf(defaultTextFieldValue)
+    var secondsTextFieldValue by mutableStateOf(defaultTextFieldValue)
     private val countDownChronometer = Chronometer().apply {
         setOnChronometerTickListener { countDown() }
     }
@@ -138,6 +146,16 @@ class ClockPageViewModel (
         dropdownExpanded = false
     }
 
+    private fun updateFilteredEventNames() {
+        filteredEventNames = if (autofillTaskNames.value == null) {
+            listOf()
+        } else {
+            autofillTaskNames.value!!.filter {
+                it.contains(taskTextFieldValue.text)
+            }
+        }
+    }
+
     fun onDismissDropdown() {
         dropdownExpanded = false
     }
@@ -149,6 +167,98 @@ class ClockPageViewModel (
             selection = TextRange(label.length)
         )
         dropdownExpanded = false
+    }
+
+    fun switchCountDownTimer() {
+        countDownTimerEnabled = !countDownTimerEnabled
+        viewModelScope.launch {
+            userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
+        }
+    }
+
+    fun onMinuteValueChange(value: TextFieldValue) {
+        minutesTextFieldValue = onMinuteAndSecondValueChange(value)
+    }
+
+    fun onSecondValueChange(value: TextFieldValue) {
+        secondsTextFieldValue = onMinuteAndSecondValueChange(value)
+    }
+
+    private fun onMinuteAndSecondValueChange(value: TextFieldValue): TextFieldValue {
+        val selectAllValue = TextFieldValue(
+            text = value.text,
+            selection = TextRange(0, value.text.length)
+        )
+        val cursorAtEnd = TextFieldValue(
+            text = value.text,
+            selection = TextRange(value.text.length)
+        )
+        return when (value.text.length) {
+            0 -> cursorAtEnd
+            1 -> {
+                if (value.text.toInt() >= 6) {
+                    selectAllValue
+                } else {
+                    cursorAtEnd
+                }
+            }
+            2 -> selectAllValue
+            else -> TextFieldValue()
+        }
+    }
+
+    fun onHourValueChange(value: TextFieldValue) {
+        val selectAllValue = TextFieldValue(
+            text = value.text,
+            selection = TextRange(0, value.text.length)
+        )
+        val cursorAtEnd = TextFieldValue(
+            text = value.text,
+            selection = TextRange(value.text.length)
+        )
+        hoursTextFieldValue = when (value.text.length) {
+            0 -> cursorAtEnd
+            1 -> cursorAtEnd
+            2 -> selectAllValue
+            else -> TextFieldValue()
+        }
+    }
+
+    private fun onTimerStringFocusChanged(
+        focusState: FocusState,
+        textFieldValue: TextFieldValue
+    ) : TextFieldValue {
+        return if(focusState.isFocused) {
+            // select all text when focusing
+            TextFieldValue(
+                text = textFieldValue.text,
+                selection = TextRange(0, 2)
+            )
+        } else {
+            // format the digits when leaving focus and remove selection
+            TextFieldValue(
+                text = formatDigitsAfterLeavingFocus(textFieldValue.text),
+                selection = TextRange(0)
+            )
+        }
+    }
+
+    fun onHoursFocusChanged(focusState: FocusState) {
+        hoursTextFieldValue = onTimerStringFocusChanged(focusState, hoursTextFieldValue)
+    }
+
+    fun onMinutesFocusChanged(focusState: FocusState) {
+        minutesTextFieldValue = onTimerStringFocusChanged(focusState, minutesTextFieldValue)
+    }
+
+    fun onSecondsFocusChanged(focusState: FocusState) {
+        secondsTextFieldValue = onTimerStringFocusChanged(focusState, secondsTextFieldValue)
+    }
+
+    private fun formatDigitsAfterLeavingFocus(digits: String): String {
+        if (digits.isEmpty()) return "00"
+        if (digits.length > 1) return digits
+        return "0$digits"
     }
 
     fun startClock() {
@@ -224,33 +334,8 @@ class ClockPageViewModel (
         currCountDownSeconds = 0
     }
 
-    fun updateCountdownValues(hoursString: String, minutesString: String, secondsString: String) {
-        currCountDownSeconds = convertHoursMinutesSecondsToSeconds(
-            hoursString.toInt(),
-            minutesString.toInt(),
-            secondsString.toInt()
-        )
-    }
-
     private fun showToast(message: String) {
         Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun updateFilteredEventNames() {
-        filteredEventNames = if (autofillTaskNames.value == null) {
-            listOf()
-        } else {
-            autofillTaskNames.value!!.filter {
-                it.contains(taskTextFieldValue.text)
-            }
-        }
-    }
-
-    fun switchCountDownTimer() {
-        countDownTimerEnabled = !countDownTimerEnabled
-        viewModelScope.launch {
-            userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
-        }
     }
 
     /**
@@ -272,4 +357,6 @@ class ClockPageViewModel (
             }
         }
     }
+
+
 }

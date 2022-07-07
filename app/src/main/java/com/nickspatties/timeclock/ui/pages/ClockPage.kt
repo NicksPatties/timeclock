@@ -18,10 +18,12 @@ import com.nickspatties.timeclock.ui.components.EditTimerTextField
 import com.nickspatties.timeclock.ui.components.StartTimerButton
 import com.nickspatties.timeclock.ui.components.TaskTextField
 import com.nickspatties.timeclock.ui.components.TimerText
+import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ClockPage(
+    viewModel: ClockPageViewModel?,
     clockEnabled: Boolean,
     isRunning: Boolean,
     countdownEnabled: Boolean = false,
@@ -37,8 +39,9 @@ fun ClockPage(
     stopClock: () -> Unit,
     timerAnimationFinishedListener: () -> Unit = {},
     onCountdownIconClicked: () -> Unit,
-    currentCountDownSeconds: Int = 3600,
-    onCountdownTimerFocusRemoval: (String, String, String) -> Unit
+    hoursTextFieldValue: TextFieldValue,
+    minutesTextFieldValue: TextFieldValue,
+    secondsTextFieldValue: TextFieldValue
 ) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -94,9 +97,11 @@ fun ClockPage(
             val spacing = 0.dp
             if (countdownEnabled) {
                 EditTimerTextField(
-                    currentCountDownSeconds = currentCountDownSeconds,
-                    clickable = !isRunning,
-                    onFocusRemoval = onCountdownTimerFocusRemoval
+                    viewModel = viewModel!!,
+                    hoursTextFieldValue = hoursTextFieldValue,
+                    minutesTextFieldValue = minutesTextFieldValue,
+                    secondsTextFieldValue = secondsTextFieldValue,
+                    clickable = !isRunning
                 )
             } else {
                 TimerText(
@@ -123,6 +128,7 @@ fun ClockPage(
 @Composable
 @Preview
 fun ClockPageMockUp() {
+    val defaultTextFieldValue = TextFieldValue("00")
     ClockPage(
         clockEnabled = false,
         isRunning = false,
@@ -136,6 +142,9 @@ fun ClockPageMockUp() {
         startClock = { },
         stopClock = { },
         onCountdownIconClicked = {},
-        onCountdownTimerFocusRemoval = { s1: String, s2: String, s3: String -> }
+        hoursTextFieldValue = defaultTextFieldValue,
+        minutesTextFieldValue = defaultTextFieldValue,
+        secondsTextFieldValue = defaultTextFieldValue,
+        viewModel = null
     )
 }
