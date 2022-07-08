@@ -6,6 +6,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -24,7 +25,8 @@ fun EditTimerTextField(
     hoursTextFieldValue: TextFieldValue = TextFieldValue(),
     minutesTextFieldValue: TextFieldValue = TextFieldValue(),
     secondsTextFieldValue: TextFieldValue = TextFieldValue(),
-    clickable: Boolean = true
+    clickable: Boolean = true,
+    focusManager: FocusManager
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current

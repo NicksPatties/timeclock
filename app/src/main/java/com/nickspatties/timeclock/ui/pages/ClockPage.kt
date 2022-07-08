@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,7 +45,7 @@ fun ClockPage(
     minutesTextFieldValue: TextFieldValue,
     secondsTextFieldValue: TextFieldValue
 ) {
-
+    val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold() {
@@ -57,13 +59,19 @@ fun ClockPage(
                 // todo character limit 120
                 val widthFraction = 0.9f
                 TaskTextField(
-                    modifier = Modifier.fillMaxWidth(widthFraction),
+                    modifier = Modifier
+                        .fillMaxWidth(widthFraction),
                     value = taskTextFieldValue,
                     enabled = !isRunning,
                     onTaskNameChange = {
                         onTaskNameChange(it)
                     },
                     onDone = {
+                        if (countdownEnabled) {
+                            focusManager.moveFocus(FocusDirection.Next)
+                        } else {
+                            focusManager.clearFocus()
+                        }
                         onTaskNameDonePressed()
                     },
                     keyboardController = keyboardController,
@@ -84,8 +92,13 @@ fun ClockPage(
                 ) {
                     filteredTaskNames.forEach { label ->
                         DropdownMenuItem(onClick = {
+                            if (countdownEnabled) {
+                                focusManager.moveFocus(FocusDirection.Next)
+                            } else {
+                                focusManager.clearFocus()
+                                keyboardController?.hide()
+                            }
                             onDropdownMenuItemClick(label)
-                            keyboardController?.hide() // close keyboard
                         }) {
                             Text(text = label)
                         }
@@ -101,7 +114,8 @@ fun ClockPage(
                     hoursTextFieldValue = hoursTextFieldValue,
                     minutesTextFieldValue = minutesTextFieldValue,
                     secondsTextFieldValue = secondsTextFieldValue,
-                    clickable = !isRunning
+                    clickable = !isRunning,
+                    focusManager = focusManager
                 )
             } else {
                 TimerText(
