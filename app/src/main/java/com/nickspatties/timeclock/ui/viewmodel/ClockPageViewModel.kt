@@ -23,6 +23,7 @@ import com.nickspatties.timeclock.receiver.AlarmReceiver
 import com.nickspatties.timeclock.util.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 
 const val TAG = "ClockPageViewModel"
 
@@ -105,19 +106,18 @@ class ClockPageViewModel (
                 clockButtonEnabled = true
                 isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
-                notificationManager.sendClockInProgressNotification(
-                    application,
-                    currEvent.name
-                )
                 if (countDownTimerEnabled) {
-                    // TODO This calculation might be wrong... check countDownEndTime when
-                    currCountDownSeconds = ((countDownEndTime - System.currentTimeMillis()) / 1000).toInt()
+                    currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
                     updateCountDownTextFieldValues(currCountDownSeconds)
                     countDownChronometer.start(startTimeDelay)
                 } else {
                     currSeconds = calculateCurrSeconds(currEvent)
                     chronometer.start(startTimeDelay)
                 }
+                notificationManager.sendClockInProgressNotification(
+                    application,
+                    currEvent.name
+                )
             }
             Log.i(TAG, "Finished loading")
         }

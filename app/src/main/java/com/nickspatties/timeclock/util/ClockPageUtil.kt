@@ -1,5 +1,7 @@
 package com.nickspatties.timeclock.util
 
+import kotlin.math.ceil
+
 /**
  * Finds the amount of time in milliseconds that the first tick of the clock should
  * take place based on an event's start time, and the clock's tick frequency. This
@@ -12,4 +14,12 @@ fun findEventStartTimeDelay(
 ): Long {
     val totalEventTime = currentTime - startTime
     return tickFrequency - totalEventTime % tickFrequency
+}
+
+fun calculateCurrCountDownSeconds(
+    countDownEndTime: Long,
+    currentTime: Long = System.currentTimeMillis()
+): Int {
+    val remainingTime = countDownEndTime - currentTime
+    return ceil(remainingTime.toFloat() / MILLIS_PER_SECOND.toFloat()).toInt()
 }
