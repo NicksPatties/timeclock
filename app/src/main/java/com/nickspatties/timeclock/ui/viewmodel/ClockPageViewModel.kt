@@ -110,6 +110,7 @@ class ClockPageViewModel (
                     currEvent.name
                 )
                 if (countDownTimerEnabled) {
+                    // TODO This calculation might be wrong... check countDownEndTime when
                     currCountDownSeconds = ((countDownEndTime - System.currentTimeMillis()) / 1000).toInt()
                     updateCountDownTextFieldValues(currCountDownSeconds)
                     countDownChronometer.start(startTimeDelay)
@@ -311,14 +312,14 @@ class ClockPageViewModel (
                 newEvent.name
             )
             if (countDownTimerEnabled) {
-                startCountDown(newEvent.name)
+                startCountDown(newEvent.name, newEvent.startTime)
             } else {
                 chronometer.start()
             }
         }
     }
 
-    private suspend fun startCountDown(taskName: String) {
+    private suspend fun startCountDown(taskName: String, actualStartTime: Long) {
         alarmIntent.putExtra("taskName", taskName)
         // update the pendingAlarmIntent to capture the updated alarmIntent with extras
         pendingAlarmIntent = PendingIntent.getBroadcast(
@@ -328,7 +329,7 @@ class ClockPageViewModel (
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         currCountDownSeconds = timerTextFieldValuesToSeconds()
-        val upcomingEndTime = System.currentTimeMillis() + currCountDownSeconds * 1000L
+        val upcomingEndTime = actualStartTime + currCountDownSeconds * MILLIS_PER_SECOND
         countDownEndTime = upcomingEndTime
         userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
         // start an alarm
@@ -341,7 +342,7 @@ class ClockPageViewModel (
         countDownChronometer.start()
     }
 
-    fun stopClock() {
+    fun stopClock(tappedStopButton: Boolean) {
         viewModelScope.launch {
             val finishedEvent = currentTimeClockEvent ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
@@ -355,15 +356,15 @@ class ClockPageViewModel (
             val saved = getApplication<Application>().applicationContext
                 .getString(R.string.task_saved_toast, taskTextFieldValue.text)
             if (countDownTimerEnabled) {
-                stopCountDown(finishedEvent.endTime, saved)
+                stopCountDown(tappedStopButton, saved)
             } else {
                 showToast(saved)
             }
         }
     }
 
-    private fun stopCountDown(actualEndTime: Long, message: String) {
-        if (actualEndTime < countDownEndTime) {
+    private fun stopCountDown(tappedStopButton: Boolean, message: String) {
+        if (tappedStopButton) {
             alarmManager.cancel(pendingAlarmIntent)
             showToast(message)
         }
@@ -390,7 +391,7 @@ class ClockPageViewModel (
         if (currCountDownSeconds > 0) {
             currCountDownSeconds -= 1
             if (currCountDownSeconds <= 0) {
-                stopClock()
+                stopClock(tappedStopButton = false)
             }
         }
         updateCountDownTextFieldValues(currCountDownSeconds)

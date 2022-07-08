@@ -36,7 +36,7 @@ fun ClockPage(
     onDismissDropdown: () -> Unit,
     onDropdownMenuItemClick: (String) -> Unit,
     startClock: () -> Unit,
-    stopClock: () -> Unit,
+    stopClock: (Boolean) -> Unit,
     timerAnimationFinishedListener: () -> Unit = {},
     onCountdownIconClicked: () -> Unit,
     hoursTextFieldValue: TextFieldValue,
