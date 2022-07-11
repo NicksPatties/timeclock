@@ -17,7 +17,8 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.TimeClock.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
