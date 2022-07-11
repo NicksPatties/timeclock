@@ -89,6 +89,7 @@ fun TimeClockApp(viewModel: TimeClockViewModel) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+    val clockRoute = stringResource(R.string.route_clock)
 
     TimeClockTheme {
         Scaffold(
@@ -103,6 +104,7 @@ fun TimeClockApp(viewModel: TimeClockViewModel) {
                             selected = currentDestination?.hierarchy?.any { it.route == route } == true,
                             onClick = {
                                 navController.navigate(route) {
+                                    popUpTo(clockRoute)
                                     launchSingleTop = true
                                 }
                              },
@@ -122,7 +124,7 @@ fun TimeClockApp(viewModel: TimeClockViewModel) {
                     modifier = Modifier.padding(it),
                     viewModel = viewModel,
                     navController = navController,
-                    startDestination = stringResource(R.string.route_clock)
+                    startDestination = clockRoute
                 )
             }
         )
