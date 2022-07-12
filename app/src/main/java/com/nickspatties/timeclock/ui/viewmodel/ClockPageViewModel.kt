@@ -23,7 +23,6 @@ import com.nickspatties.timeclock.receiver.AlarmReceiver
 import com.nickspatties.timeclock.util.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlin.math.ceil
 
 const val TAG = "ClockPageViewModel"
 
@@ -145,11 +144,12 @@ class ClockPageViewModel (
             hoursTextFieldValue.text.toInt() == 0 &&
             minutesTextFieldValue.text.toInt() == 0 &&
             secondsTextFieldValue.text.toInt() == 0
-        return if (countDownTimerEnabled) {
+        val enabled = if (countDownTimerEnabled) {
             taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
         } else {
             taskTextFieldValue.text.isNotBlank()
         }
+        return enabled
     }
 
     fun onTaskNameChange(tfv: TextFieldValue) {
@@ -379,7 +379,7 @@ class ClockPageViewModel (
         countDownEndTime = 0L
         userPreferencesRepository.updateCountDownEndTime(countDownEndTime)
         currCountDownSeconds = 0
-        checkClockButtonEnabled()
+        clockButtonEnabled = checkClockButtonEnabled()
     }
 
     private fun showToast(message: String) {
@@ -398,11 +398,9 @@ class ClockPageViewModel (
     }
 
     private fun countDown() {
-        if (currCountDownSeconds > 0) {
-            currCountDownSeconds -= 1
-            if (currCountDownSeconds <= 0) {
-                stopClock(tappedStopButton = false)
-            }
+        currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
+        if(currCountDownSeconds <= 0) {
+            stopClock(tappedStopButton = false)
         }
         updateCountDownTextFieldValues(currCountDownSeconds)
     }
