@@ -107,9 +107,17 @@ class ClockPageViewModel (
                 isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
                 if (countDownTimerEnabled) {
-                    currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
-                    updateCountDownTextFieldValues(currCountDownSeconds)
-                    countDownChronometer.start(startTimeDelay)
+                    // if the countDown end has already passed, save the event and reset clock
+                    if (countDownEndTime < System.currentTimeMillis()) {
+                        currEvent.endTime = countDownEndTime
+                        database.update(currEvent)
+                        currentTimeClockEvent = null
+                        clockButtonEnabled = false
+                    } else { // init countdown
+                        currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
+                        updateCountDownTextFieldValues(currCountDownSeconds)
+                        countDownChronometer.start(startTimeDelay)
+                    }
                 } else {
                     currSeconds = calculateCurrSeconds(currEvent)
                     chronometer.start(startTimeDelay)
@@ -363,13 +371,15 @@ class ClockPageViewModel (
         }
     }
 
-    private fun stopCountDown(tappedStopButton: Boolean, message: String) {
+    private suspend fun stopCountDown(tappedStopButton: Boolean, message: String) {
         if (tappedStopButton) {
             alarmManager.cancel(pendingAlarmIntent)
             showToast(message)
         }
         countDownEndTime = 0L
+        userPreferencesRepository.updateCountDownEndTime(countDownEndTime)
         currCountDownSeconds = 0
+        checkClockButtonEnabled()
     }
 
     private fun showToast(message: String) {
