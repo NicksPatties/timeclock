@@ -13,7 +13,7 @@ class ClockPageUtilTest {
     @Parameters(
         "0,1000,1000",
         "0,1001,999",
-        "0,999,12"
+        "0,999,1"
     )
     fun findEventStartTimeDelay_returnsCorrectValue(
         startTime: Long,
