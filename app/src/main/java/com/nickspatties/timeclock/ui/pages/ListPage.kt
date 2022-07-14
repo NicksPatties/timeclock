@@ -44,33 +44,6 @@ fun ListPage(
     }
 }
 
-@Composable
-fun NothingHereText() {
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .padding(
-                horizontal = 8.dp
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        val size = 24.sp
-        val color = MaterialTheme.colors.onSurface.copy(alpha = 0.33f)
-        Text(
-            text = stringResource(R.string.list_page_nothing_here),
-            fontSize = size,
-            color = color
-        )
-        Text(
-            text = stringResource(R.string.list_page_fill_this_list),
-            fontSize = size,
-            color = color
-        )
-    }
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TimeClockList(

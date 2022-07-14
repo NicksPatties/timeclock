@@ -13,50 +13,50 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.R
-import com.nickspatties.timeclock.ui.components.AnalysisPageListItemContent
-import com.nickspatties.timeclock.ui.components.PieChart
-import com.nickspatties.timeclock.ui.components.TimeClockListItem
-import com.nickspatties.timeclock.ui.components.TimeRangeSelector
+import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
 import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
 fun AnalysisPage(
-    currentSelectionString: String = "",
+    currentSelectionString: String = "All time",
     onSelectionStartButtonClick: () -> Unit = {},
     onSelectionEndButtonClick: () -> Unit = {},
     selectionStartButtonVisible: Boolean = false,
-    selectionEndButtonVisible: Boolean = false,
+    selectionEndButtonVisible: Boolean = true,
     analysisPageRows: List<AnalysisRow>?,
     totalSelectedHours: String = "",
     openId: Long = -1,
     changeRowId: (Long) -> Unit = {}
 ) {
     Scaffold {
-        if (analysisPageRows != null) {
-            // all hours
-            var totalMillis = 0L
-            analysisPageRows.forEach {
-                totalMillis += it.millis
-            }
-            val segmentData = mutableListOf<Triple<Color, Float, Long>>()
-            analysisPageRows.forEach {
-                val color = it.color
-                val percentage = it.getPercentage(totalMillis)
-                val id = it.id
-                segmentData.add(Triple(
-                    color, percentage, id
-                ))
-            }
-            Column {
-                TimeRangeSelector(
-                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-                    centerText = currentSelectionString,
-                    startButtonFunction = onSelectionStartButtonClick,
-                    startButtonVisible = selectionStartButtonVisible,
-                    endButtonFunction = onSelectionEndButtonClick,
-                    endButtonVisible = selectionEndButtonVisible
-                )
+        Column {
+            TimeRangeSelector(
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                centerText = currentSelectionString,
+                startButtonFunction = onSelectionStartButtonClick,
+                startButtonVisible = selectionStartButtonVisible,
+                endButtonFunction = onSelectionEndButtonClick,
+                endButtonVisible = selectionEndButtonVisible
+            )
+            // TODO add the if check and variables here
+            if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
+                // all hours
+                var totalMillis = 0L
+                analysisPageRows.forEach {
+                    totalMillis += it.millis
+                }
+                val segmentData = mutableListOf<Triple<Color, Float, Long>>()
+                analysisPageRows.forEach {
+                    val color = it.color
+                    val percentage = it.getPercentage(totalMillis)
+                    val id = it.id
+                    segmentData.add(
+                        Triple(
+                            color, percentage, id
+                        )
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(0.6f)
@@ -97,7 +97,7 @@ fun AnalysisPage(
                     analysisPageRows.forEach { row ->
                         val name = row.name
                         val id = row.id
-                        val percentage = row.millis / totalMillis.toFloat() * 100f
+                        val percentage = row.getPercentage(totalMillis)
                         item {
                             val percentageString = stringResource(R.string.percentage, percentage)
                             val isClosed = openId != id
@@ -120,9 +120,9 @@ fun AnalysisPage(
                         }
                     }
                 }
+            } else {
+                NothingHereText()
             }
-        } else {
-            Text(stringResource(R.string.analysis_page_nothing_here))
         }
     }
 }
