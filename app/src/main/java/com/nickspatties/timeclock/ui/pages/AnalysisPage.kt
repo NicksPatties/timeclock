@@ -154,3 +154,17 @@ fun AnalysisPagePairsAreNull() {
 fun AnalysisPageNoPairs() {
     AnalysisPage(analysisPageRows = listOf())
 }
+
+@Preview(showBackground = true)
+@Composable
+fun AnalysisPageShowBug() {
+    AnalysisPage(
+        analysisPageRows = listOf(
+            AnalysisRow(
+                "item",
+                0,
+                0
+            )
+        )
+    )
+}
