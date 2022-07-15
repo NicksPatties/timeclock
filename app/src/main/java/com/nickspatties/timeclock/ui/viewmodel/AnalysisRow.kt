@@ -9,8 +9,8 @@ class AnalysisRow(val name: String, val millis: Long, val id: Long) {
      * Gets the percentage of time that an AnalysisRow represents with a given
      * amount of total milliseconds.
      *
-     * @param totalMillis the total number of milliseconds that this row's millis value divides into
-     * @return a percentage, or 0f if totalMillis is less than or equal to 0
+     * @param totalMillis the total number of milliseconds of all events
+     * @return a percentage value between 0 and 100, or 0 if totalMillis is less than or equal to 0
      */
     fun getPercentage(totalMillis: Long): Float {
         if(totalMillis <= 0L) return 0f

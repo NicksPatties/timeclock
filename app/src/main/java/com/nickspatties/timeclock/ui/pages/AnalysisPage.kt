@@ -39,9 +39,7 @@ fun AnalysisPage(
                 endButtonFunction = onSelectionEndButtonClick,
                 endButtonVisible = selectionEndButtonVisible
             )
-            // TODO add the if check and variables here
             if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
-                // all hours
                 var totalMillis = 0L
                 analysisPageRows.forEach {
                     totalMillis += it.millis
@@ -49,7 +47,7 @@ fun AnalysisPage(
                 val segmentData = mutableListOf<Triple<Color, Float, Long>>()
                 analysisPageRows.forEach {
                     val color = it.color
-                    val percentage = it.getPercentage(totalMillis)
+                    val percentage = it.getPercentage(totalMillis) / 100f
                     val id = it.id
                     segmentData.add(
                         Triple(
@@ -155,9 +153,16 @@ fun AnalysisPageNoPairs() {
     AnalysisPage(analysisPageRows = listOf())
 }
 
+/**
+ * Demonstrates that the AnalysisPage component can handle an AnalysisRow with
+ * no milliseconds of duration instead of printing "NaN%"
+ *
+ * @see <a href="https://github.com/NicksPatties/timeclock/issues/11">issue #11</a>
+ * for more details
+ */
 @Preview(showBackground = true)
 @Composable
-fun AnalysisPageShowBug() {
+fun AnalysisPageTestNaNBug() {
     AnalysisPage(
         analysisPageRows = listOf(
             AnalysisRow(
