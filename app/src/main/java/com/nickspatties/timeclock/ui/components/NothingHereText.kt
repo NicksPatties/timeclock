@@ -26,7 +26,7 @@ fun NothingHereText(
     ) {
         Text(
             text = text,
-            fontSize = 24.sp,
+            style = MaterialTheme.typography.h6,
             color = MaterialTheme.colors.onSurface.copy(alpha = 0.33f),
             textAlign = TextAlign.Center
         )
