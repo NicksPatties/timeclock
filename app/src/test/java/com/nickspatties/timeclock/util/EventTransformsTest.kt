@@ -1,6 +1,7 @@
 package com.nickspatties.timeclock.util
 
 import com.google.common.truth.Truth.assertThat
+import com.nickspatties.timeclock.data.TimeClockEvent
 import org.junit.Test
 import java.util.*
 
@@ -40,6 +41,19 @@ class EventTransformsTest {
             // assert the duration in millis is the same
             assertThat(item.millis).isEqualTo(expectedPair.second)
         }
+    }
+
+    @Test
+    fun sortByNamesAndTotalMillis_listOfSingleRunningEventReturnsAnEmptyList() {
+        // remember, event is considered in progress if their start and end times are the same
+        val inProgressEvent = TimeClockEvent(
+            name = "name",
+            startTime = 0L,
+            endTime = 0L,
+            id = 0L
+        )
+        val analysisPageList = sortByNamesAndTotalMillis(listOf(inProgressEvent))
+        assertThat(analysisPageList.size).isEqualTo(0)
     }
 
     @Test

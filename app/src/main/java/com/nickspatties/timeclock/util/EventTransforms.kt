@@ -29,6 +29,7 @@ fun getAutofillValues(events: List<TimeClockEvent>): Set<String> {
 fun sortByNamesAndTotalMillis(events: List<TimeClockEvent>): List<AnalysisRow> {
     val eventNameAndDurationMap : MutableMap<String, Long> = mutableMapOf()
     for (event in events) {
+        if (event.isRunning) continue
         val name = event.name
         val duration = event.endTime - event.startTime
         if (eventNameAndDurationMap[name] == null) {
