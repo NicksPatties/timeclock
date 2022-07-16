@@ -1,0 +1,14 @@
+changelog:
+  exclude:
+    labels:
+      - cleanliness
+  categories:
+    - title: Bug fixes
+      labels:
+        - bug
+    - title: New features!
+      labels:
+        - enhancement
+    - title: Other Changes
+      labels:
+        - "*"

@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help improve TimeClock
 title: "[BUG] "
 labels: ["bug", "triage"]
 assignees:
@@ -17,7 +17,7 @@ A clear and concise description of what you expected to happen.
 **Observed behavior**
 A clear and concise description of what has actually happened.
 
-**To Reproduce**
+**To reproduce**
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
