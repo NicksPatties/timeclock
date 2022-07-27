@@ -401,6 +401,7 @@ class ClockPageViewModel (
         currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
         if(currCountDownSeconds <= 0) {
             stopClock(tappedStopButton = false)
+            currCountDownSeconds = 0
         }
         updateCountDownTextFieldValues(currCountDownSeconds)
     }
