@@ -398,10 +398,32 @@ class ClockPageViewModel (
     }
 
     private fun countDown() {
-        currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
-        if(currCountDownSeconds <= 0) {
-            stopClock(tappedStopButton = false)
-        }
-        updateCountDownTextFieldValues(currCountDownSeconds)
+        currCountDownSeconds = getCountDownSeconds(
+            countDownEndTime = countDownEndTime,
+            stopClockFunc = this::stopClock,
+            updateFields = this::updateCountDownTextFieldValues
+        )
     }
+}
+
+/**
+ * Gets the current count down seconds based on an end time. If the end time has
+ * already passed, then call the stopClock function. Updates the text with the
+ * updateFields function.
+ *
+ * This really allows me to quickly test the fix for this bug:
+ * https://github.com/NicksPatties/timeclock/issues/12
+ */
+fun getCountDownSeconds(
+    countDownEndTime: Long = 0L,
+    stopClockFunc: (Boolean) -> Unit = {},
+    updateFields: (Int) -> Unit = {}
+): Int {
+    var currSeconds = calculateCurrCountDownSeconds(countDownEndTime)
+    if(currSeconds <= 0) {
+        stopClockFunc(false)
+        currSeconds = 0
+    }
+    updateFields(currSeconds)
+    return currSeconds
 }
