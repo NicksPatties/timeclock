@@ -1,10 +1,7 @@
 package com.nickspatties.timeclock.ui.pages
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -137,6 +134,23 @@ fun ClockPage(
             )
         }
     }
+}
+
+@Composable
+@Preview
+fun someAlertDialog() {
+    AlertDialog(
+        modifier = Modifier,
+        onDismissRequest = { /*TODO*/ },
+        title = { Text("Hey guess what?") },
+        text = { Text("So there's some stuff that you gotta do with the battery settings and stuff? Yeah, that's pretty annoying.\n\nDo you mind changing those things? Thanks.")},
+        confirmButton = { TextButton(onClick = {}) {
+            Text(text = "Confirm".uppercase())
+        }},
+        dismissButton = { TextButton(onClick = {}) {
+            Text("Deny".uppercase())
+        }}
+    )
 }
 
 @Composable
