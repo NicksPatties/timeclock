@@ -3,6 +3,7 @@ package com.nickspatties.timeclock.ui.pages
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -22,28 +23,40 @@ import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ClockPage(
-    viewModel: ClockPageViewModel?,
-    clockEnabled: Boolean,
-    isRunning: Boolean,
-    countdownEnabled: Boolean = false,
-    dropdownExpanded: Boolean,
-    taskTextFieldValue: TextFieldValue,
-    filteredTaskNames: List<String> = listOf(),
-    currSeconds: Int,
-    onTaskNameChange: (TextFieldValue) -> Unit,
-    onTaskNameDonePressed: () -> Unit,
-    onDismissDropdown: () -> Unit,
-    onDropdownMenuItemClick: (String) -> Unit,
-    startClock: () -> Unit,
-    stopClock: (Boolean) -> Unit,
-    timerAnimationFinishedListener: () -> Unit = {},
-    onCountdownIconClicked: () -> Unit,
-    hoursTextFieldValue: TextFieldValue,
-    minutesTextFieldValue: TextFieldValue,
-    secondsTextFieldValue: TextFieldValue
+    viewModel: ClockPageViewModel
 ) {
+    // moving variables from the main activity to in here
+    val clockEnabled = viewModel.clockButtonEnabled
+    val isRunning = viewModel.isClockRunning
+    val dropdownExpanded = viewModel.dropdownExpanded
+    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
+    viewModel.autofillTaskNames.observeAsState()
+    val filteredTaskNames = viewModel.filteredEventNames
+    val taskTextFieldValue = viewModel.taskTextFieldValue
+    val currSeconds = viewModel.currSeconds
+    val onTaskNameChange = viewModel::onTaskNameChange
+    val onTaskNameDonePressed = viewModel::onTaskNameDonePressed
+    val onDismissDropdown = viewModel::onDismissDropdown
+    val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
+    val startClock = viewModel::startClock
+    val stopClock = viewModel::stopClock
+    val onTimerAnimationFinished = viewModel::resetCurrSeconds
+    val countdownEnabled = viewModel.countDownTimerEnabled
+    val onCountdownIconClicked = viewModel::switchCountDownTimer
+    val hoursTextFieldValue = viewModel.hoursTextFieldValue
+    val minutesTextFieldValue = viewModel.minutesTextFieldValue
+    val secondsTextFieldValue = viewModel.secondsTextFieldValue
+    val batteryWarningDialogVisible = viewModel.batteryWarningDialogVisible
+
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+
+//    if (batteryWarningDialogVisible) {
+//        batteryWarningDialog(
+//            confirmFunction = { viewModel.goToBatterySettings() },
+//            dismissFunction = { viewModel.hideBatteryWarningModal() }
+//        )
+//    }
 
     Scaffold() {
         Column(
@@ -107,7 +120,7 @@ fun ClockPage(
             val spacing = 0.dp
             if (countdownEnabled) {
                 EditTimerTextField(
-                    viewModel = viewModel!!,
+                    viewModel = viewModel,
                     hoursTextFieldValue = hoursTextFieldValue,
                     minutesTextFieldValue = minutesTextFieldValue,
                     secondsTextFieldValue = secondsTextFieldValue,
@@ -122,7 +135,7 @@ fun ClockPage(
                     ),
                     isRunning = isRunning,
                     currSeconds = currSeconds,
-                    finishedListener = timerAnimationFinishedListener
+                    finishedListener = onTimerAnimationFinished
                 )
             }
 
@@ -138,16 +151,19 @@ fun ClockPage(
 
 @Composable
 @Preview
-fun someAlertDialog() {
+fun batteryWarningDialog(
+    confirmFunction: () -> Unit = {},
+    dismissFunction: () -> Unit = {}
+) {
     AlertDialog(
         modifier = Modifier,
-        onDismissRequest = { /*TODO*/ },
+        onDismissRequest = dismissFunction,
         title = { Text("Hey guess what?") },
         text = { Text("So there's some stuff that you gotta do with the battery settings and stuff? Yeah, that's pretty annoying.\n\nDo you mind changing those things? Thanks.")},
-        confirmButton = { TextButton(onClick = {}) {
+        confirmButton = { TextButton(onClick = confirmFunction) {
             Text(text = "Confirm".uppercase())
         }},
-        dismissButton = { TextButton(onClick = {}) {
+        dismissButton = { TextButton(onClick = dismissFunction) {
             Text("Deny".uppercase())
         }}
     )
@@ -156,23 +172,23 @@ fun someAlertDialog() {
 @Composable
 @Preview
 fun ClockPageMockUp() {
-    val defaultTextFieldValue = TextFieldValue("00")
-    ClockPage(
-        clockEnabled = false,
-        isRunning = false,
-        dropdownExpanded = false,
-        taskTextFieldValue = TextFieldValue(),
-        currSeconds = 0,
-        onTaskNameChange = { },
-        onTaskNameDonePressed = { },
-        onDismissDropdown = { },
-        onDropdownMenuItemClick = { },
-        startClock = { },
-        stopClock = { },
-        onCountdownIconClicked = {},
-        hoursTextFieldValue = defaultTextFieldValue,
-        minutesTextFieldValue = defaultTextFieldValue,
-        secondsTextFieldValue = defaultTextFieldValue,
-        viewModel = null
-    )
+//    val defaultTextFieldValue = TextFieldValue("00")
+//    ClockPage(
+//        clockEnabled = false,
+//        isRunning = false,
+//        dropdownExpanded = false,
+//        taskTextFieldValue = TextFieldValue(),
+//        currSeconds = 0,
+//        onTaskNameChange = { },
+//        onTaskNameDonePressed = { },
+//        onDismissDropdown = { },
+//        onDropdownMenuItemClick = { },
+//        startClock = { },
+//        stopClock = { },
+//        onCountdownIconClicked = {},
+//        hoursTextFieldValue = defaultTextFieldValue,
+//        minutesTextFieldValue = defaultTextFieldValue,
+//        secondsTextFieldValue = defaultTextFieldValue,
+//        viewModel = null
+//    )
 }

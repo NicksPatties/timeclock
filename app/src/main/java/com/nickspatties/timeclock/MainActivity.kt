@@ -159,6 +159,7 @@ fun NavigationComponent(
     val hoursTextFieldValue = clockPageViewModel.hoursTextFieldValue
     val minutesTextFieldValue = clockPageViewModel.minutesTextFieldValue
     val secondsTextFieldValue = clockPageViewModel.secondsTextFieldValue
+    val batteryWarningDialogVisible = clockPageViewModel.batteryWarningDialogVisible
 
     val listPageViewModel = viewModel.listPage
     val groupedEvents = listPageViewModel.groupedEventsByDate.observeAsState().value
@@ -190,25 +191,7 @@ fun NavigationComponent(
     ) {
         composable(clockRoute) {
             ClockPage(
-                viewModel = clockPageViewModel,
-                clockEnabled = clockEnabled,
-                isRunning = isRunning,
-                dropdownExpanded = dropdownExpanded,
-                filteredTaskNames = filteredTaskNames,
-                taskTextFieldValue = taskTextFieldValue,
-                currSeconds = currSeconds,
-                onTaskNameChange = onTaskNameChange,
-                onTaskNameDonePressed = onTaskNameDonePressed,
-                onDismissDropdown = onDismissDropdown,
-                onDropdownMenuItemClick = onDropdownMenuItemClick,
-                startClock = startClock,
-                stopClock = stopClock,
-                timerAnimationFinishedListener = onTimerAnimationFinished,
-                onCountdownIconClicked = onCountdownIconClicked,
-                countdownEnabled = countdownEnabled,
-                hoursTextFieldValue = hoursTextFieldValue,
-                minutesTextFieldValue = minutesTextFieldValue,
-                secondsTextFieldValue = secondsTextFieldValue
+                viewModel = clockPageViewModel
             )
         }
         composable(listRoute) {

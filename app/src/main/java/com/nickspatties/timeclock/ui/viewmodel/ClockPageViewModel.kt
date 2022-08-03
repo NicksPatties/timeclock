@@ -68,7 +68,9 @@ class ClockPageViewModel (
     private var notificationManager = getNotificationManager(getApplication())
 
     // countdown specific variables
+    var batteryWarningDialogVisible by mutableStateOf(false)
     var countDownTimerEnabled by mutableStateOf(false)
+    var countDownWarningEnabled by mutableStateOf(true)
     var countDownEndTime by mutableStateOf(0L)
     var currCountDownSeconds by mutableStateOf(0)
     private val defaultTextFieldValue = TextFieldValue(
@@ -93,6 +95,7 @@ class ClockPageViewModel (
         viewModelScope.launch {
             val preferences = userPreferencesFlow.first()
             countDownTimerEnabled = preferences.countDownEnabled
+            countDownWarningEnabled = preferences.countDownWarningEnabled
             countDownEndTime = preferences.countDownEndTime
 
             // initialize the currentEvent in case the app was closed while counting
@@ -192,11 +195,23 @@ class ClockPageViewModel (
     }
 
     fun switchCountDownTimer() {
-        countDownTimerEnabled = !countDownTimerEnabled
-        clockButtonEnabled = checkClockButtonEnabled()
-        viewModelScope.launch {
-            userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
-        }
+//        if (countDownWarningEnabled) {
+//            batteryWarningDialogVisible = true
+//        } else {
+            countDownTimerEnabled = !countDownTimerEnabled
+            clockButtonEnabled = checkClockButtonEnabled()
+            viewModelScope.launch {
+                userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
+            }
+//        }
+    }
+
+    fun hideBatteryWarningModal() {
+        batteryWarningDialogVisible = false
+    }
+
+    fun goToBatterySettings() {
+        // TODO take user to battery settings
     }
 
     fun onMinuteValueChange(value: TextFieldValue) {
