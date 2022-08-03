@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -25,38 +24,18 @@ import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
 fun ClockPage(
     viewModel: ClockPageViewModel
 ) {
-    // moving variables from the main activity to in here
-    val clockEnabled = viewModel.clockButtonEnabled
-    val isRunning = viewModel.isClockRunning
-    val dropdownExpanded = viewModel.dropdownExpanded
-    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
-    viewModel.autofillTaskNames.observeAsState()
-    val filteredTaskNames = viewModel.filteredEventNames
-    val taskTextFieldValue = viewModel.taskTextFieldValue
-    val currSeconds = viewModel.currSeconds
-    val onTaskNameChange = viewModel::onTaskNameChange
-    val onTaskNameDonePressed = viewModel::onTaskNameDonePressed
-    val onDismissDropdown = viewModel::onDismissDropdown
-    val onDropdownMenuItemClick = viewModel::onDropdownMenuItemClick
-    val startClock = viewModel::startClock
-    val stopClock = viewModel::stopClock
-    val onTimerAnimationFinished = viewModel::resetCurrSeconds
-    val countdownEnabled = viewModel.countDownTimerEnabled
-    val onCountdownIconClicked = viewModel::switchCountDownTimer
-    val hoursTextFieldValue = viewModel.hoursTextFieldValue
-    val minutesTextFieldValue = viewModel.minutesTextFieldValue
-    val secondsTextFieldValue = viewModel.secondsTextFieldValue
-    val batteryWarningDialogVisible = viewModel.batteryWarningDialogVisible
-
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-//    if (batteryWarningDialogVisible) {
-//        batteryWarningDialog(
-//            confirmFunction = { viewModel.goToBatterySettings() },
-//            dismissFunction = { viewModel.hideBatteryWarningModal() }
-//        )
-//    }
+    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
+    viewModel.autofillTaskNames.observeAsState()
+
+    if (viewModel.batteryWarningDialogVisible) {
+        batteryWarningDialog(
+            confirmFunction = { viewModel.goToBatterySettings() },
+            dismissFunction = { viewModel.hideBatteryWarningModal() }
+        )
+    }
 
     Scaffold() {
         Column(
@@ -71,22 +50,22 @@ fun ClockPage(
                 TaskTextField(
                     modifier = Modifier
                         .fillMaxWidth(widthFraction),
-                    value = taskTextFieldValue,
-                    enabled = !isRunning,
+                    value = viewModel.taskTextFieldValue,
+                    enabled = !viewModel.isClockRunning,
                     onTaskNameChange = {
-                        onTaskNameChange(it)
+                        (viewModel::onTaskNameChange)(it)
                     },
                     onDone = {
-                        if (countdownEnabled) {
+                        if (viewModel.countDownTimerEnabled) {
                             focusManager.moveFocus(FocusDirection.Next)
                         } else {
                             focusManager.clearFocus()
                         }
-                        onTaskNameDonePressed()
+                        (viewModel::onTaskNameDonePressed)()
                     },
                     keyboardController = keyboardController,
-                    countdownTimerEnabled = countdownEnabled,
-                    onIconClick = onCountdownIconClicked
+                    countdownTimerEnabled = viewModel.countDownTimerEnabled,
+                    onIconClick = viewModel::switchCountDownTimer
                 )
 
                 DropdownMenu(
@@ -94,21 +73,21 @@ fun ClockPage(
                         // 144 = 3 * 48 (the default height of a DropdownMenuItem
                         .requiredSizeIn(maxHeight = 144.dp)
                         .fillMaxWidth(widthFraction),
-                    expanded = dropdownExpanded,
+                    expanded = viewModel.dropdownExpanded,
                     properties = PopupProperties(focusable = false),
                     onDismissRequest = {
-                        onDismissDropdown()
+                        (viewModel::onDismissDropdown)()
                     },
                 ) {
-                    filteredTaskNames.forEach { label ->
+                    viewModel.filteredEventNames.forEach { label ->
                         DropdownMenuItem(onClick = {
-                            if (countdownEnabled) {
+                            if (viewModel.countDownTimerEnabled) {
                                 focusManager.moveFocus(FocusDirection.Next)
                             } else {
                                 focusManager.clearFocus()
                                 keyboardController?.hide()
                             }
-                            onDropdownMenuItemClick(label)
+                            (viewModel::onDropdownMenuItemClick)(label)
                         }) {
                             Text(text = label)
                         }
@@ -118,13 +97,13 @@ fun ClockPage(
 
             // timer clock
             val spacing = 0.dp
-            if (countdownEnabled) {
+            if (viewModel.countDownTimerEnabled) {
                 EditTimerTextField(
                     viewModel = viewModel,
-                    hoursTextFieldValue = hoursTextFieldValue,
-                    minutesTextFieldValue = minutesTextFieldValue,
-                    secondsTextFieldValue = secondsTextFieldValue,
-                    clickable = !isRunning,
+                    hoursTextFieldValue = viewModel.hoursTextFieldValue,
+                    minutesTextFieldValue = viewModel.minutesTextFieldValue,
+                    secondsTextFieldValue = viewModel.secondsTextFieldValue,
+                    clickable = !viewModel.isClockRunning,
                     focusManager = focusManager
                 )
             } else {
@@ -133,17 +112,17 @@ fun ClockPage(
                         top = spacing,
                         bottom = spacing
                     ),
-                    isRunning = isRunning,
-                    currSeconds = currSeconds,
-                    finishedListener = onTimerAnimationFinished
+                    isRunning = viewModel.isClockRunning,
+                    currSeconds = viewModel.currSeconds,
+                    finishedListener = viewModel::resetCurrSeconds
                 )
             }
 
             StartTimerButton(
-                clockEnabled = clockEnabled,
-                isRunning = isRunning,
-                startClock = startClock,
-                stopClock = stopClock
+                clockEnabled = viewModel.clockButtonEnabled,
+                isRunning = viewModel.isClockRunning,
+                startClock = viewModel::startClock,
+                stopClock = viewModel::stopClock
             )
         }
     }
@@ -174,21 +153,6 @@ fun batteryWarningDialog(
 fun ClockPageMockUp() {
 //    val defaultTextFieldValue = TextFieldValue("00")
 //    ClockPage(
-//        clockEnabled = false,
-//        isRunning = false,
-//        dropdownExpanded = false,
-//        taskTextFieldValue = TextFieldValue(),
-//        currSeconds = 0,
-//        onTaskNameChange = { },
-//        onTaskNameDonePressed = { },
-//        onDismissDropdown = { },
-//        onDropdownMenuItemClick = { },
-//        startClock = { },
-//        stopClock = { },
-//        onCountdownIconClicked = {},
-//        hoursTextFieldValue = defaultTextFieldValue,
-//        minutesTextFieldValue = defaultTextFieldValue,
-//        secondsTextFieldValue = defaultTextFieldValue,
 //        viewModel = null
 //    )
 }
