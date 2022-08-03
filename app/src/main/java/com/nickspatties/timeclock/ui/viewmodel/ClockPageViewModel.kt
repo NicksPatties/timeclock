@@ -5,6 +5,9 @@ import android.app.Application
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
@@ -14,7 +17,12 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.app.AlarmManagerCompat
-import androidx.lifecycle.*
+import androidx.core.content.ContextCompat.startActivity
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.viewModelScope
+import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.data.TimeClockEventDao
@@ -23,6 +31,7 @@ import com.nickspatties.timeclock.receiver.AlarmReceiver
 import com.nickspatties.timeclock.util.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
 
 const val TAG = "ClockPageViewModel"
 
@@ -195,15 +204,16 @@ class ClockPageViewModel (
     }
 
     fun switchCountDownTimer() {
-//        if (countDownWarningEnabled) {
-//            batteryWarningDialogVisible = true
-//        } else {
+        // only show this if the countdown timer is not enabled first
+        if (!countDownTimerEnabled && countDownWarningEnabled) {
+            batteryWarningDialogVisible = true
+        } else {
             countDownTimerEnabled = !countDownTimerEnabled
             clockButtonEnabled = checkClockButtonEnabled()
             viewModelScope.launch {
                 userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
             }
-//        }
+        }
     }
 
     fun hideBatteryWarningModal() {
@@ -211,7 +221,10 @@ class ClockPageViewModel (
     }
 
     fun goToBatterySettings() {
-        // TODO take user to battery settings
+        val intentBatteryUsage = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+        intentBatteryUsage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intentBatteryUsage.data = Uri.parse("package:" + getApplication<Application?>().packageName)
+        startActivity(getApplication(), intentBatteryUsage,null)
     }
 
     fun onMinuteValueChange(value: TextFieldValue) {
