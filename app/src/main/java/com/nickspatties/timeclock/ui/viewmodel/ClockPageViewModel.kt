@@ -6,7 +6,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -96,6 +98,8 @@ class ClockPageViewModel (
     // alarm manager
     private val alarmManager =
         getApplication<Application>().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    private val powerManager =
+        getApplication<Application>().getSystemService(Context.POWER_SERVICE) as PowerManager
 
     // only occurs when the class is created, not when moving from view to view
     init {
@@ -204,8 +208,13 @@ class ClockPageViewModel (
     }
 
     fun switchCountDownTimer() {
-        // only show this if the countdown timer is not enabled first
-        if (!countDownTimerEnabled && countDownWarningEnabled) {
+        val shouldWarn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            !powerManager.isIgnoringBatteryOptimizations(getApplication<Application?>().packageName)
+        } else {
+            countDownWarningEnabled
+        }
+
+        if (!countDownTimerEnabled && shouldWarn) {
             batteryWarningDialogVisible = true
         } else {
             countDownTimerEnabled = !countDownTimerEnabled
@@ -221,10 +230,14 @@ class ClockPageViewModel (
     }
 
     fun goToBatterySettings() {
-        val intentBatteryUsage = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+        val intentBatteryUsage = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         intentBatteryUsage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intentBatteryUsage.data = Uri.parse("package:" + getApplication<Application?>().packageName)
         startActivity(getApplication(), intentBatteryUsage,null)
+        hideBatteryWarningModal()
+        viewModelScope.launch {
+            userPreferencesRepository.updateCountDownWarningEnabled(false)
+        }
     }
 
     fun onMinuteValueChange(value: TextFieldValue) {
