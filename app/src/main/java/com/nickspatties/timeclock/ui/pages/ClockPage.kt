@@ -13,10 +13,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
-import com.nickspatties.timeclock.ui.components.EditTimerTextField
-import com.nickspatties.timeclock.ui.components.StartTimerButton
-import com.nickspatties.timeclock.ui.components.TaskTextField
-import com.nickspatties.timeclock.ui.components.TimerText
+import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -31,7 +28,7 @@ fun ClockPage(
     viewModel.autofillTaskNames.observeAsState()
 
     if (viewModel.batteryWarningDialogVisible) {
-        batteryWarningDialog(
+        BatteryWarningDialog(
             confirmFunction = { viewModel.goToBatterySettings() },
             dismissFunction = { viewModel.hideBatteryWarningModal() }
         )
@@ -126,26 +123,6 @@ fun ClockPage(
             )
         }
     }
-}
-
-@Composable
-@Preview
-fun batteryWarningDialog(
-    confirmFunction: () -> Unit = {},
-    dismissFunction: () -> Unit = {}
-) {
-    AlertDialog(
-        modifier = Modifier,
-        onDismissRequest = dismissFunction,
-        title = { Text("Hey guess what?") },
-        text = { Text("So there's some stuff that you gotta do with the battery settings and stuff? Yeah, that's pretty annoying.\n\nDo you mind changing those things? Thanks.")},
-        confirmButton = { TextButton(onClick = confirmFunction) {
-            Text(text = "Confirm".uppercase())
-        }},
-        dismissButton = { TextButton(onClick = dismissFunction) {
-            Text("Deny".uppercase())
-        }}
-    )
 }
 
 @Composable
