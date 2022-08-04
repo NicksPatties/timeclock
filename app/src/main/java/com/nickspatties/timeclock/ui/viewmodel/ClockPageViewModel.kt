@@ -26,11 +26,10 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
-import com.nickspatties.timeclock.data.TimeClockEvent
-import com.nickspatties.timeclock.data.TimeClockEventDao
-import com.nickspatties.timeclock.data.UserPreferencesRepository
+import com.nickspatties.timeclock.data.*
 import com.nickspatties.timeclock.receiver.AlarmReceiver
 import com.nickspatties.timeclock.util.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -38,10 +37,11 @@ import kotlinx.coroutines.launch
 const val TAG = "ClockPageViewModel"
 
 class ClockPageViewModel (
-    private val database: TimeClockEventDao,
     application: Application,
+    private val database: TimeClockEventDao,
+    private val timeClockEvents: LiveData<List<TimeClockEvent>>,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val timeClockEvents: LiveData<List<TimeClockEvent>>
+    private val userPreferencesImportFlow: Flow<UserPreferences> = userPreferencesRepository.userPreferencesFlow
 ): AndroidViewModel(application) {
 
     val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
@@ -220,7 +220,10 @@ class ClockPageViewModel (
             countDownTimerEnabled = !countDownTimerEnabled
             clockButtonEnabled = checkClockButtonEnabled()
             viewModelScope.launch {
-                userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
+                userPreferencesRepository.updatePreference(
+                    PreferenceKeys.COUNT_DOWN_ENABLED,
+                    countDownTimerEnabled
+                )
             }
         }
     }
@@ -445,6 +448,15 @@ class ClockPageViewModel (
             updateFields = this::updateCountDownTextFieldValues
         )
     }
+
+    /**
+     * Constuctor to create mock versions of the ClockPageViewModel
+     *
+     * This allows me to preview the ClockPage component with variables of my choosing
+     */
+//    constructor(longNum: Long) : this() {
+//
+//    }
 }
 
 /**

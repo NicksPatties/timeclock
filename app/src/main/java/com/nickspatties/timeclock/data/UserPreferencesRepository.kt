@@ -18,14 +18,13 @@ data class UserPreferences(
     val countDownWarningEnabled: Boolean,
 )
 
-class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
+object PreferenceKeys {
+    val COUNT_DOWN_END_TIME = longPreferencesKey("count_down_end_time")
+    val COUNT_DOWN_ENABLED = booleanPreferencesKey("count_down_enabled")
+    val COUNT_DOWN_WARNING_ENABLED = booleanPreferencesKey("count_down_warning_enabled")
+}
 
-    // list of keys that are used to maintain state in the app
-    private object PreferenceKeys {
-        val COUNT_DOWN_END_TIME = longPreferencesKey("count_down_end_time")
-        val COUNT_DOWN_ENABLED = booleanPreferencesKey("count_down_enabled")
-        val COUNT_DOWN_WARNING_ENABLED = booleanPreferencesKey("count_down_warning_enabled")
-    }
+class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data
         .catch { exception ->
@@ -46,12 +45,6 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         return UserPreferences(countDownEnabled, countDownEndTime, countDownWarningEnabled)
     }
 
-    suspend fun updateCountDownEnabled(enabled: Boolean) {
-        dataStore.edit {
-            it[PreferenceKeys.COUNT_DOWN_ENABLED] = enabled
-        }
-    }
-
     suspend fun updateCountDownEndTime(endTime: Long) {
         dataStore.edit {
             it[PreferenceKeys.COUNT_DOWN_END_TIME] = endTime
@@ -61,6 +54,12 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun updateCountDownWarningEnabled(enabled: Boolean) {
         dataStore.edit {
             it[PreferenceKeys.COUNT_DOWN_WARNING_ENABLED] = enabled
+        }
+    }
+
+    suspend fun <T> updatePreference(preference: Preferences.Key<T>, data: T) {
+        dataStore.edit {
+            it[preference] = data
         }
     }
 }

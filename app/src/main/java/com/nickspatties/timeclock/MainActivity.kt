@@ -139,27 +139,6 @@ fun NavigationComponent(
     startDestination: String
 ) {
     val clockPageViewModel = viewModel.clockPage
-    val clockEnabled = clockPageViewModel.clockButtonEnabled
-    val isRunning = clockPageViewModel.isClockRunning
-    val dropdownExpanded = clockPageViewModel.dropdownExpanded
-    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
-    clockPageViewModel.autofillTaskNames.observeAsState()
-    val filteredTaskNames = clockPageViewModel.filteredEventNames
-    val taskTextFieldValue = clockPageViewModel.taskTextFieldValue
-    val currSeconds = clockPageViewModel.currSeconds
-    val onTaskNameChange = clockPageViewModel::onTaskNameChange
-    val onTaskNameDonePressed = clockPageViewModel::onTaskNameDonePressed
-    val onDismissDropdown = clockPageViewModel::onDismissDropdown
-    val onDropdownMenuItemClick = clockPageViewModel::onDropdownMenuItemClick
-    val startClock = clockPageViewModel::startClock
-    val stopClock = clockPageViewModel::stopClock
-    val onTimerAnimationFinished = clockPageViewModel::resetCurrSeconds
-    val countdownEnabled = clockPageViewModel.countDownTimerEnabled
-    val onCountdownIconClicked = clockPageViewModel::switchCountDownTimer
-    val hoursTextFieldValue = clockPageViewModel.hoursTextFieldValue
-    val minutesTextFieldValue = clockPageViewModel.minutesTextFieldValue
-    val secondsTextFieldValue = clockPageViewModel.secondsTextFieldValue
-    val batteryWarningDialogVisible = clockPageViewModel.batteryWarningDialogVisible
 
     val listPageViewModel = viewModel.listPage
     val groupedEvents = listPageViewModel.groupedEventsByDate.observeAsState().value
