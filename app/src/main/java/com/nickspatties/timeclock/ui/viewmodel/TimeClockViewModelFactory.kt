@@ -13,7 +13,7 @@ class TimeClockViewModelFactory(
     private val userPrefsRepo: UserPreferencesRepository
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TimeClockViewModel::class.java)) {
             return TimeClockViewModel(
                 database = dataSource,
