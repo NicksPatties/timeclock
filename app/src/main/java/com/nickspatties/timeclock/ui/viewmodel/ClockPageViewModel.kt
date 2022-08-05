@@ -92,7 +92,7 @@ class ClockPageViewModel (
         setOnChronometerTickListener { countDown() }
     }
 
-    // alarm manager
+    // Android system managers
     private val alarmManager =
         getApplication<Application>().getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val powerManager =
