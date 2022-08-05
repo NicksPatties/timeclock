@@ -36,7 +36,7 @@ fun ClockPage(
 
     Scaffold() {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.padding(it).fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

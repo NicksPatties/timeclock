@@ -30,7 +30,9 @@ fun AnalysisPage(
     changeRowId: (Long) -> Unit = {}
 ) {
     Scaffold {
-        Column {
+        Column(
+            modifier = Modifier.padding(it)
+        ) {
             TimeRangeSelector(
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
                 centerText = currentSelectionString,
