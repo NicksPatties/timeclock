@@ -17,13 +17,12 @@ data class UserPreferences(
     val countDownEndTime: Long
 )
 
-class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
+object PreferenceKeys {
+    val COUNT_DOWN_END_TIME = longPreferencesKey("count_down_end_time")
+    val COUNT_DOWN_ENABLED = booleanPreferencesKey("count_down_enabled")
+}
 
-    // list of keys that are used to maintain state in the app
-    private object PreferenceKeys {
-        val COUNT_DOWN_END_TIME = longPreferencesKey("count_down_end_time")
-        val COUNT_DOWN_ENABLED = booleanPreferencesKey("count_down_enabled")
-    }
+class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data
         .catch { exception ->
@@ -43,15 +42,15 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         return UserPreferences(countDownEnabled, countDownEndTime)
     }
 
-    suspend fun updateCountDownEnabled(enabled: Boolean) {
-        dataStore.edit {
-            it[PreferenceKeys.COUNT_DOWN_ENABLED] = enabled
-        }
-    }
-
     suspend fun updateCountDownEndTime(endTime: Long) {
         dataStore.edit {
             it[PreferenceKeys.COUNT_DOWN_END_TIME] = endTime
+        }
+    }
+
+    suspend fun updateCountDownEnabled(enabled: Boolean) {
+        dataStore.edit {
+            it[PreferenceKeys.COUNT_DOWN_ENABLED] = enabled
         }
     }
 }

@@ -139,26 +139,6 @@ fun NavigationComponent(
     startDestination: String
 ) {
     val clockPageViewModel = viewModel.clockPage
-    val clockEnabled = clockPageViewModel.clockButtonEnabled
-    val isRunning = clockPageViewModel.isClockRunning
-    val dropdownExpanded = clockPageViewModel.dropdownExpanded
-    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
-    clockPageViewModel.autofillTaskNames.observeAsState()
-    val filteredTaskNames = clockPageViewModel.filteredEventNames
-    val taskTextFieldValue = clockPageViewModel.taskTextFieldValue
-    val currSeconds = clockPageViewModel.currSeconds
-    val onTaskNameChange = clockPageViewModel::onTaskNameChange
-    val onTaskNameDonePressed = clockPageViewModel::onTaskNameDonePressed
-    val onDismissDropdown = clockPageViewModel::onDismissDropdown
-    val onDropdownMenuItemClick = clockPageViewModel::onDropdownMenuItemClick
-    val startClock = clockPageViewModel::startClock
-    val stopClock = clockPageViewModel::stopClock
-    val onTimerAnimationFinished = clockPageViewModel::resetCurrSeconds
-    val countdownEnabled = clockPageViewModel.countDownTimerEnabled
-    val onCountdownIconClicked = clockPageViewModel::switchCountDownTimer
-    val hoursTextFieldValue = clockPageViewModel.hoursTextFieldValue
-    val minutesTextFieldValue = clockPageViewModel.minutesTextFieldValue
-    val secondsTextFieldValue = clockPageViewModel.secondsTextFieldValue
 
     val listPageViewModel = viewModel.listPage
     val groupedEvents = listPageViewModel.groupedEventsByDate.observeAsState().value
@@ -190,25 +170,7 @@ fun NavigationComponent(
     ) {
         composable(clockRoute) {
             ClockPage(
-                viewModel = clockPageViewModel,
-                clockEnabled = clockEnabled,
-                isRunning = isRunning,
-                dropdownExpanded = dropdownExpanded,
-                filteredTaskNames = filteredTaskNames,
-                taskTextFieldValue = taskTextFieldValue,
-                currSeconds = currSeconds,
-                onTaskNameChange = onTaskNameChange,
-                onTaskNameDonePressed = onTaskNameDonePressed,
-                onDismissDropdown = onDismissDropdown,
-                onDropdownMenuItemClick = onDropdownMenuItemClick,
-                startClock = startClock,
-                stopClock = stopClock,
-                timerAnimationFinishedListener = onTimerAnimationFinished,
-                onCountdownIconClicked = onCountdownIconClicked,
-                countdownEnabled = countdownEnabled,
-                hoursTextFieldValue = hoursTextFieldValue,
-                minutesTextFieldValue = minutesTextFieldValue,
-                secondsTextFieldValue = secondsTextFieldValue
+                viewModel = clockPageViewModel
             )
         }
         composable(listRoute) {

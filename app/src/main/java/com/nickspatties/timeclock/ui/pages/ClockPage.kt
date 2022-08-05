@@ -1,52 +1,38 @@
 package com.nickspatties.timeclock.ui.pages
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
-import com.nickspatties.timeclock.ui.components.EditTimerTextField
-import com.nickspatties.timeclock.ui.components.StartTimerButton
-import com.nickspatties.timeclock.ui.components.TaskTextField
-import com.nickspatties.timeclock.ui.components.TimerText
+import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ClockPage(
-    viewModel: ClockPageViewModel?,
-    clockEnabled: Boolean,
-    isRunning: Boolean,
-    countdownEnabled: Boolean = false,
-    dropdownExpanded: Boolean,
-    taskTextFieldValue: TextFieldValue,
-    filteredTaskNames: List<String> = listOf(),
-    currSeconds: Int,
-    onTaskNameChange: (TextFieldValue) -> Unit,
-    onTaskNameDonePressed: () -> Unit,
-    onDismissDropdown: () -> Unit,
-    onDropdownMenuItemClick: (String) -> Unit,
-    startClock: () -> Unit,
-    stopClock: (Boolean) -> Unit,
-    timerAnimationFinishedListener: () -> Unit = {},
-    onCountdownIconClicked: () -> Unit,
-    hoursTextFieldValue: TextFieldValue,
-    minutesTextFieldValue: TextFieldValue,
-    secondsTextFieldValue: TextFieldValue
+    viewModel: ClockPageViewModel
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
+    viewModel.autofillTaskNames.observeAsState()
+
+    if (viewModel.batteryWarningDialogVisible) {
+        BatteryWarningDialog(
+            confirmFunction = { viewModel.goToBatterySettings() },
+            dismissFunction = { viewModel.hideBatteryWarningModal() }
+        )
+    }
 
     Scaffold() {
         Column(
@@ -61,22 +47,22 @@ fun ClockPage(
                 TaskTextField(
                     modifier = Modifier
                         .fillMaxWidth(widthFraction),
-                    value = taskTextFieldValue,
-                    enabled = !isRunning,
+                    value = viewModel.taskTextFieldValue,
+                    enabled = !viewModel.isClockRunning,
                     onTaskNameChange = {
-                        onTaskNameChange(it)
+                        (viewModel::onTaskNameChange)(it)
                     },
                     onDone = {
-                        if (countdownEnabled) {
+                        if (viewModel.countDownTimerEnabled) {
                             focusManager.moveFocus(FocusDirection.Next)
                         } else {
                             focusManager.clearFocus()
                         }
-                        onTaskNameDonePressed()
+                        (viewModel::onTaskNameDonePressed)()
                     },
                     keyboardController = keyboardController,
-                    countdownTimerEnabled = countdownEnabled,
-                    onIconClick = onCountdownIconClicked
+                    countdownTimerEnabled = viewModel.countDownTimerEnabled,
+                    onIconClick = viewModel::switchCountDownTimer
                 )
 
                 DropdownMenu(
@@ -84,21 +70,21 @@ fun ClockPage(
                         // 144 = 3 * 48 (the default height of a DropdownMenuItem
                         .requiredSizeIn(maxHeight = 144.dp)
                         .fillMaxWidth(widthFraction),
-                    expanded = dropdownExpanded,
+                    expanded = viewModel.dropdownExpanded,
                     properties = PopupProperties(focusable = false),
                     onDismissRequest = {
-                        onDismissDropdown()
+                        (viewModel::onDismissDropdown)()
                     },
                 ) {
-                    filteredTaskNames.forEach { label ->
+                    viewModel.filteredEventNames.forEach { label ->
                         DropdownMenuItem(onClick = {
-                            if (countdownEnabled) {
+                            if (viewModel.countDownTimerEnabled) {
                                 focusManager.moveFocus(FocusDirection.Next)
                             } else {
                                 focusManager.clearFocus()
                                 keyboardController?.hide()
                             }
-                            onDropdownMenuItemClick(label)
+                            (viewModel::onDropdownMenuItemClick)(label)
                         }) {
                             Text(text = label)
                         }
@@ -108,13 +94,13 @@ fun ClockPage(
 
             // timer clock
             val spacing = 0.dp
-            if (countdownEnabled) {
+            if (viewModel.countDownTimerEnabled) {
                 EditTimerTextField(
-                    viewModel = viewModel!!,
-                    hoursTextFieldValue = hoursTextFieldValue,
-                    minutesTextFieldValue = minutesTextFieldValue,
-                    secondsTextFieldValue = secondsTextFieldValue,
-                    clickable = !isRunning,
+                    viewModel = viewModel,
+                    hoursTextFieldValue = viewModel.hoursTextFieldValue,
+                    minutesTextFieldValue = viewModel.minutesTextFieldValue,
+                    secondsTextFieldValue = viewModel.secondsTextFieldValue,
+                    clickable = !viewModel.isClockRunning,
                     focusManager = focusManager
                 )
             } else {
@@ -123,17 +109,17 @@ fun ClockPage(
                         top = spacing,
                         bottom = spacing
                     ),
-                    isRunning = isRunning,
-                    currSeconds = currSeconds,
-                    finishedListener = timerAnimationFinishedListener
+                    isRunning = viewModel.isClockRunning,
+                    currSeconds = viewModel.currSeconds,
+                    finishedListener = viewModel::resetCurrSeconds
                 )
             }
 
             StartTimerButton(
-                clockEnabled = clockEnabled,
-                isRunning = isRunning,
-                startClock = startClock,
-                stopClock = stopClock
+                clockEnabled = viewModel.clockButtonEnabled,
+                isRunning = viewModel.isClockRunning,
+                startClock = viewModel::startClock,
+                stopClock = viewModel::stopClock
             )
         }
     }
@@ -142,23 +128,8 @@ fun ClockPage(
 @Composable
 @Preview
 fun ClockPageMockUp() {
-    val defaultTextFieldValue = TextFieldValue("00")
-    ClockPage(
-        clockEnabled = false,
-        isRunning = false,
-        dropdownExpanded = false,
-        taskTextFieldValue = TextFieldValue(),
-        currSeconds = 0,
-        onTaskNameChange = { },
-        onTaskNameDonePressed = { },
-        onDismissDropdown = { },
-        onDropdownMenuItemClick = { },
-        startClock = { },
-        stopClock = { },
-        onCountdownIconClicked = {},
-        hoursTextFieldValue = defaultTextFieldValue,
-        minutesTextFieldValue = defaultTextFieldValue,
-        secondsTextFieldValue = defaultTextFieldValue,
-        viewModel = null
-    )
+//    val defaultTextFieldValue = TextFieldValue("00")
+//    ClockPage(
+//        viewModel = null
+//    )
 }
