@@ -1,5 +1,6 @@
 package com.nickspatties.timeclock.ui.viewmodel
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.Application
 import android.app.PendingIntent
@@ -7,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
@@ -24,15 +24,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
-import com.nickspatties.timeclock.MainActivity
 import com.nickspatties.timeclock.R
-import com.nickspatties.timeclock.data.*
+import com.nickspatties.timeclock.data.TimeClockEvent
+import com.nickspatties.timeclock.data.TimeClockEventDao
+import com.nickspatties.timeclock.data.UserPreferencesRepository
 import com.nickspatties.timeclock.receiver.AlarmReceiver
 import com.nickspatties.timeclock.util.*
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-
 
 const val TAG = "ClockPageViewModel"
 
@@ -40,8 +39,7 @@ class ClockPageViewModel (
     application: Application,
     private val database: TimeClockEventDao,
     private val timeClockEvents: LiveData<List<TimeClockEvent>>,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val userPreferencesImportFlow: Flow<UserPreferences> = userPreferencesRepository.userPreferencesFlow
+    private val userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
 
     val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
@@ -81,7 +79,6 @@ class ClockPageViewModel (
     // countdown specific variables
     var batteryWarningDialogVisible by mutableStateOf(false)
     var countDownTimerEnabled by mutableStateOf(false)
-    var countDownWarningEnabled by mutableStateOf(true)
     var countDownEndTime by mutableStateOf(0L)
     var currCountDownSeconds by mutableStateOf(0)
     private val defaultTextFieldValue = TextFieldValue(
@@ -108,7 +105,6 @@ class ClockPageViewModel (
         viewModelScope.launch {
             val preferences = userPreferencesFlow.first()
             countDownTimerEnabled = preferences.countDownEnabled
-            countDownWarningEnabled = preferences.countDownWarningEnabled
             countDownEndTime = preferences.countDownEndTime
 
             // initialize the currentEvent in case the app was closed while counting
@@ -209,9 +205,11 @@ class ClockPageViewModel (
 
     fun switchCountDownTimer() {
         val shouldWarn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // can just check if the permission is set
             !powerManager.isIgnoringBatteryOptimizations(getApplication<Application?>().packageName)
         } else {
-            countDownWarningEnabled
+            // is unable to change the battery permission for versions below M, so only false
+            false
         }
 
         if (!countDownTimerEnabled && shouldWarn) {
@@ -220,10 +218,7 @@ class ClockPageViewModel (
             countDownTimerEnabled = !countDownTimerEnabled
             clockButtonEnabled = checkClockButtonEnabled()
             viewModelScope.launch {
-                userPreferencesRepository.updatePreference(
-                    PreferenceKeys.COUNT_DOWN_ENABLED,
-                    countDownTimerEnabled
-                )
+                userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
             }
         }
     }
@@ -232,15 +227,22 @@ class ClockPageViewModel (
         batteryWarningDialogVisible = false
     }
 
+    /**
+     * Allow user to give TimeClock permission to run in the background unrestricted, which
+     * is necessary for countdowns and exact alarms to run correctly. Pre-Marshmallow devices
+     * will not open the battery warning modal, so this function will just be a no-op in those cases
+     */
+    @SuppressLint("BatteryLife")
     fun goToBatterySettings() {
-        val intentBatteryUsage = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        intentBatteryUsage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intentBatteryUsage.data = Uri.parse("package:" + getApplication<Application?>().packageName)
-        startActivity(getApplication(), intentBatteryUsage,null)
-        hideBatteryWarningModal()
-        viewModelScope.launch {
-            userPreferencesRepository.updateCountDownWarningEnabled(false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // modal appears asking user to ignore battery optimizations, but may violate Google Play Requirements
+            val intentBatteryUsage = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+            intentBatteryUsage.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intentBatteryUsage.data =
+                Uri.parse("package:" + getApplication<Application?>().packageName)
+            startActivity(getApplication(), intentBatteryUsage, null)
         }
+        hideBatteryWarningModal()
     }
 
     fun onMinuteValueChange(value: TextFieldValue) {
@@ -448,15 +450,6 @@ class ClockPageViewModel (
             updateFields = this::updateCountDownTextFieldValues
         )
     }
-
-    /**
-     * Constuctor to create mock versions of the ClockPageViewModel
-     *
-     * This allows me to preview the ClockPage component with variables of my choosing
-     */
-//    constructor(longNum: Long) : this() {
-//
-//    }
 }
 
 /**
