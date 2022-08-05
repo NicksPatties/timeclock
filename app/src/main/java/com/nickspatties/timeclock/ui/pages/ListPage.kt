@@ -29,11 +29,12 @@ fun ListPage(
     onDeleteButtonClick: (Long) -> Unit,
     onCancelButtonClick: (Long) -> Unit,
 ) {
-    Scaffold() {
+    Scaffold {
         if (groupedRows.isNullOrEmpty()) {
             NothingHereText()
         } else {
             TimeClockList(
+                modifier = Modifier.padding(it),
                 groupedEvents = groupedRows,
                 editingId = editingEventId,
                 onDeleteButtonClick = onDeleteButtonClick,
@@ -47,6 +48,7 @@ fun ListPage(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TimeClockList(
+    modifier: Modifier = Modifier,
     groupedEvents: Map<String, List<ListRow>>,
     editingId: Long = -1,
     onCancelButtonClick: (Long) -> Unit,
@@ -54,7 +56,7 @@ fun TimeClockList(
     onListItemClick: (Long) -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier.clip(RoundedCornerShape(4.dp, 4.dp, 0.dp, 0.dp))
+        modifier = modifier.clip(RoundedCornerShape(4.dp, 4.dp, 0.dp, 0.dp))
     ) {
         groupedEvents.forEach { (dateString, events) ->
             stickyHeader {
