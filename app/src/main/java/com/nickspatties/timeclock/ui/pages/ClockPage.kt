@@ -1,9 +1,11 @@
 package com.nickspatties.timeclock.ui.pages
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -14,13 +16,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import com.nickspatties.timeclock.ui.components.*
-import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
 import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModelState
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ClockPage(
-    viewModel: ClockPageViewModel,
     viewModelState: ClockPageViewModelState
 ) {
     val focusManager = LocalFocusManager.current
@@ -91,11 +91,16 @@ fun ClockPage(
             val spacing = 0.dp
             if (viewModelState.countDownTimerEnabled) {
                 EditTimerTextField(
-                    viewModel = viewModel,
                     hoursTextFieldValue = viewModelState.hoursTextFieldValue,
                     minutesTextFieldValue = viewModelState.minutesTextFieldValue,
                     secondsTextFieldValue = viewModelState.secondsTextFieldValue,
-                    clickable = !viewModelState.isClockRunning
+                    clickable = !viewModelState.isClockRunning,
+                    onHoursValueChanged = viewModelState.onHoursValueChanged,
+                    onMinutesValueChanged = viewModelState.onMinutesValueChanged,
+                    onSecondsValueChanged = viewModelState.onSecondsValueChanged,
+                    onHoursFocusChanged = viewModelState.onHoursFocusChanged,
+                    onMinutesFocusChanged = viewModelState.onMinutesFocusChanged,
+                    onSecondsFocusChanged = viewModelState.onSecondsFocusChanged,
                 )
             } else {
                 TimerText(
@@ -122,8 +127,7 @@ fun ClockPage(
 @Composable
 @Preview
 fun ClockPageMockUp() {
-//    val defaultTextFieldValue = TextFieldValue("00")
-//    ClockPage(
-//        viewModel = null
-//    )
+    ClockPage(
+        viewModelState = ClockPageViewModelState()
+    )
 }

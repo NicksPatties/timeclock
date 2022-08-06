@@ -97,6 +97,12 @@ class ClockPageViewModel (
         state.onTimerAnimationFinish = this::resetCurrSeconds
         state.onClockStart = this::startClock
         state.onClockStop = this::stopClock
+        state.onHoursValueChanged = this::onHourValueChange
+        state.onMinutesValueChanged = this::onMinuteValueChange
+        state.onSecondsValueChanged = this::onSecondValueChange
+        state.onHoursFocusChanged = this::onHoursFocusChanged
+        state.onMinutesFocusChanged = this::onMinutesFocusChanged
+        state.onSecondsFocusChanged = this::onSecondsFocusChanged
 
         notificationManager.cancelAll()
 
@@ -510,7 +516,13 @@ class ClockPageViewModelState(
     var onDropdownMenuItemClick: (String) -> Unit = { _ -> },
     var onTimerAnimationFinish: () -> Unit = {},
     var onClockStart: () -> Unit = {},
-    var onClockStop: (Boolean) -> Unit = { _ ->}
+    var onClockStop: (Boolean) -> Unit = { _ ->},
+    var onHoursValueChanged: (TextFieldValue) -> Unit = { _ -> },
+    var onMinutesValueChanged: (TextFieldValue) -> Unit = { _ -> },
+    var onSecondsValueChanged: (TextFieldValue) -> Unit = { _ -> },
+    var onHoursFocusChanged: (FocusState) -> Unit = { _ -> },
+    var onMinutesFocusChanged: (FocusState) -> Unit = { _ -> },
+    var onSecondsFocusChanged: (FocusState) -> Unit = { _ -> }
 ) {
     var clockButtonEnabled by mutableStateOf(clockButtonEnabled)
     var taskTextFieldValue by mutableStateOf(taskTextFieldValue)
