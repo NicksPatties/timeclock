@@ -483,6 +483,41 @@ fun getCountDownSeconds(
  * component. This doesn't contain things like activities, service
  * managers, and so on. This allows us to test ClockPage component
  * without needing to build the entire ViewModel
+ *
+ * @param clockButtonEnabled The clock button is able to be clicked and is highlighted
+ * @param taskTextFieldValue The text field value that appears in the TaskTextField component
+ * @param isClockRunning Determines if the clock button should say Start or Stop
+ * @param dropdownExpanded The dropdown below the TaskTextField component is open or closed
+ * @param currSeconds The current amount of seconds that have been counted up, displayed in the
+ * TimerText component
+ * @param filteredEventNames The filtered task names that appear in the TaskTextField dropdown
+ * @param batteryWarningDialogVisible Determines if the battery warning dialog is visible
+ * @param countDownTimerEnabled Determines if the count down timer should be visible, allowing
+ * the user to set a time that an event will last.
+ * @param countDownEndTime Not sure if it'll be here in the future...
+ * @param currCountDownSeconds Not sure if this'll be here either...
+ * @param hoursTextFieldValue The text in the hours section of the EditTimerTextField
+ * @param minutesTextFieldValue The text in the minutes section of the EditTimerTextField. Should
+ * not exceed 59
+ * @param secondsTextFieldValue The text in the minutes section of the EditTimerTextField. Should
+ * not exceed 59
+ * @param batteryWarningConfirmFunction Fires when tapping confirm button in BatteryWarningDialog
+ * @param batteryWarningDismissFunction Fires when tapping outside the BatteryWarningDialog
+ * @param onTaskNameChange Fires when the user makes changes to text in the TaskTextField
+ * @param onTaskNameDone Fires when the user taps "Done" on the keyboard when focused on TaskTextField
+ * @param onTaskNameIconClick Fires when the icon in the TaskTextField is pushed. Changes from
+ * count up to count down mode.
+ * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by tapping outside it
+ * @param onDropdownMenuItemClick Fires when an item in the dropdown is selected. Fills in the taskTextField with selected string
+ * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting recording
+ * @param onClockStart Fires when the start button is pressed
+ * @param onClockStop Fires when the stop button is pressed
+ * @param onHoursValueChanged Fires when the value of the hours text in the EditTimerTextField is changed
+ * @param onMinutesValueChanged Fires when the value of the minutes text in the EditTimerTextField is changed
+ * @param onSecondsValueChanged Fires when the value of the seconds text in the EditTimerTextField is changed
+ * @param onHoursFocusChanged Fires when the focus of the hours text in the EditTimerTextField is changed
+ * @param onMinutesFocusChanged Fires when the value of the minutes text in the EditTimerTextField is changed
+ * @param onSecondsFocusChanged Fires when the value of the seconds text in the EditTimerTextField is changed
  */
 class ClockPageViewModelState(
     clockButtonEnabled: Boolean = false,
@@ -493,8 +528,6 @@ class ClockPageViewModelState(
     filteredEventNames: List<String> = listOf(),
     batteryWarningDialogVisible: Boolean = false,
     countDownTimerEnabled: Boolean = false,
-    countDownEndTime: Long = 0L,
-    currCountDownSeconds: Int = 0,
     hoursTextFieldValue: TextFieldValue = TextFieldValue(
         text = "00",
         selection = TextRange(0)
@@ -522,7 +555,10 @@ class ClockPageViewModelState(
     var onSecondsValueChanged: (TextFieldValue) -> Unit = { _ -> },
     var onHoursFocusChanged: (FocusState) -> Unit = { _ -> },
     var onMinutesFocusChanged: (FocusState) -> Unit = { _ -> },
-    var onSecondsFocusChanged: (FocusState) -> Unit = { _ -> }
+    var onSecondsFocusChanged: (FocusState) -> Unit = { _ -> },
+
+    countDownEndTime: Long = 0L,
+    currCountDownSeconds: Int = 0,
 ) {
     var clockButtonEnabled by mutableStateOf(clockButtonEnabled)
     var taskTextFieldValue by mutableStateOf(taskTextFieldValue)
@@ -532,9 +568,12 @@ class ClockPageViewModelState(
     var filteredEventNames by mutableStateOf(filteredEventNames)
     var batteryWarningDialogVisible by mutableStateOf(batteryWarningDialogVisible)
     var countDownTimerEnabled by mutableStateOf(countDownTimerEnabled)
-    var countDownEndTime by mutableStateOf(countDownEndTime)
-    var currCountDownSeconds by mutableStateOf(currCountDownSeconds)
     var hoursTextFieldValue by mutableStateOf(hoursTextFieldValue)
     var minutesTextFieldValue by mutableStateOf(minutesTextFieldValue)
     var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
+
+    // TODO not in ClockPage... should it be here?
+    var countDownEndTime by mutableStateOf(countDownEndTime)
+    // TODO not in ClockPage... should it be here?
+    var currCountDownSeconds by mutableStateOf(currCountDownSeconds)
 }

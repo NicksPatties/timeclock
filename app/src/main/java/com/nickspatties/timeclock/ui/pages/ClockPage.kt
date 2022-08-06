@@ -126,7 +126,7 @@ fun ClockPage(
 
 @Composable
 @Preview
-fun ClockPageMockUp() {
+fun ClockPage_Initial() {
     ClockPage(
         viewModelState = ClockPageViewModelState()
     )
