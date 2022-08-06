@@ -15,22 +15,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
+import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModelState
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ClockPage(
-    viewModel: ClockPageViewModel
+    viewModel: ClockPageViewModel,
+    viewModelState: ClockPageViewModelState
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
-    viewModel.autofillTaskNames.observeAsState()
-
-    if (viewModel.batteryWarningDialogVisible) {
+    if (viewModelState.batteryWarningDialogVisible) {
         BatteryWarningDialog(
-            confirmFunction = { viewModel.goToBatterySettings() },
-            dismissFunction = { viewModel.hideBatteryWarningModal() }
+            confirmFunction = viewModelState.batteryWarningConfirmFunction,
+            dismissFunction = viewModelState.batteryWarningDismissFunction
         )
     }
 
@@ -47,22 +46,20 @@ fun ClockPage(
                 TaskTextField(
                     modifier = Modifier
                         .fillMaxWidth(widthFraction),
-                    value = viewModel.taskTextFieldValue,
-                    enabled = !viewModel.isClockRunning,
-                    onTaskNameChange = {
-                        (viewModel::onTaskNameChange)(it)
-                    },
+                    value = viewModelState.taskTextFieldValue,
+                    enabled = !viewModelState.isClockRunning,
+                    onTaskNameChange = viewModelState.onTaskNameChange,
                     onDone = {
-                        if (viewModel.countDownTimerEnabled) {
+                        if (viewModelState.countDownTimerEnabled) {
                             focusManager.moveFocus(FocusDirection.Next)
                         } else {
                             focusManager.clearFocus()
                         }
-                        (viewModel::onTaskNameDonePressed)()
+                        viewModelState.onTaskNameDone()
                     },
                     keyboardController = keyboardController,
-                    countdownTimerEnabled = viewModel.countDownTimerEnabled,
-                    onIconClick = viewModel::switchCountDownTimer
+                    countdownTimerEnabled = viewModelState.countDownTimerEnabled,
+                    onIconClick = viewModelState.onTaskNameIconClick
                 )
 
                 DropdownMenu(
@@ -70,21 +67,19 @@ fun ClockPage(
                         // 144 = 3 * 48 (the default height of a DropdownMenuItem
                         .requiredSizeIn(maxHeight = 144.dp)
                         .fillMaxWidth(widthFraction),
-                    expanded = viewModel.dropdownExpanded,
+                    expanded = viewModelState.dropdownExpanded,
                     properties = PopupProperties(focusable = false),
-                    onDismissRequest = {
-                        (viewModel::onDismissDropdown)()
-                    },
+                    onDismissRequest = viewModelState.onDismissDropdown,
                 ) {
-                    viewModel.filteredEventNames.forEach { label ->
+                    viewModelState.filteredEventNames.forEach { label ->
                         DropdownMenuItem(onClick = {
-                            if (viewModel.countDownTimerEnabled) {
+                            if (viewModelState.countDownTimerEnabled) {
                                 focusManager.moveFocus(FocusDirection.Next)
                             } else {
                                 focusManager.clearFocus()
                                 keyboardController?.hide()
                             }
-                            (viewModel::onDropdownMenuItemClick)(label)
+                            viewModelState.onDropdownMenuItemClick(label)
                         }) {
                             Text(text = label)
                         }
@@ -94,14 +89,13 @@ fun ClockPage(
 
             // timer clock
             val spacing = 0.dp
-            if (viewModel.countDownTimerEnabled) {
+            if (viewModelState.countDownTimerEnabled) {
                 EditTimerTextField(
                     viewModel = viewModel,
-                    hoursTextFieldValue = viewModel.hoursTextFieldValue,
-                    minutesTextFieldValue = viewModel.minutesTextFieldValue,
-                    secondsTextFieldValue = viewModel.secondsTextFieldValue,
-                    clickable = !viewModel.isClockRunning,
-                    focusManager = focusManager
+                    hoursTextFieldValue = viewModelState.hoursTextFieldValue,
+                    minutesTextFieldValue = viewModelState.minutesTextFieldValue,
+                    secondsTextFieldValue = viewModelState.secondsTextFieldValue,
+                    clickable = !viewModelState.isClockRunning
                 )
             } else {
                 TimerText(
@@ -109,17 +103,17 @@ fun ClockPage(
                         top = spacing,
                         bottom = spacing
                     ),
-                    isRunning = viewModel.isClockRunning,
-                    currSeconds = viewModel.currSeconds,
-                    finishedListener = viewModel::resetCurrSeconds
+                    isRunning = viewModelState.isClockRunning,
+                    currSeconds = viewModelState.currSeconds,
+                    finishedListener = viewModelState.onTimerAnimationFinish
                 )
             }
 
             StartTimerButton(
-                clockEnabled = viewModel.clockButtonEnabled,
-                isRunning = viewModel.isClockRunning,
-                startClock = viewModel::startClock,
-                stopClock = viewModel::stopClock
+                clockEnabled = viewModelState.clockButtonEnabled,
+                isRunning = viewModelState.isClockRunning,
+                startClock = viewModelState.onClockStart,
+                stopClock = viewModelState.onClockStop
             )
         }
     }

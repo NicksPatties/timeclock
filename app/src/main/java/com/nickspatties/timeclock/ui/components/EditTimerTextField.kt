@@ -25,8 +25,7 @@ fun EditTimerTextField(
     hoursTextFieldValue: TextFieldValue = TextFieldValue(),
     minutesTextFieldValue: TextFieldValue = TextFieldValue(),
     secondsTextFieldValue: TextFieldValue = TextFieldValue(),
-    clickable: Boolean = true,
-    focusManager: FocusManager
+    clickable: Boolean = true
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current

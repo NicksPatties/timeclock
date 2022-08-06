@@ -42,6 +42,8 @@ class ClockPageViewModel (
     private val userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
 
+    val state: ClockPageViewModelState = ClockPageViewModelState()
+
     val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
         events.map {
             it.name
@@ -51,12 +53,6 @@ class ClockPageViewModel (
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
 
     private var currentTimeClockEvent : TimeClockEvent? = null
-    var taskTextFieldValue by mutableStateOf(TextFieldValue(text = ""))
-    var clockButtonEnabled by mutableStateOf(false)
-    var isClockRunning by mutableStateOf(false)
-    var dropdownExpanded by mutableStateOf(false)
-    var currSeconds by mutableStateOf(0)
-    var filteredEventNames by mutableStateOf(listOf<String>())
 
     // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
     private var dropdownClicked = false
@@ -77,17 +73,7 @@ class ClockPageViewModel (
     private var notificationManager = getNotificationManager(getApplication())
 
     // countdown specific variables
-    var batteryWarningDialogVisible by mutableStateOf(false)
-    var countDownTimerEnabled by mutableStateOf(false)
-    var countDownEndTime by mutableStateOf(0L)
-    var currCountDownSeconds by mutableStateOf(0)
-    private val defaultTextFieldValue = TextFieldValue(
-        text = "00",
-        selection = TextRange(0)
-    )
-    var hoursTextFieldValue by mutableStateOf(defaultTextFieldValue)
-    var minutesTextFieldValue by mutableStateOf(defaultTextFieldValue)
-    var secondsTextFieldValue by mutableStateOf(defaultTextFieldValue)
+
     private val countDownChronometer = Chronometer().apply {
         setOnChronometerTickListener { countDown() }
     }
@@ -100,12 +86,24 @@ class ClockPageViewModel (
 
     // only occurs when the class is created, not when moving from view to view
     init {
+        // state function declarations
+        state.batteryWarningConfirmFunction = this::goToBatterySettings
+        state.batteryWarningDismissFunction = this::hideBatteryWarningModal
+        state.onTaskNameChange = this::onTaskNameChange
+        state.onTaskNameDone = this::onTaskNameDonePressed
+        state.onTaskNameIconClick = this::switchCountDownTimer
+        state.onDismissDropdown = this::onDismissDropdown
+        state.onDropdownMenuItemClick = this::onDropdownMenuItemClick
+        state.onTimerAnimationFinish = this::resetCurrSeconds
+        state.onClockStart = this::startClock
+        state.onClockStop = this::stopClock
+
         notificationManager.cancelAll()
 
         viewModelScope.launch {
             val preferences = userPreferencesFlow.first()
-            countDownTimerEnabled = preferences.countDownEnabled
-            countDownEndTime = preferences.countDownEndTime
+            state.countDownTimerEnabled = preferences.countDownEnabled
+            state.countDownEndTime = preferences.countDownEndTime
 
             // initialize the currentEvent in case the app was closed while counting
             val currEvent = getCurrentEventFromDatabase()
@@ -113,24 +111,24 @@ class ClockPageViewModel (
             // if there's an event that's already running, populate the UI with that event's data
             if (currEvent != null) {
                 currentTimeClockEvent = currEvent
-                taskTextFieldValue = TextFieldValue(text = currEvent.name)
-                clockButtonEnabled = true
-                isClockRunning = true
+                state.taskTextFieldValue = TextFieldValue(text = currEvent.name)
+                state.clockButtonEnabled = true
+                state.isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
-                if (countDownTimerEnabled) {
+                if (state.countDownTimerEnabled) {
                     // if the countDown end has already passed, save the event and reset clock
-                    if (countDownEndTime < System.currentTimeMillis()) {
-                        currEvent.endTime = countDownEndTime
+                    if (state.countDownEndTime < System.currentTimeMillis()) {
+                        currEvent.endTime = state.countDownEndTime
                         database.update(currEvent)
                         currentTimeClockEvent = null
-                        clockButtonEnabled = false
+                        state.clockButtonEnabled = false
                     } else { // init countdown
-                        currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
-                        updateCountDownTextFieldValues(currCountDownSeconds)
+                        state.currCountDownSeconds = calculateCurrCountDownSeconds(state.countDownEndTime)
+                        updateCountDownTextFieldValues(state.currCountDownSeconds)
                         countDownChronometer.start(startTimeDelay)
                     }
                 } else {
-                    currSeconds = calculateCurrSeconds(currEvent)
+                    state.currSeconds = calculateCurrSeconds(currEvent)
                     chronometer.start(startTimeDelay)
                 }
                 notificationManager.sendClockInProgressNotification(
@@ -153,13 +151,13 @@ class ClockPageViewModel (
 
     private fun checkClockButtonEnabled(): Boolean {
         val countDownClockIsZero =
-            hoursTextFieldValue.text.toInt() == 0 &&
-            minutesTextFieldValue.text.toInt() == 0 &&
-            secondsTextFieldValue.text.toInt() == 0
-        val enabled = if (countDownTimerEnabled) {
-            taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
+            state.hoursTextFieldValue.text.toInt() == 0 &&
+                    state.minutesTextFieldValue.text.toInt() == 0 &&
+                    state.secondsTextFieldValue.text.toInt() == 0
+        val enabled = if (state.countDownTimerEnabled) {
+            state.taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
         } else {
-            taskTextFieldValue.text.isNotBlank()
+            state.taskTextFieldValue.text.isNotBlank()
         }
         return enabled
     }
@@ -169,38 +167,38 @@ class ClockPageViewModel (
             dropdownClicked = false
             return
         }
-        taskTextFieldValue = tfv
+        state.taskTextFieldValue = tfv
         val taskName = tfv.text
         updateFilteredEventNames()
-        clockButtonEnabled = checkClockButtonEnabled()
-        dropdownExpanded = taskName.isNotBlank() && filteredEventNames.isNotEmpty()
+        state.clockButtonEnabled = checkClockButtonEnabled()
+        state.dropdownExpanded = taskName.isNotBlank() && state.filteredEventNames.isNotEmpty()
     }
 
     fun onTaskNameDonePressed() {
-        dropdownExpanded = false
+        state.dropdownExpanded = false
     }
 
     private fun updateFilteredEventNames() {
-        filteredEventNames = if (autofillTaskNames.value == null) {
+        state.filteredEventNames = if (autofillTaskNames.value == null) {
             listOf()
         } else {
             autofillTaskNames.value!!.filter {
-                it.contains(taskTextFieldValue.text)
+                it.contains(state.taskTextFieldValue.text)
             }
         }
     }
 
     fun onDismissDropdown() {
-        dropdownExpanded = false
+        state.dropdownExpanded = false
     }
 
     fun onDropdownMenuItemClick(label: String) {
         dropdownClicked = true
-        taskTextFieldValue = TextFieldValue(
+        state.taskTextFieldValue = TextFieldValue(
             text = label,
             selection = TextRange(label.length)
         )
-        dropdownExpanded = false
+        state.dropdownExpanded = false
     }
 
     fun switchCountDownTimer() {
@@ -212,19 +210,19 @@ class ClockPageViewModel (
             false
         }
 
-        if (!countDownTimerEnabled && shouldWarn) {
-            batteryWarningDialogVisible = true
+        if (!state.countDownTimerEnabled && shouldWarn) {
+            state.batteryWarningDialogVisible = true
         } else {
-            countDownTimerEnabled = !countDownTimerEnabled
-            clockButtonEnabled = checkClockButtonEnabled()
+            state.countDownTimerEnabled = !state.countDownTimerEnabled
+            state.clockButtonEnabled = checkClockButtonEnabled()
             viewModelScope.launch {
-                userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
+                userPreferencesRepository.updateCountDownEnabled(state.countDownTimerEnabled)
             }
         }
     }
 
     fun hideBatteryWarningModal() {
-        batteryWarningDialogVisible = false
+        state.batteryWarningDialogVisible = false
     }
 
     /**
@@ -246,11 +244,11 @@ class ClockPageViewModel (
     }
 
     fun onMinuteValueChange(value: TextFieldValue) {
-        minutesTextFieldValue = onMinuteAndSecondValueChange(value)
+        state.minutesTextFieldValue = onMinuteAndSecondValueChange(value)
     }
 
     fun onSecondValueChange(value: TextFieldValue) {
-        secondsTextFieldValue = onMinuteAndSecondValueChange(value)
+        state.secondsTextFieldValue = onMinuteAndSecondValueChange(value)
     }
 
     private fun onMinuteAndSecondValueChange(value: TextFieldValue): TextFieldValue {
@@ -285,7 +283,7 @@ class ClockPageViewModel (
             text = value.text,
             selection = TextRange(value.text.length)
         )
-        hoursTextFieldValue = when (value.text.length) {
+        state.hoursTextFieldValue = when (value.text.length) {
             0 -> cursorAtEnd
             1 -> cursorAtEnd
             2 -> selectAllValue
@@ -297,7 +295,7 @@ class ClockPageViewModel (
         focusState: FocusState,
         textFieldValue: TextFieldValue
     ) : TextFieldValue {
-        clockButtonEnabled = checkClockButtonEnabled()
+        state.clockButtonEnabled = checkClockButtonEnabled()
         return if(focusState.isFocused) {
             // select all text when focusing
             TextFieldValue(
@@ -314,15 +312,15 @@ class ClockPageViewModel (
     }
 
     fun onHoursFocusChanged(focusState: FocusState) {
-        hoursTextFieldValue = onTimerStringFocusChanged(focusState, hoursTextFieldValue)
+        state.hoursTextFieldValue = onTimerStringFocusChanged(focusState, state.hoursTextFieldValue)
     }
 
     fun onMinutesFocusChanged(focusState: FocusState) {
-        minutesTextFieldValue = onTimerStringFocusChanged(focusState, minutesTextFieldValue)
+        state.minutesTextFieldValue = onTimerStringFocusChanged(focusState, state.minutesTextFieldValue)
     }
 
     fun onSecondsFocusChanged(focusState: FocusState) {
-        secondsTextFieldValue = onTimerStringFocusChanged(focusState, secondsTextFieldValue)
+        state.secondsTextFieldValue = onTimerStringFocusChanged(focusState, state.secondsTextFieldValue)
     }
 
     private fun formatDigitsAfterLeavingFocus(digits: String): String {
@@ -333,22 +331,22 @@ class ClockPageViewModel (
 
     private fun updateCountDownTextFieldValues(currSeconds: Int) {
         val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
-        hoursTextFieldValue = TextFieldValue(
+        state.hoursTextFieldValue = TextFieldValue(
             text = formatDigitsAfterLeavingFocus(hms.first.toString())
         )
-        minutesTextFieldValue = TextFieldValue(
+        state.minutesTextFieldValue = TextFieldValue(
             text = formatDigitsAfterLeavingFocus(hms.second.toString())
         )
-        secondsTextFieldValue = TextFieldValue(
+        state.secondsTextFieldValue = TextFieldValue(
             text = formatDigitsAfterLeavingFocus(hms.third.toString())
         )
     }
 
     private fun timerTextFieldValuesToSeconds(): Int {
         return convertHoursMinutesSecondsToSeconds(
-            hoursTextFieldValue.text.toInt(),
-            minutesTextFieldValue.text.toInt(),
-            secondsTextFieldValue.text.toInt()
+            state.hoursTextFieldValue.text.toInt(),
+            state.minutesTextFieldValue.text.toInt(),
+            state.secondsTextFieldValue.text.toInt()
         )
     }
 
@@ -356,16 +354,16 @@ class ClockPageViewModel (
         viewModelScope.launch {
             // create and save the new event
             val newEvent = TimeClockEvent(
-                name = taskTextFieldValue.text
+                name = state.taskTextFieldValue.text
             )
             database.insert(newEvent)
             currentTimeClockEvent = getCurrentEventFromDatabase()
-            isClockRunning = true
+            state.isClockRunning = true
             notificationManager.sendClockInProgressNotification(
                 getApplication(),
                 newEvent.name
             )
-            if (countDownTimerEnabled) {
+            if (state.countDownTimerEnabled) {
                 startCountDown(newEvent.name, newEvent.startTime)
             } else {
                 chronometer.start()
@@ -382,9 +380,9 @@ class ClockPageViewModel (
             alarmIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        currCountDownSeconds = timerTextFieldValuesToSeconds()
-        val upcomingEndTime = actualStartTime + currCountDownSeconds * MILLIS_PER_SECOND
-        countDownEndTime = upcomingEndTime
+        state.currCountDownSeconds = timerTextFieldValuesToSeconds()
+        val upcomingEndTime = actualStartTime + state.currCountDownSeconds * MILLIS_PER_SECOND
+        state.countDownEndTime = upcomingEndTime
         userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
         // start an alarm
         AlarmManagerCompat.setExactAndAllowWhileIdle(
@@ -406,10 +404,10 @@ class ClockPageViewModel (
             // successfully saved! reset values to initial
             notificationManager.cancelClockInProgressNotification()
             currentTimeClockEvent = null
-            isClockRunning = false
+            state.isClockRunning = false
             val saved = getApplication<Application>().applicationContext
-                .getString(R.string.task_saved_toast, taskTextFieldValue.text)
-            if (countDownTimerEnabled) {
+                .getString(R.string.task_saved_toast, state.taskTextFieldValue.text)
+            if (state.countDownTimerEnabled) {
                 stopCountDown(tappedStopButton, saved)
             } else {
                 showToast(saved)
@@ -422,10 +420,10 @@ class ClockPageViewModel (
             alarmManager.cancel(pendingAlarmIntent)
             showToast(message)
         }
-        countDownEndTime = 0L
-        userPreferencesRepository.updateCountDownEndTime(countDownEndTime)
-        currCountDownSeconds = 0
-        clockButtonEnabled = checkClockButtonEnabled()
+        state.countDownEndTime = 0L
+        userPreferencesRepository.updateCountDownEndTime(state.countDownEndTime)
+        state.currCountDownSeconds = 0
+        state.clockButtonEnabled = checkClockButtonEnabled()
     }
 
     private fun showToast(message: String) {
@@ -436,16 +434,16 @@ class ClockPageViewModel (
      * Executed when count up timer finishes the fadeOut animation
      */
     fun resetCurrSeconds() {
-        currSeconds = 0
+        state.currSeconds = 0
     }
 
     private fun countUp() {
-        currSeconds = calculateCurrSeconds(currentTimeClockEvent)
+        state.currSeconds = calculateCurrSeconds(currentTimeClockEvent)
     }
 
     private fun countDown() {
-        currCountDownSeconds = getCountDownSeconds(
-            countDownEndTime = countDownEndTime,
+        state.currCountDownSeconds = getCountDownSeconds(
+            countDownEndTime = state.countDownEndTime,
             stopClockFunc = this::stopClock,
             updateFields = this::updateCountDownTextFieldValues
         )
@@ -472,4 +470,59 @@ fun getCountDownSeconds(
     }
     updateFields(currSeconds)
     return currSeconds
+}
+
+/**
+ * These are the things that are passed directly into the ClockPage
+ * component. This doesn't contain things like activities, service
+ * managers, and so on. This allows us to test ClockPage component
+ * without needing to build the entire ViewModel
+ */
+class ClockPageViewModelState(
+    clockButtonEnabled: Boolean = false,
+    taskTextFieldValue: TextFieldValue = TextFieldValue(""),
+    isClockRunning: Boolean = false,
+    dropdownExpanded: Boolean = false,
+    currSeconds: Int = 0,
+    filteredEventNames: List<String> = listOf(),
+    batteryWarningDialogVisible: Boolean = false,
+    countDownTimerEnabled: Boolean = false,
+    countDownEndTime: Long = 0L,
+    currCountDownSeconds: Int = 0,
+    hoursTextFieldValue: TextFieldValue = TextFieldValue(
+        text = "00",
+        selection = TextRange(0)
+    ),
+    minutesTextFieldValue: TextFieldValue = TextFieldValue(
+        text = "00",
+        selection = TextRange(0)
+    ),
+    secondsTextFieldValue: TextFieldValue = TextFieldValue(
+        text = "00",
+        selection = TextRange(0)
+    ),
+    var batteryWarningConfirmFunction: () -> Unit = {},
+    var batteryWarningDismissFunction: () -> Unit = {},
+    var onTaskNameChange: (TextFieldValue) -> Unit = { _ -> },
+    var onTaskNameDone: () -> Unit = {},
+    var onTaskNameIconClick: () -> Unit = {},
+    var onDismissDropdown: () -> Unit = {},
+    var onDropdownMenuItemClick: (String) -> Unit = { _ -> },
+    var onTimerAnimationFinish: () -> Unit = {},
+    var onClockStart: () -> Unit = {},
+    var onClockStop: (Boolean) -> Unit = { _ ->}
+) {
+    var clockButtonEnabled by mutableStateOf(clockButtonEnabled)
+    var taskTextFieldValue by mutableStateOf(taskTextFieldValue)
+    var isClockRunning by mutableStateOf(isClockRunning)
+    var dropdownExpanded by mutableStateOf(dropdownExpanded)
+    var currSeconds by mutableStateOf(currSeconds)
+    var filteredEventNames by mutableStateOf(filteredEventNames)
+    var batteryWarningDialogVisible by mutableStateOf(batteryWarningDialogVisible)
+    var countDownTimerEnabled by mutableStateOf(countDownTimerEnabled)
+    var countDownEndTime by mutableStateOf(countDownEndTime)
+    var currCountDownSeconds by mutableStateOf(currCountDownSeconds)
+    var hoursTextFieldValue by mutableStateOf(hoursTextFieldValue)
+    var minutesTextFieldValue by mutableStateOf(minutesTextFieldValue)
+    var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
 }
