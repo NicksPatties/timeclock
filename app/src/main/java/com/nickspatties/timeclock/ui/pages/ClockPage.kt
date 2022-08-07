@@ -48,14 +48,14 @@ fun ClockPage(
                         .fillMaxWidth(widthFraction),
                     value = viewModelState.taskTextFieldValue,
                     enabled = !viewModelState.isClockRunning,
-                    onTaskNameChange = viewModelState.onTaskNameChange,
+                    onTaskNameChange = viewModelState::onTaskNameChange,
                     onDone = {
                         if (viewModelState.countDownTimerEnabled) {
                             focusManager.moveFocus(FocusDirection.Next)
                         } else {
                             focusManager.clearFocus()
                         }
-                        viewModelState.onTaskNameDone()
+                        viewModelState.dismissDropdown()
                     },
                     keyboardController = keyboardController,
                     countdownTimerEnabled = viewModelState.countDownTimerEnabled,
@@ -69,7 +69,7 @@ fun ClockPage(
                         .fillMaxWidth(widthFraction),
                     expanded = viewModelState.dropdownExpanded,
                     properties = PopupProperties(focusable = false),
-                    onDismissRequest = viewModelState.onDismissDropdown,
+                    onDismissRequest = viewModelState::dismissDropdown,
                 ) {
                     viewModelState.filteredEventNames.forEach { label ->
                         DropdownMenuItem(onClick = {

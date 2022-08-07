@@ -45,19 +45,21 @@ class ClockPageViewModel (
     val state: ClockPageViewModelState = ClockPageViewModelState()
 
     val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
-        events.map {
+        state.autofillTaskNames = events.map {
             it.name
         }.toSet()
+        state.autofillTaskNames
     }
 
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
 
     private var currentTimeClockEvent : TimeClockEvent? = null
 
-    // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
-    private var dropdownClicked = false
     private val chronometer = Chronometer().apply {
         setOnChronometerTickListener { countUp() }
+    }
+    private val countDownChronometer = Chronometer().apply {
+        setOnChronometerTickListener { countDown() }
     }
 
     // alarm intent, used to notify the AlarmReceiver when an event is done recording
@@ -69,16 +71,8 @@ class ClockPageViewModel (
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    // notifications
-    private var notificationManager = getNotificationManager(getApplication())
-
-    // countdown specific variables
-
-    private val countDownChronometer = Chronometer().apply {
-        setOnChronometerTickListener { countDown() }
-    }
-
     // Android system managers
+    private var notificationManager = getNotificationManager(getApplication())
     private val alarmManager =
         getApplication<Application>().getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val powerManager =
@@ -89,11 +83,7 @@ class ClockPageViewModel (
         // state function declarations
         state.batteryWarningConfirmFunction = this::goToBatterySettings
         state.batteryWarningDismissFunction = this::hideBatteryWarningModal
-        state.onTaskNameChange = this::onTaskNameChange
-        state.onTaskNameDone = this::onTaskNameDonePressed
         state.onTaskNameIconClick = this::switchCountDownTimer
-        state.onDismissDropdown = this::onDismissDropdown
-        state.onDropdownMenuItemClick = this::onDropdownMenuItemClick
         state.onTimerAnimationFinish = this::resetCurrSeconds
         state.onClockStart = this::startClock
         state.onClockStop = this::stopClock
@@ -118,7 +108,7 @@ class ClockPageViewModel (
             if (currEvent != null) {
                 currentTimeClockEvent = currEvent
                 state.taskTextFieldValue = TextFieldValue(text = currEvent.name)
-                state.clockButtonEnabled = true
+//                state.clockButtonEnabled = true
                 state.isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
                 if (state.countDownTimerEnabled) {
@@ -127,7 +117,6 @@ class ClockPageViewModel (
                         currEvent.endTime = state.countDownEndTime
                         database.update(currEvent)
                         currentTimeClockEvent = null
-                        state.clockButtonEnabled = false
                     } else { // init countdown
                         state.currCountDownSeconds = calculateCurrCountDownSeconds(state.countDownEndTime)
                         updateCountDownTextFieldValues(state.currCountDownSeconds)
@@ -155,58 +144,6 @@ class ClockPageViewModel (
         }
     }
 
-    private fun checkClockButtonEnabled(): Boolean {
-        val countDownClockIsZero =
-            state.hoursTextFieldValue.text.toInt() == 0 &&
-                    state.minutesTextFieldValue.text.toInt() == 0 &&
-                    state.secondsTextFieldValue.text.toInt() == 0
-        val enabled = if (state.countDownTimerEnabled) {
-            state.taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
-        } else {
-            state.taskTextFieldValue.text.isNotBlank()
-        }
-        return enabled
-    }
-
-    fun onTaskNameChange(tfv: TextFieldValue) {
-        if (dropdownClicked) {
-            dropdownClicked = false
-            return
-        }
-        state.taskTextFieldValue = tfv
-        val taskName = tfv.text
-        updateFilteredEventNames()
-        state.clockButtonEnabled = checkClockButtonEnabled()
-        state.dropdownExpanded = taskName.isNotBlank() && state.filteredEventNames.isNotEmpty()
-    }
-
-    fun onTaskNameDonePressed() {
-        state.dropdownExpanded = false
-    }
-
-    private fun updateFilteredEventNames() {
-        state.filteredEventNames = if (autofillTaskNames.value == null) {
-            listOf()
-        } else {
-            autofillTaskNames.value!!.filter {
-                it.contains(state.taskTextFieldValue.text)
-            }
-        }
-    }
-
-    fun onDismissDropdown() {
-        state.dropdownExpanded = false
-    }
-
-    fun onDropdownMenuItemClick(label: String) {
-        dropdownClicked = true
-        state.taskTextFieldValue = TextFieldValue(
-            text = label,
-            selection = TextRange(label.length)
-        )
-        state.dropdownExpanded = false
-    }
-
     fun switchCountDownTimer() {
         val shouldWarn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // can just check if the permission is set
@@ -220,7 +157,6 @@ class ClockPageViewModel (
             state.batteryWarningDialogVisible = true
         } else {
             state.countDownTimerEnabled = !state.countDownTimerEnabled
-            state.clockButtonEnabled = checkClockButtonEnabled()
             viewModelScope.launch {
                 userPreferencesRepository.updateCountDownEnabled(state.countDownTimerEnabled)
             }
@@ -301,7 +237,6 @@ class ClockPageViewModel (
         focusState: FocusState,
         textFieldValue: TextFieldValue
     ) : TextFieldValue {
-        state.clockButtonEnabled = checkClockButtonEnabled()
         return if(focusState.isFocused) {
             // select all text when focusing
             TextFieldValue(
@@ -429,7 +364,6 @@ class ClockPageViewModel (
         state.countDownEndTime = 0L
         userPreferencesRepository.updateCountDownEndTime(state.countDownEndTime)
         state.currCountDownSeconds = 0
-        state.clockButtonEnabled = checkClockButtonEnabled()
     }
 
     private fun showToast(message: String) {
@@ -520,12 +454,11 @@ fun getCountDownSeconds(
  * @param onSecondsFocusChanged Fires when the value of the seconds text in the EditTimerTextField is changed
  */
 class ClockPageViewModelState(
-    clockButtonEnabled: Boolean = false,
     taskTextFieldValue: TextFieldValue = TextFieldValue(""),
+    autofillTaskNames: Set<String> = setOf(),
     isClockRunning: Boolean = false,
     dropdownExpanded: Boolean = false,
     currSeconds: Int = 0,
-    filteredEventNames: List<String> = listOf(),
     batteryWarningDialogVisible: Boolean = false,
     countDownTimerEnabled: Boolean = false,
     hoursTextFieldValue: TextFieldValue = TextFieldValue(
@@ -542,11 +475,11 @@ class ClockPageViewModelState(
     ),
     var batteryWarningConfirmFunction: () -> Unit = {},
     var batteryWarningDismissFunction: () -> Unit = {},
-    var onTaskNameChange: (TextFieldValue) -> Unit = { _ -> },
+    //var onTaskNameChange: (TextFieldValue) -> Unit = { _ -> },
     var onTaskNameDone: () -> Unit = {},
     var onTaskNameIconClick: () -> Unit = {},
     var onDismissDropdown: () -> Unit = {},
-    var onDropdownMenuItemClick: (String) -> Unit = { _ -> },
+    //var onDropdownMenuItemClick: (String) -> Unit = { _ -> },
     var onTimerAnimationFinish: () -> Unit = {},
     var onClockStart: () -> Unit = {},
     var onClockStop: (Boolean) -> Unit = { _ ->},
@@ -560,20 +493,62 @@ class ClockPageViewModelState(
     countDownEndTime: Long = 0L,
     currCountDownSeconds: Int = 0,
 ) {
-    var clockButtonEnabled by mutableStateOf(clockButtonEnabled)
+    val clockButtonEnabled: Boolean
+        get() {
+            return if (countDownTimerEnabled) {
+                val countDownClockIsZero =
+                    hoursTextFieldValue.text.toInt() == 0 &&
+                            minutesTextFieldValue.text.toInt() == 0 &&
+                            secondsTextFieldValue.text.toInt() == 0
+                taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
+            } else {
+                taskTextFieldValue.text.isNotBlank()
+            }
+        }
+    val filteredEventNames: List<String>
+        get() {
+            return autofillTaskNames.filter {
+                it.contains(taskTextFieldValue.text)
+            }
+        }
     var taskTextFieldValue by mutableStateOf(taskTextFieldValue)
+    var autofillTaskNames by mutableStateOf(autofillTaskNames)
     var isClockRunning by mutableStateOf(isClockRunning)
     var dropdownExpanded by mutableStateOf(dropdownExpanded)
     var currSeconds by mutableStateOf(currSeconds)
-    var filteredEventNames by mutableStateOf(filteredEventNames)
     var batteryWarningDialogVisible by mutableStateOf(batteryWarningDialogVisible)
     var countDownTimerEnabled by mutableStateOf(countDownTimerEnabled)
     var hoursTextFieldValue by mutableStateOf(hoursTextFieldValue)
     var minutesTextFieldValue by mutableStateOf(minutesTextFieldValue)
     var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
+    // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
+    var dropdownClicked = false
 
     // TODO not in ClockPage... should it be here?
     var countDownEndTime by mutableStateOf(countDownEndTime)
     // TODO not in ClockPage... should it be here?
     var currCountDownSeconds by mutableStateOf(currCountDownSeconds)
+
+    fun onTaskNameChange(tfv: TextFieldValue) {
+        if (dropdownClicked) {
+            dropdownClicked = false
+            return
+        }
+        taskTextFieldValue = tfv
+        val taskName = tfv.text
+        dropdownExpanded = taskName.isNotBlank() && filteredEventNames.isNotEmpty()
+    }
+
+    fun dismissDropdown() {
+        dropdownExpanded = false
+    }
+
+    fun onDropdownMenuItemClick(label: String) {
+        dropdownClicked = true
+        taskTextFieldValue = TextFieldValue(
+            text = label,
+            selection = TextRange(label.length)
+        )
+        dropdownExpanded = false
+    }
 }

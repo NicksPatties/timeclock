@@ -1,4 +1,4 @@
-package com.nickspatties.timeclock.ui.components
+package com.nickspatties.timeclock.ui.pages
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
