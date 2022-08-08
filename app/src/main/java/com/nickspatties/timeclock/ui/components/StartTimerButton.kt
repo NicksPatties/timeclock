@@ -7,19 +7,22 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nickspatties.timeclock.R
 
 @Composable
 fun StartTimerButton(
+    modifier: Modifier = Modifier,
     clockEnabled: Boolean,
     isRunning: Boolean,
     startClock: () -> Unit,
     stopClock: (Boolean) -> Unit
 ) {
     Button(
-        modifier = Modifier
+        modifier = modifier
             .width(150.dp)
             .height(100.dp),
         shape = RoundedCornerShape(50.dp),
@@ -27,7 +30,7 @@ fun StartTimerButton(
         onClick = { if (isRunning) stopClock(true) else startClock() }
     ) {
         Text(
-            text = if (isRunning) "Stop" else "Start",
+            text = if (isRunning) stringResource(id = R.string.stop) else stringResource(id = R.string.start),
             fontSize = 24.sp
         )
     }

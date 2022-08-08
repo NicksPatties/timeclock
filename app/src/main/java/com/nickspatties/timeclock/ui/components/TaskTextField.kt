@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -39,7 +40,10 @@ fun TaskTextField(
             Text(stringResource(R.string.task_text_field_placeholder))
         },
         trailingIcon = {
-            IconButton(onClick = onIconClick) {
+            IconButton(
+                modifier = Modifier.testTag("TaskTextField_IconButton"),
+                onClick = onIconClick
+            ) {
                 val tint = if (countdownTimerEnabled)
                     MaterialTheme.colors.primary
                 else

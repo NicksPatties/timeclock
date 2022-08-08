@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -35,7 +36,9 @@ fun ClockPage(
 
     Scaffold() {
         Column(
-            modifier = Modifier.padding(it).fillMaxSize(),
+            modifier = Modifier
+                .padding(it)
+                .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -45,6 +48,7 @@ fun ClockPage(
                 val widthFraction = 0.9f
                 TaskTextField(
                     modifier = Modifier
+                        .testTag("TaskTextField")
                         .fillMaxWidth(widthFraction),
                     value = viewModelState.taskTextFieldValue,
                     enabled = !viewModelState.isClockRunning,
@@ -72,15 +76,18 @@ fun ClockPage(
                     onDismissRequest = viewModelState::dismissDropdown,
                 ) {
                     viewModelState.filteredEventNames.forEach { label ->
-                        DropdownMenuItem(onClick = {
-                            if (viewModelState.countDownTimerEnabled) {
-                                focusManager.moveFocus(FocusDirection.Next)
-                            } else {
-                                focusManager.clearFocus()
-                                keyboardController?.hide()
+                        DropdownMenuItem(
+                            modifier = Modifier.testTag("DropdownMenuItem_${label}"),
+                            onClick = {
+                                if (viewModelState.countDownTimerEnabled) {
+                                    focusManager.moveFocus(FocusDirection.Next)
+                                } else {
+                                    focusManager.clearFocus()
+                                    keyboardController?.hide()
+                                }
+                                viewModelState.onDropdownMenuItemClick(label)
                             }
-                            viewModelState.onDropdownMenuItemClick(label)
-                        }) {
+                        ) {
                             Text(text = label)
                         }
                     }
@@ -115,6 +122,7 @@ fun ClockPage(
             }
 
             StartTimerButton(
+                modifier = Modifier.testTag("StartTimerButton"),
                 clockEnabled = viewModelState.clockButtonEnabled,
                 isRunning = viewModelState.isClockRunning,
                 startClock = viewModelState.onClockStart,
