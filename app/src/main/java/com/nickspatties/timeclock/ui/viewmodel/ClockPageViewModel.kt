@@ -52,8 +52,10 @@ class ClockPageViewModel (
     }
 
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
-
     private var currentTimeClockEvent : TimeClockEvent? = null
+    private var currSeconds: Int = 0
+    private var countDownEndTime: Long = 0L
+    private var currCountDownSeconds: Int = 0
 
     private val chronometer = Chronometer().apply {
         setOnChronometerTickListener { countUp() }
@@ -93,7 +95,7 @@ class ClockPageViewModel (
         viewModelScope.launch {
             val preferences = userPreferencesFlow.first()
             state.countDownTimerEnabled = preferences.countDownEnabled
-            state.countDownEndTime = preferences.countDownEndTime
+            countDownEndTime = preferences.countDownEndTime
 
             // initialize the currentEvent in case the app was closed while counting
             val currEvent = getCurrentEventFromDatabase()
@@ -106,17 +108,17 @@ class ClockPageViewModel (
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
                 if (state.countDownTimerEnabled) {
                     // if the countDown end has already passed, save the event and reset clock
-                    if (state.countDownEndTime < System.currentTimeMillis()) {
-                        currEvent.endTime = state.countDownEndTime
+                    if (countDownEndTime < System.currentTimeMillis()) {
+                        currEvent.endTime = countDownEndTime
                         database.update(currEvent)
                         currentTimeClockEvent = null
                     } else { // init countdown
-                        state.currCountDownSeconds = calculateCurrCountDownSeconds(state.countDownEndTime)
-                        state.updateCountDownTextFieldValues(state.currCountDownSeconds)
+                        currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
+                        state.updateCountDownTextFieldValues(currCountDownSeconds)
                         countDownChronometer.start(startTimeDelay)
                     }
                 } else {
-                    state.currSeconds = calculateCurrSeconds(currEvent)
+                    currSeconds = calculateCurrSeconds(currEvent)
                     chronometer.start(startTimeDelay)
                 }
                 notificationManager.sendClockInProgressNotification(
@@ -216,9 +218,9 @@ class ClockPageViewModel (
             alarmIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        state.currCountDownSeconds = timerTextFieldValuesToSeconds()
-        val upcomingEndTime = actualStartTime + state.currCountDownSeconds * MILLIS_PER_SECOND
-        state.countDownEndTime = upcomingEndTime
+        currCountDownSeconds = timerTextFieldValuesToSeconds()
+        val upcomingEndTime = actualStartTime + currCountDownSeconds * MILLIS_PER_SECOND
+        countDownEndTime = upcomingEndTime
         userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
         // start an alarm
         AlarmManagerCompat.setExactAndAllowWhileIdle(
@@ -256,9 +258,9 @@ class ClockPageViewModel (
             alarmManager.cancel(pendingAlarmIntent)
             showToast(message)
         }
-        state.countDownEndTime = 0L
-        userPreferencesRepository.updateCountDownEndTime(state.countDownEndTime)
-        state.currCountDownSeconds = 0
+        countDownEndTime = 0L
+        userPreferencesRepository.updateCountDownEndTime(countDownEndTime)
+        currCountDownSeconds = 0
     }
 
     private fun showToast(message: String) {
@@ -269,19 +271,20 @@ class ClockPageViewModel (
      * Executed when count up timer finishes the fadeOut animation
      */
     fun resetCurrSeconds() {
-        state.currSeconds = 0
+        currSeconds = 0
     }
 
     private fun countUp() {
-        state.currSeconds = calculateCurrSeconds(currentTimeClockEvent)
+        currSeconds = calculateCurrSeconds(currentTimeClockEvent)
+        state.updateCurrSeconds(currSeconds)
     }
 
     private fun countDown() {
-        state.currCountDownSeconds = getCountDownSeconds(
-            countDownEndTime = state.countDownEndTime,
-            stopClockFunc = this::stopClock,
-            updateFields = state::updateCountDownTextFieldValues
+        currCountDownSeconds = getCountDownSeconds(
+            countDownEndTime = countDownEndTime,
+            stopClockFunc = this::stopClock
         )
+        state.updateCountDownTextFieldValues(currCountDownSeconds)
     }
 }
 
@@ -295,15 +298,13 @@ class ClockPageViewModel (
  */
 fun getCountDownSeconds(
     countDownEndTime: Long = 0L,
-    stopClockFunc: (Boolean) -> Unit = {},
-    updateFields: (Int) -> Unit = {}
+    stopClockFunc: (Boolean) -> Unit = {}
 ): Int {
     var currSeconds = calculateCurrCountDownSeconds(countDownEndTime)
     if(currSeconds <= 0) {
         stopClockFunc(false)
         currSeconds = 0
     }
-    updateFields(currSeconds)
     return currSeconds
 }
 
@@ -364,9 +365,6 @@ class ClockPageViewModelState(
     var onTimerAnimationFinish: () -> Unit = {},
     var onClockStart: () -> Unit = {},
     var onClockStop: (Boolean) -> Unit = { _ ->},
-
-    countDownEndTime: Long = 0L,
-    currCountDownSeconds: Int = 0,
 ) {
     val clockButtonEnabled: Boolean
         get() {
@@ -390,6 +388,7 @@ class ClockPageViewModelState(
     var autofillTaskNames by mutableStateOf(autofillTaskNames)
     var isClockRunning by mutableStateOf(isClockRunning)
     var dropdownExpanded by mutableStateOf(dropdownExpanded)
+    // could use a TextFieldValue here, but it's easier to update the timer component with seconds
     var currSeconds by mutableStateOf(currSeconds)
     var batteryWarningDialogVisible by mutableStateOf(batteryWarningDialogVisible)
     var countDownTimerEnabled by mutableStateOf(countDownTimerEnabled)
@@ -398,11 +397,6 @@ class ClockPageViewModelState(
     var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
     // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
     var dropdownClicked = false
-
-    // TODO not in ClockPage... should it be here?
-    var countDownEndTime by mutableStateOf(countDownEndTime)
-    // TODO not in ClockPage... should it be here?
-    var currCountDownSeconds by mutableStateOf(currCountDownSeconds)
 
     fun onTaskNameChange(tfv: TextFieldValue) {
         if (dropdownClicked) {
@@ -487,6 +481,11 @@ class ClockPageViewModelState(
         secondsTextFieldValue = onTimerStringFocusChanged(focusState, secondsTextFieldValue)
     }
 
+    fun updateCurrSeconds(seconds: Int) {
+        currSeconds = seconds
+    }
+
+    // TODO should be private, but is dependent on reloading event details
     fun updateCountDownTextFieldValues(currSeconds: Int) {
         val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
         hoursTextFieldValue = TextFieldValue(

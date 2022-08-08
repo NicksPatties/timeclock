@@ -2,7 +2,6 @@ package com.nickspatties.timeclock.ui.pages
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import com.nickspatties.timeclock.ui.pages.ClockPage
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
 import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModelState
 import org.junit.Rule
