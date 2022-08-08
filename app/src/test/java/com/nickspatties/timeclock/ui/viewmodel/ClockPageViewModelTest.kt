@@ -132,4 +132,115 @@ class ClockPageViewModelStateTest {
         testState.dismissDropdown()
         assertThat(testState.dropdownExpanded).isFalse()
     }
+
+    @Test
+    fun onSecondsValueChanged_cursorIsAtEndIfTextIsEmpty() {
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = true
+        )
+        val fakeInput = TextFieldValue(text = "")
+        testState.onSecondsValueChanged(fakeInput)
+        assertThat(testState.secondsTextFieldValue).isEqualTo(
+            TextFieldValue(
+                text = "",
+                selection = TextRange(0)
+            )
+        )
+    }
+
+    @Test
+    fun onSecondsValueChanged_cursorIsAtEndIfTextIsADigitLessThanSix() {
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = true
+        )
+        val fakeText = "1"
+        val fakeInput = TextFieldValue(text = fakeText)
+        testState.onSecondsValueChanged(fakeInput)
+        assertThat(testState.secondsTextFieldValue).isEqualTo(
+            TextFieldValue(
+                text = fakeText,
+                selection = TextRange(1)
+            )
+        )
+    }
+
+    @Test
+    fun onSecondsValueChanged_selectedAllIfTextIsADigitGreaterThanSix() {
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = true
+        )
+        val fakeText = "6"
+        val fakeInput = TextFieldValue(text = fakeText)
+        testState.onSecondsValueChanged(fakeInput)
+        assertThat(testState.secondsTextFieldValue).isEqualTo(
+            TextFieldValue(
+                text = fakeText,
+                selection = TextRange(0,1)
+            )
+        )
+    }
+
+    @Test
+    fun onSecondsValueChanged_selectedAllIfTextIsTwoDigitsLong() {
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = true
+        )
+        val fakeText = "16"
+        val fakeInput = TextFieldValue(text = fakeText)
+        testState.onSecondsValueChanged(fakeInput)
+        assertThat(testState.secondsTextFieldValue).isEqualTo(
+            TextFieldValue(
+                text = fakeText,
+                selection = TextRange(0,2)
+            )
+        )
+    }
+
+    @Test
+    fun onHoursValueChanged_cursorAtEndIfNoDigits() {
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = true
+        )
+        val fakeText = ""
+        val fakeInput = TextFieldValue(text = fakeText)
+        testState.onSecondsValueChanged(fakeInput)
+        assertThat(testState.secondsTextFieldValue).isEqualTo(
+            TextFieldValue(
+                text = fakeText,
+                selection = TextRange(0)
+            )
+        )
+    }
+
+    @Test
+    fun onHoursValueChanged_cursorAtEndIfOneDigit() {
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = true
+        )
+        val fakeText = "1"
+        val fakeInput = TextFieldValue(text = fakeText)
+        testState.onSecondsValueChanged(fakeInput)
+        assertThat(testState.secondsTextFieldValue).isEqualTo(
+            TextFieldValue(
+                text = fakeText,
+                selection = TextRange(1)
+            )
+        )
+    }
+
+    @Test
+    fun onHoursValueChanged_selectedAllIfTwoDigits() {
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = true
+        )
+        val fakeText = "11"
+        val fakeInput = TextFieldValue(text = fakeText)
+        testState.onSecondsValueChanged(fakeInput)
+        assertThat(testState.secondsTextFieldValue).isEqualTo(
+            TextFieldValue(
+                text = fakeText,
+                selection = TextRange(0, 2)
+            )
+        )
+    }
 }

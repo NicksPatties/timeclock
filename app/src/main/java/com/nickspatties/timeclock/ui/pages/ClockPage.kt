@@ -95,12 +95,12 @@ fun ClockPage(
                     minutesTextFieldValue = viewModelState.minutesTextFieldValue,
                     secondsTextFieldValue = viewModelState.secondsTextFieldValue,
                     clickable = !viewModelState.isClockRunning,
-                    onHoursValueChanged = viewModelState.onHoursValueChanged,
-                    onMinutesValueChanged = viewModelState.onMinutesValueChanged,
-                    onSecondsValueChanged = viewModelState.onSecondsValueChanged,
-                    onHoursFocusChanged = viewModelState.onHoursFocusChanged,
-                    onMinutesFocusChanged = viewModelState.onMinutesFocusChanged,
-                    onSecondsFocusChanged = viewModelState.onSecondsFocusChanged,
+                    onHoursValueChanged = viewModelState::onHoursValueChanged,
+                    onMinutesValueChanged = viewModelState::onMinutesValueChanged,
+                    onSecondsValueChanged = viewModelState::onSecondsValueChanged,
+                    onHoursFocusChanged = viewModelState::onHoursFocusChanged,
+                    onMinutesFocusChanged = viewModelState::onMinutesFocusChanged,
+                    onSecondsFocusChanged = viewModelState::onSecondsFocusChanged,
                 )
             } else {
                 TimerText(

@@ -87,12 +87,6 @@ class ClockPageViewModel (
         state.onTimerAnimationFinish = this::resetCurrSeconds
         state.onClockStart = this::startClock
         state.onClockStop = this::stopClock
-        state.onHoursValueChanged = this::onHourValueChange
-        state.onMinutesValueChanged = this::onMinuteValueChange
-        state.onSecondsValueChanged = this::onSecondValueChange
-        state.onHoursFocusChanged = this::onHoursFocusChanged
-        state.onMinutesFocusChanged = this::onMinutesFocusChanged
-        state.onSecondsFocusChanged = this::onSecondsFocusChanged
 
         notificationManager.cancelAll()
 
@@ -108,7 +102,6 @@ class ClockPageViewModel (
             if (currEvent != null) {
                 currentTimeClockEvent = currEvent
                 state.taskTextFieldValue = TextFieldValue(text = currEvent.name)
-//                state.clockButtonEnabled = true
                 state.isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
                 if (state.countDownTimerEnabled) {
@@ -119,7 +112,7 @@ class ClockPageViewModel (
                         currentTimeClockEvent = null
                     } else { // init countdown
                         state.currCountDownSeconds = calculateCurrCountDownSeconds(state.countDownEndTime)
-                        updateCountDownTextFieldValues(state.currCountDownSeconds)
+                        state.updateCountDownTextFieldValues(state.currCountDownSeconds)
                         countDownChronometer.start(startTimeDelay)
                     }
                 } else {
@@ -183,104 +176,6 @@ class ClockPageViewModel (
             startActivity(getApplication(), intentBatteryUsage, null)
         }
         hideBatteryWarningModal()
-    }
-
-    fun onMinuteValueChange(value: TextFieldValue) {
-        state.minutesTextFieldValue = onMinuteAndSecondValueChange(value)
-    }
-
-    fun onSecondValueChange(value: TextFieldValue) {
-        state.secondsTextFieldValue = onMinuteAndSecondValueChange(value)
-    }
-
-    private fun onMinuteAndSecondValueChange(value: TextFieldValue): TextFieldValue {
-        val selectAllValue = TextFieldValue(
-            text = value.text,
-            selection = TextRange(0, value.text.length)
-        )
-        val cursorAtEnd = TextFieldValue(
-            text = value.text,
-            selection = TextRange(value.text.length)
-        )
-        return when (value.text.length) {
-            0 -> cursorAtEnd
-            1 -> {
-                if (value.text.toInt() >= 6) {
-                    selectAllValue
-                } else {
-                    cursorAtEnd
-                }
-            }
-            2 -> selectAllValue
-            else -> TextFieldValue()
-        }
-    }
-
-    fun onHourValueChange(value: TextFieldValue) {
-        val selectAllValue = TextFieldValue(
-            text = value.text,
-            selection = TextRange(0, value.text.length)
-        )
-        val cursorAtEnd = TextFieldValue(
-            text = value.text,
-            selection = TextRange(value.text.length)
-        )
-        state.hoursTextFieldValue = when (value.text.length) {
-            0 -> cursorAtEnd
-            1 -> cursorAtEnd
-            2 -> selectAllValue
-            else -> TextFieldValue()
-        }
-    }
-
-    private fun onTimerStringFocusChanged(
-        focusState: FocusState,
-        textFieldValue: TextFieldValue
-    ) : TextFieldValue {
-        return if(focusState.isFocused) {
-            // select all text when focusing
-            TextFieldValue(
-                text = textFieldValue.text,
-                selection = TextRange(0, 2)
-            )
-        } else {
-            // format the digits when leaving focus and remove selection
-            TextFieldValue(
-                text = formatDigitsAfterLeavingFocus(textFieldValue.text),
-                selection = TextRange(0)
-            )
-        }
-    }
-
-    fun onHoursFocusChanged(focusState: FocusState) {
-        state.hoursTextFieldValue = onTimerStringFocusChanged(focusState, state.hoursTextFieldValue)
-    }
-
-    fun onMinutesFocusChanged(focusState: FocusState) {
-        state.minutesTextFieldValue = onTimerStringFocusChanged(focusState, state.minutesTextFieldValue)
-    }
-
-    fun onSecondsFocusChanged(focusState: FocusState) {
-        state.secondsTextFieldValue = onTimerStringFocusChanged(focusState, state.secondsTextFieldValue)
-    }
-
-    private fun formatDigitsAfterLeavingFocus(digits: String): String {
-        if (digits.isEmpty()) return "00"
-        if (digits.length > 1) return digits
-        return "0$digits"
-    }
-
-    private fun updateCountDownTextFieldValues(currSeconds: Int) {
-        val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
-        state.hoursTextFieldValue = TextFieldValue(
-            text = formatDigitsAfterLeavingFocus(hms.first.toString())
-        )
-        state.minutesTextFieldValue = TextFieldValue(
-            text = formatDigitsAfterLeavingFocus(hms.second.toString())
-        )
-        state.secondsTextFieldValue = TextFieldValue(
-            text = formatDigitsAfterLeavingFocus(hms.third.toString())
-        )
     }
 
     private fun timerTextFieldValuesToSeconds(): Int {
@@ -385,7 +280,7 @@ class ClockPageViewModel (
         state.currCountDownSeconds = getCountDownSeconds(
             countDownEndTime = state.countDownEndTime,
             stopClockFunc = this::stopClock,
-            updateFields = this::updateCountDownTextFieldValues
+            updateFields = state::updateCountDownTextFieldValues
         )
     }
 }
@@ -418,13 +313,11 @@ fun getCountDownSeconds(
  * managers, and so on. This allows us to test ClockPage component
  * without needing to build the entire ViewModel
  *
- * @param clockButtonEnabled The clock button is able to be clicked and is highlighted
  * @param taskTextFieldValue The text field value that appears in the TaskTextField component
  * @param isClockRunning Determines if the clock button should say Start or Stop
  * @param dropdownExpanded The dropdown below the TaskTextField component is open or closed
  * @param currSeconds The current amount of seconds that have been counted up, displayed in the
  * TimerText component
- * @param filteredEventNames The filtered task names that appear in the TaskTextField dropdown
  * @param batteryWarningDialogVisible Determines if the battery warning dialog is visible
  * @param countDownTimerEnabled Determines if the count down timer should be visible, allowing
  * the user to set a time that an event will last.
@@ -437,21 +330,12 @@ fun getCountDownSeconds(
  * not exceed 59
  * @param batteryWarningConfirmFunction Fires when tapping confirm button in BatteryWarningDialog
  * @param batteryWarningDismissFunction Fires when tapping outside the BatteryWarningDialog
- * @param onTaskNameChange Fires when the user makes changes to text in the TaskTextField
- * @param onTaskNameDone Fires when the user taps "Done" on the keyboard when focused on TaskTextField
  * @param onTaskNameIconClick Fires when the icon in the TaskTextField is pushed. Changes from
  * count up to count down mode.
  * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by tapping outside it
- * @param onDropdownMenuItemClick Fires when an item in the dropdown is selected. Fills in the taskTextField with selected string
  * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting recording
  * @param onClockStart Fires when the start button is pressed
  * @param onClockStop Fires when the stop button is pressed
- * @param onHoursValueChanged Fires when the value of the hours text in the EditTimerTextField is changed
- * @param onMinutesValueChanged Fires when the value of the minutes text in the EditTimerTextField is changed
- * @param onSecondsValueChanged Fires when the value of the seconds text in the EditTimerTextField is changed
- * @param onHoursFocusChanged Fires when the focus of the hours text in the EditTimerTextField is changed
- * @param onMinutesFocusChanged Fires when the value of the minutes text in the EditTimerTextField is changed
- * @param onSecondsFocusChanged Fires when the value of the seconds text in the EditTimerTextField is changed
  */
 class ClockPageViewModelState(
     taskTextFieldValue: TextFieldValue = TextFieldValue(""),
@@ -475,20 +359,11 @@ class ClockPageViewModelState(
     ),
     var batteryWarningConfirmFunction: () -> Unit = {},
     var batteryWarningDismissFunction: () -> Unit = {},
-    //var onTaskNameChange: (TextFieldValue) -> Unit = { _ -> },
-    var onTaskNameDone: () -> Unit = {},
     var onTaskNameIconClick: () -> Unit = {},
     var onDismissDropdown: () -> Unit = {},
-    //var onDropdownMenuItemClick: (String) -> Unit = { _ -> },
     var onTimerAnimationFinish: () -> Unit = {},
     var onClockStart: () -> Unit = {},
     var onClockStop: (Boolean) -> Unit = { _ ->},
-    var onHoursValueChanged: (TextFieldValue) -> Unit = { _ -> },
-    var onMinutesValueChanged: (TextFieldValue) -> Unit = { _ -> },
-    var onSecondsValueChanged: (TextFieldValue) -> Unit = { _ -> },
-    var onHoursFocusChanged: (FocusState) -> Unit = { _ -> },
-    var onMinutesFocusChanged: (FocusState) -> Unit = { _ -> },
-    var onSecondsFocusChanged: (FocusState) -> Unit = { _ -> },
 
     countDownEndTime: Long = 0L,
     currCountDownSeconds: Int = 0,
@@ -550,5 +425,84 @@ class ClockPageViewModelState(
             selection = TextRange(label.length)
         )
         dropdownExpanded = false
+    }
+
+    fun onMinutesValueChanged(value: TextFieldValue) {
+        minutesTextFieldValue = onMinutesOrSecondsValueChanged(value)
+    }
+
+    fun onSecondsValueChanged(value: TextFieldValue) {
+        secondsTextFieldValue = onMinutesOrSecondsValueChanged(value)
+    }
+
+    private fun onMinutesOrSecondsValueChanged(value: TextFieldValue): TextFieldValue {
+        return when (value.text.length) {
+            0 -> cursorAtEnd(value)
+            1 -> {
+                if (value.text.toInt() >= 6) {
+                    selectAllValue(value)
+                } else {
+                    cursorAtEnd(value)
+                }
+            }
+            2 -> selectAllValue(value)
+            else -> TextFieldValue()
+        }
+    }
+
+    fun onHoursValueChanged(value: TextFieldValue) {
+        hoursTextFieldValue = when (value.text.length) {
+            0 -> cursorAtEnd(value)
+            1 -> cursorAtEnd(value)
+            2 -> selectAllValue(value)
+            else -> TextFieldValue()
+        }
+    }
+
+    private fun onTimerStringFocusChanged(
+        focusState: FocusState,
+        textFieldValue: TextFieldValue
+    ) : TextFieldValue {
+        return if(focusState.isFocused) {
+            // select all text when focusing
+            selectAllValue(textFieldValue)
+        } else {
+            // format the digits when leaving focus and remove selection
+            TextFieldValue(
+                text = formatDigitsAfterLeavingFocus(textFieldValue.text),
+                selection = TextRange(0)
+            )
+        }
+    }
+
+    fun onHoursFocusChanged(focusState: FocusState) {
+        hoursTextFieldValue = onTimerStringFocusChanged(focusState, hoursTextFieldValue)
+    }
+
+    fun onMinutesFocusChanged(focusState: FocusState) {
+        minutesTextFieldValue = onTimerStringFocusChanged(focusState, minutesTextFieldValue)
+    }
+
+    fun onSecondsFocusChanged(focusState: FocusState) {
+        secondsTextFieldValue = onTimerStringFocusChanged(focusState, secondsTextFieldValue)
+    }
+
+    fun updateCountDownTextFieldValues(currSeconds: Int) {
+        val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
+        hoursTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.first.toString())
+        )
+        minutesTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.second.toString())
+        )
+        secondsTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.third.toString())
+        )
+    }
+
+    private fun formatDigitsAfterLeavingFocus(digits: String): String {
+        if (digits.isEmpty()) return "00"
+        if (digits.length > 1) return digits
+        return "0$digits"
     }
 }
