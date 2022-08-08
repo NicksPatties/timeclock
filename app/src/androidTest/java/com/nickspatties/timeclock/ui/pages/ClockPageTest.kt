@@ -17,8 +17,7 @@ class ClockPageTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun countUp_DefaultConfiguration() {
-        val testString = context.getString(R.string.start)
+    fun countUp_defaultConfiguration() {
         composeTestRule.setContent {
             TimeClockTheme {
                 val fakeViewModelState = ClockPageViewModelState()
@@ -28,7 +27,7 @@ class ClockPageTest {
         composeTestRule.onNodeWithTag("TaskTextField").assertIsEnabled()
         composeTestRule.onNodeWithTag("StartTimerButton")
             .assertIsNotEnabled()
-            .assertTextEquals(testString)
+            .assertTextEquals(context.getString(R.string.start))
     }
 
     @Test
@@ -49,20 +48,39 @@ class ClockPageTest {
 
     @Test
     fun taskNameDropdown_dropdownAppearsAndTaskFillsInWhenLabelIsClicked() {
-        val testState = ClockPageViewModelState(
-            autofillTaskNames = setOf(
-                "programming",
-                "reading"
-            )
-        )
         composeTestRule.setContent {
             TimeClockTheme {
-                ClockPage(viewModelState = testState)
+                ClockPage(viewModelState =
+                    ClockPageViewModelState(
+                        autofillTaskNames = setOf(
+                            "programming",
+                            "reading"
+                        )
+                    )
+                )
             }
         }
         composeTestRule.onNodeWithTag("TaskTextField").performTextInput("pro")
         composeTestRule.onNodeWithTag("DropdownMenuItem_programming").performClick()
         composeTestRule.onNodeWithTag("TaskTextField", useUnmergedTree = true)
             .assertTextEquals("programming")
+    }
+
+    @Test
+    fun countDown_defaultConfiguration() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(viewModelState = ClockPageViewModelState(
+                    countDownTimerEnabled = true
+                ))
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").assertIsEnabled()
+        composeTestRule.onNodeWithTag("TimerTextField_Hours").assertIsEnabled()
+        composeTestRule.onNodeWithTag("TimerTextField_Minutes").assertIsEnabled()
+        composeTestRule.onNodeWithTag("TimerTextField_Seconds").assertIsEnabled()
+        composeTestRule.onNodeWithTag("StartTimerButton")
+            .assertIsNotEnabled()
+            .assertTextEquals(context.getString(R.string.start))
     }
 }

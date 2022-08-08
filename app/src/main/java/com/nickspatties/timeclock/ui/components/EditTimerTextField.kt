@@ -6,24 +6,23 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
 
 const val TAG = "EditTimerTextField"
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EditTimerTextField(
-    hoursTextFieldValue: TextFieldValue = TextFieldValue(),
-    minutesTextFieldValue: TextFieldValue = TextFieldValue(),
-    secondsTextFieldValue: TextFieldValue = TextFieldValue(),
+    hoursTextFieldValue: TextFieldValue = TextFieldValue("00"),
+    minutesTextFieldValue: TextFieldValue = TextFieldValue("00"),
+    secondsTextFieldValue: TextFieldValue = TextFieldValue("00"),
     clickable: Boolean = true,
     onHoursValueChanged: (TextFieldValue) -> Unit = { _ -> },
     onMinutesValueChanged: (TextFieldValue) -> Unit = { _ -> },
@@ -37,9 +36,11 @@ fun EditTimerTextField(
 
     Row {
         TimerTextField(
-            modifier = Modifier.onFocusChanged {
-                onHoursFocusChanged(it)
-            },
+            modifier = Modifier
+                .testTag("TimerTextField_Hours")
+                .onFocusChanged {
+                    onHoursFocusChanged(it)
+                },
             textValue = hoursTextFieldValue,
             enabled = clickable,
             keyboardController = keyboardController,
@@ -52,9 +53,11 @@ fun EditTimerTextField(
             style = MaterialTheme.typography.h2
         )
         TimerTextField(
-            modifier = Modifier.onFocusChanged {
-                onMinutesFocusChanged(it)
-            },
+            modifier = Modifier
+                .testTag("TimerTextField_Minutes")
+                .onFocusChanged {
+                    onMinutesFocusChanged(it)
+                },
             textValue = minutesTextFieldValue,
             enabled = clickable,
             keyboardController = keyboardController,
@@ -67,9 +70,11 @@ fun EditTimerTextField(
             style = MaterialTheme.typography.h2
         )
         TimerTextField(
-            modifier = Modifier.onFocusChanged {
-                onSecondsFocusChanged(it)
-            },
+            modifier = Modifier
+                .testTag("TimerTextField_Seconds")
+                .onFocusChanged {
+                    onSecondsFocusChanged(it)
+                },
             textValue = secondsTextFieldValue,
             enabled = clickable,
             keyboardController = keyboardController,
@@ -83,5 +88,5 @@ fun EditTimerTextField(
 @Preview
 @Composable
 fun EditTimerTextFieldPreview() {
-    //EditTimerTextField()
+    EditTimerTextField()
 }
