@@ -83,4 +83,44 @@ class ClockPageTest {
             .assertIsNotEnabled()
             .assertTextEquals(context.getString(R.string.start))
     }
+
+    @Test
+    fun countDown_StartTimerButtonStillDisabledIfTaskNameIsNotEmptyAndTimeIsZero() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(viewModelState = ClockPageViewModelState(
+                    countDownTimerEnabled = true
+                ))
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").performTextInput("programming")
+        composeTestRule.onNodeWithTag("StartTimerButton").assertIsNotEnabled()
+    }
+
+    @Test
+    fun countDown_StartTimerButtonStillDisabledIfTaskNameIsEmptyTimeIsNotZero() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(viewModelState = ClockPageViewModelState(
+                    countDownTimerEnabled = true
+                ))
+            }
+        }
+        composeTestRule.onNodeWithTag("TimerTextField_Minutes").performTextInput("1")
+        composeTestRule.onNodeWithTag("StartTimerButton").assertIsNotEnabled()
+    }
+
+    @Test
+    fun countDown_StartTimerButtonEnabledIfTaskNameIsNotEmptyAndTimeIsNonZero() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(viewModelState = ClockPageViewModelState(
+                    countDownTimerEnabled = true
+                ))
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").performTextInput("programming")
+        composeTestRule.onNodeWithTag("TimerTextField_Minutes").performTextInput("1")
+        composeTestRule.onNodeWithTag("StartTimerButton").assertIsEnabled()
+    }
 }
