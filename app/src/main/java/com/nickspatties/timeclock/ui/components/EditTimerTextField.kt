@@ -11,9 +11,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import com.nickspatties.timeclock.R
 
 const val TAG = "EditTimerTextField"
 
@@ -23,6 +25,7 @@ fun EditTimerTextField(
     hoursTextFieldValue: TextFieldValue = TextFieldValue("00"),
     minutesTextFieldValue: TextFieldValue = TextFieldValue("00"),
     secondsTextFieldValue: TextFieldValue = TextFieldValue("00"),
+    divider: String = stringResource(id = R.string.timer_divider),
     clickable: Boolean = true,
     onHoursValueChanged: (TextFieldValue) -> Unit = { _ -> },
     onMinutesValueChanged: (TextFieldValue) -> Unit = { _ -> },
@@ -49,7 +52,7 @@ fun EditTimerTextField(
             onValueChange = onHoursValueChanged
         )
         Text(
-            text = ":",
+            text = divider,
             style = MaterialTheme.typography.h2
         )
         TimerTextField(
@@ -66,7 +69,7 @@ fun EditTimerTextField(
             onValueChange = onMinutesValueChanged
         )
         Text(
-            text = ":",
+            text = divider,
             style = MaterialTheme.typography.h2
         )
         TimerTextField(
