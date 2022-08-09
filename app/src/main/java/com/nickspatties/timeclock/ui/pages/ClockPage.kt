@@ -29,7 +29,7 @@ fun ClockPage(
 
     if (viewModelState.batteryWarningDialogVisible) {
         BatteryWarningDialog(
-            confirmFunction = viewModelState.batteryWarningConfirmFunction,
+            confirmFunction = viewModelState::confirmBatteryWarningDialog,
             dismissFunction = viewModelState::dismissBatteryWarningDialog
         )
     }

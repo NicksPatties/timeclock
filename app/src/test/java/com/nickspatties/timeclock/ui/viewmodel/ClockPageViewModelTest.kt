@@ -245,6 +245,20 @@ class ClockPageViewModelStateTest {
     }
 
     @Test
+    fun confirmBatteryWarningDialog_callsStartBatteryManagementActivityFunction() {
+        var counter = 0
+        val testState = ClockPageViewModelState(
+            batteryWarningDialogVisible = true,
+            startBatteryManagementActivity = {
+                counter++
+            }
+        )
+        testState.confirmBatteryWarningDialog()
+        assertThat(counter).isEqualTo(1)
+        assertThat(testState.batteryWarningDialogVisible).isFalse()
+    }
+
+    @Test
     fun dismissBatteryWarningDialog_dialogNotVisibleAfterDismiss() {
         val testState = ClockPageViewModelState(
             batteryWarningDialogVisible = true

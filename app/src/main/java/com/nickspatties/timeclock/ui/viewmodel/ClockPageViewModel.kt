@@ -83,7 +83,7 @@ class ClockPageViewModel (
     // only occurs when the class is created, not when moving from view to view
     init {
         // state function declarations
-        state.batteryWarningConfirmFunction = this::goToBatterySettings
+        state.startBatteryManagementActivity = this::goToBatterySettings
         state.onTaskNameIconClick = this::switchCountDownTimer
         state.onTimerAnimationFinish = this::resetCurrSeconds
         state.onClockStart = this::startClock
@@ -174,7 +174,6 @@ class ClockPageViewModel (
                 Uri.parse("package:" + getApplication<Application?>().packageName)
             startActivity(getApplication(), intentBatteryUsage, null)
         }
-        state.dismissBatteryWarningDialog()
     }
 
     private fun timerTextFieldValuesToSeconds(): Int {
@@ -326,8 +325,7 @@ fun getCountDownSeconds(
  * not exceed 59
  * @param secondsTextFieldValue The text in the minutes section of the EditTimerTextField. Should
  * not exceed 59
- * @param batteryWarningConfirmFunction Fires when tapping confirm button in BatteryWarningDialog
- * @param dismissBatteryWarningDialog Fires when tapping outside the BatteryWarningDialog
+ * @param startBatteryManagementActivity Starts battery management activity
  * @param onTaskNameIconClick Fires when the icon in the TaskTextField is pushed. Changes from
  * count up to count down mode.
  * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by tapping outside it
@@ -355,7 +353,7 @@ class ClockPageViewModelState(
         text = "00",
         selection = TextRange(0)
     ),
-    var batteryWarningConfirmFunction: () -> Unit = {},
+    var startBatteryManagementActivity: () -> Unit = {},
     var onTaskNameIconClick: () -> Unit = {},
     var onDismissDropdown: () -> Unit = {},
     var onTimerAnimationFinish: () -> Unit = {},
@@ -395,6 +393,11 @@ class ClockPageViewModelState(
     var dropdownClicked = false
 
     fun dismissBatteryWarningDialog() {
+        batteryWarningDialogVisible = false
+    }
+
+    fun confirmBatteryWarningDialog() {
+        startBatteryManagementActivity()
         batteryWarningDialogVisible = false
     }
 
