@@ -138,7 +138,9 @@ fun NavigationComponent(
     navController: NavHostController,
     startDestination: String
 ) {
-    val clockPageViewModel = viewModel.clockPage
+    // observe changes on autofillTaskNames to allow filteredTaskNames to function properly
+    viewModel.clockPage.autofillTaskNames.observeAsState()
+    val clockPageViewModelState = viewModel.clockPage.state
 
     val listPageViewModel = viewModel.listPage
     val groupedEvents = listPageViewModel.groupedEventsByDate.observeAsState().value
@@ -170,7 +172,7 @@ fun NavigationComponent(
     ) {
         composable(clockRoute) {
             ClockPage(
-                viewModel = clockPageViewModel
+                viewModelState = clockPageViewModelState
             )
         }
         composable(listRoute) {

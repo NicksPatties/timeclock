@@ -42,26 +42,26 @@ class ClockPageViewModel (
     private val userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
 
+    val state: ClockPageViewModelState = ClockPageViewModelState()
+
     val autofillTaskNames = Transformations.map(timeClockEvents) { events ->
-        events.map {
+        state.autofillTaskNames = events.map {
             it.name
         }.toSet()
+        state.autofillTaskNames
     }
 
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
-
     private var currentTimeClockEvent : TimeClockEvent? = null
-    var taskTextFieldValue by mutableStateOf(TextFieldValue(text = ""))
-    var clockButtonEnabled by mutableStateOf(false)
-    var isClockRunning by mutableStateOf(false)
-    var dropdownExpanded by mutableStateOf(false)
-    var currSeconds by mutableStateOf(0)
-    var filteredEventNames by mutableStateOf(listOf<String>())
+    private var currSeconds: Int = 0
+    private var countDownEndTime: Long = 0L
+    private var currCountDownSeconds: Int = 0
 
-    // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
-    private var dropdownClicked = false
     private val chronometer = Chronometer().apply {
         setOnChronometerTickListener { countUp() }
+    }
+    private val countDownChronometer = Chronometer().apply {
+        setOnChronometerTickListener { countDown() }
     }
 
     // alarm intent, used to notify the AlarmReceiver when an event is done recording
@@ -73,26 +73,8 @@ class ClockPageViewModel (
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    // notifications
-    private var notificationManager = getNotificationManager(getApplication())
-
-    // countdown specific variables
-    var batteryWarningDialogVisible by mutableStateOf(false)
-    var countDownTimerEnabled by mutableStateOf(false)
-    var countDownEndTime by mutableStateOf(0L)
-    var currCountDownSeconds by mutableStateOf(0)
-    private val defaultTextFieldValue = TextFieldValue(
-        text = "00",
-        selection = TextRange(0)
-    )
-    var hoursTextFieldValue by mutableStateOf(defaultTextFieldValue)
-    var minutesTextFieldValue by mutableStateOf(defaultTextFieldValue)
-    var secondsTextFieldValue by mutableStateOf(defaultTextFieldValue)
-    private val countDownChronometer = Chronometer().apply {
-        setOnChronometerTickListener { countDown() }
-    }
-
     // Android system managers
+    private var notificationManager = getNotificationManager(getApplication())
     private val alarmManager =
         getApplication<Application>().getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val powerManager =
@@ -100,11 +82,19 @@ class ClockPageViewModel (
 
     // only occurs when the class is created, not when moving from view to view
     init {
+        // state function declarations
+        state.batteryWarningConfirmFunction = this::goToBatterySettings
+        state.batteryWarningDismissFunction = this::hideBatteryWarningModal
+        state.onTaskNameIconClick = this::switchCountDownTimer
+        state.onTimerAnimationFinish = this::resetCurrSeconds
+        state.onClockStart = this::startClock
+        state.onClockStop = this::stopClock
+
         notificationManager.cancelAll()
 
         viewModelScope.launch {
             val preferences = userPreferencesFlow.first()
-            countDownTimerEnabled = preferences.countDownEnabled
+            state.countDownTimerEnabled = preferences.countDownEnabled
             countDownEndTime = preferences.countDownEndTime
 
             // initialize the currentEvent in case the app was closed while counting
@@ -113,20 +103,18 @@ class ClockPageViewModel (
             // if there's an event that's already running, populate the UI with that event's data
             if (currEvent != null) {
                 currentTimeClockEvent = currEvent
-                taskTextFieldValue = TextFieldValue(text = currEvent.name)
-                clockButtonEnabled = true
-                isClockRunning = true
+                state.taskTextFieldValue = TextFieldValue(text = currEvent.name)
+                state.isClockRunning = true
                 val startTimeDelay = findEventStartTimeDelay(currEvent.startTime)
-                if (countDownTimerEnabled) {
+                if (state.countDownTimerEnabled) {
                     // if the countDown end has already passed, save the event and reset clock
                     if (countDownEndTime < System.currentTimeMillis()) {
                         currEvent.endTime = countDownEndTime
                         database.update(currEvent)
                         currentTimeClockEvent = null
-                        clockButtonEnabled = false
                     } else { // init countdown
                         currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
-                        updateCountDownTextFieldValues(currCountDownSeconds)
+                        state.updateCountDownTextFieldValues(currCountDownSeconds)
                         countDownChronometer.start(startTimeDelay)
                     }
                 } else {
@@ -151,58 +139,6 @@ class ClockPageViewModel (
         }
     }
 
-    private fun checkClockButtonEnabled(): Boolean {
-        val countDownClockIsZero =
-            hoursTextFieldValue.text.toInt() == 0 &&
-            minutesTextFieldValue.text.toInt() == 0 &&
-            secondsTextFieldValue.text.toInt() == 0
-        val enabled = if (countDownTimerEnabled) {
-            taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
-        } else {
-            taskTextFieldValue.text.isNotBlank()
-        }
-        return enabled
-    }
-
-    fun onTaskNameChange(tfv: TextFieldValue) {
-        if (dropdownClicked) {
-            dropdownClicked = false
-            return
-        }
-        taskTextFieldValue = tfv
-        val taskName = tfv.text
-        updateFilteredEventNames()
-        clockButtonEnabled = checkClockButtonEnabled()
-        dropdownExpanded = taskName.isNotBlank() && filteredEventNames.isNotEmpty()
-    }
-
-    fun onTaskNameDonePressed() {
-        dropdownExpanded = false
-    }
-
-    private fun updateFilteredEventNames() {
-        filteredEventNames = if (autofillTaskNames.value == null) {
-            listOf()
-        } else {
-            autofillTaskNames.value!!.filter {
-                it.contains(taskTextFieldValue.text)
-            }
-        }
-    }
-
-    fun onDismissDropdown() {
-        dropdownExpanded = false
-    }
-
-    fun onDropdownMenuItemClick(label: String) {
-        dropdownClicked = true
-        taskTextFieldValue = TextFieldValue(
-            text = label,
-            selection = TextRange(label.length)
-        )
-        dropdownExpanded = false
-    }
-
     fun switchCountDownTimer() {
         val shouldWarn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // can just check if the permission is set
@@ -212,19 +148,18 @@ class ClockPageViewModel (
             false
         }
 
-        if (!countDownTimerEnabled && shouldWarn) {
-            batteryWarningDialogVisible = true
+        if (!state.countDownTimerEnabled && shouldWarn) {
+            state.batteryWarningDialogVisible = true
         } else {
-            countDownTimerEnabled = !countDownTimerEnabled
-            clockButtonEnabled = checkClockButtonEnabled()
+            state.countDownTimerEnabled = !state.countDownTimerEnabled
             viewModelScope.launch {
-                userPreferencesRepository.updateCountDownEnabled(countDownTimerEnabled)
+                userPreferencesRepository.updateCountDownEnabled(state.countDownTimerEnabled)
             }
         }
     }
 
     fun hideBatteryWarningModal() {
-        batteryWarningDialogVisible = false
+        state.batteryWarningDialogVisible = false
     }
 
     /**
@@ -245,110 +180,11 @@ class ClockPageViewModel (
         hideBatteryWarningModal()
     }
 
-    fun onMinuteValueChange(value: TextFieldValue) {
-        minutesTextFieldValue = onMinuteAndSecondValueChange(value)
-    }
-
-    fun onSecondValueChange(value: TextFieldValue) {
-        secondsTextFieldValue = onMinuteAndSecondValueChange(value)
-    }
-
-    private fun onMinuteAndSecondValueChange(value: TextFieldValue): TextFieldValue {
-        val selectAllValue = TextFieldValue(
-            text = value.text,
-            selection = TextRange(0, value.text.length)
-        )
-        val cursorAtEnd = TextFieldValue(
-            text = value.text,
-            selection = TextRange(value.text.length)
-        )
-        return when (value.text.length) {
-            0 -> cursorAtEnd
-            1 -> {
-                if (value.text.toInt() >= 6) {
-                    selectAllValue
-                } else {
-                    cursorAtEnd
-                }
-            }
-            2 -> selectAllValue
-            else -> TextFieldValue()
-        }
-    }
-
-    fun onHourValueChange(value: TextFieldValue) {
-        val selectAllValue = TextFieldValue(
-            text = value.text,
-            selection = TextRange(0, value.text.length)
-        )
-        val cursorAtEnd = TextFieldValue(
-            text = value.text,
-            selection = TextRange(value.text.length)
-        )
-        hoursTextFieldValue = when (value.text.length) {
-            0 -> cursorAtEnd
-            1 -> cursorAtEnd
-            2 -> selectAllValue
-            else -> TextFieldValue()
-        }
-    }
-
-    private fun onTimerStringFocusChanged(
-        focusState: FocusState,
-        textFieldValue: TextFieldValue
-    ) : TextFieldValue {
-        clockButtonEnabled = checkClockButtonEnabled()
-        return if(focusState.isFocused) {
-            // select all text when focusing
-            TextFieldValue(
-                text = textFieldValue.text,
-                selection = TextRange(0, 2)
-            )
-        } else {
-            // format the digits when leaving focus and remove selection
-            TextFieldValue(
-                text = formatDigitsAfterLeavingFocus(textFieldValue.text),
-                selection = TextRange(0)
-            )
-        }
-    }
-
-    fun onHoursFocusChanged(focusState: FocusState) {
-        hoursTextFieldValue = onTimerStringFocusChanged(focusState, hoursTextFieldValue)
-    }
-
-    fun onMinutesFocusChanged(focusState: FocusState) {
-        minutesTextFieldValue = onTimerStringFocusChanged(focusState, minutesTextFieldValue)
-    }
-
-    fun onSecondsFocusChanged(focusState: FocusState) {
-        secondsTextFieldValue = onTimerStringFocusChanged(focusState, secondsTextFieldValue)
-    }
-
-    private fun formatDigitsAfterLeavingFocus(digits: String): String {
-        if (digits.isEmpty()) return "00"
-        if (digits.length > 1) return digits
-        return "0$digits"
-    }
-
-    private fun updateCountDownTextFieldValues(currSeconds: Int) {
-        val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
-        hoursTextFieldValue = TextFieldValue(
-            text = formatDigitsAfterLeavingFocus(hms.first.toString())
-        )
-        minutesTextFieldValue = TextFieldValue(
-            text = formatDigitsAfterLeavingFocus(hms.second.toString())
-        )
-        secondsTextFieldValue = TextFieldValue(
-            text = formatDigitsAfterLeavingFocus(hms.third.toString())
-        )
-    }
-
     private fun timerTextFieldValuesToSeconds(): Int {
         return convertHoursMinutesSecondsToSeconds(
-            hoursTextFieldValue.text.toInt(),
-            minutesTextFieldValue.text.toInt(),
-            secondsTextFieldValue.text.toInt()
+            state.hoursTextFieldValue.text.toInt(),
+            state.minutesTextFieldValue.text.toInt(),
+            state.secondsTextFieldValue.text.toInt()
         )
     }
 
@@ -356,16 +192,16 @@ class ClockPageViewModel (
         viewModelScope.launch {
             // create and save the new event
             val newEvent = TimeClockEvent(
-                name = taskTextFieldValue.text
+                name = state.taskTextFieldValue.text
             )
             database.insert(newEvent)
             currentTimeClockEvent = getCurrentEventFromDatabase()
-            isClockRunning = true
+            state.isClockRunning = true
             notificationManager.sendClockInProgressNotification(
                 getApplication(),
                 newEvent.name
             )
-            if (countDownTimerEnabled) {
+            if (state.countDownTimerEnabled) {
                 startCountDown(newEvent.name, newEvent.startTime)
             } else {
                 chronometer.start()
@@ -406,10 +242,10 @@ class ClockPageViewModel (
             // successfully saved! reset values to initial
             notificationManager.cancelClockInProgressNotification()
             currentTimeClockEvent = null
-            isClockRunning = false
+            state.isClockRunning = false
             val saved = getApplication<Application>().applicationContext
-                .getString(R.string.task_saved_toast, taskTextFieldValue.text)
-            if (countDownTimerEnabled) {
+                .getString(R.string.task_saved_toast, state.taskTextFieldValue.text)
+            if (state.countDownTimerEnabled) {
                 stopCountDown(tappedStopButton, saved)
             } else {
                 showToast(saved)
@@ -425,7 +261,6 @@ class ClockPageViewModel (
         countDownEndTime = 0L
         userPreferencesRepository.updateCountDownEndTime(countDownEndTime)
         currCountDownSeconds = 0
-        clockButtonEnabled = checkClockButtonEnabled()
     }
 
     private fun showToast(message: String) {
@@ -441,14 +276,15 @@ class ClockPageViewModel (
 
     private fun countUp() {
         currSeconds = calculateCurrSeconds(currentTimeClockEvent)
+        state.updateCurrSeconds(currSeconds)
     }
 
     private fun countDown() {
         currCountDownSeconds = getCountDownSeconds(
             countDownEndTime = countDownEndTime,
-            stopClockFunc = this::stopClock,
-            updateFields = this::updateCountDownTextFieldValues
+            stopClockFunc = this::stopClock
         )
+        state.updateCountDownTextFieldValues(currCountDownSeconds)
     }
 }
 
@@ -462,14 +298,210 @@ class ClockPageViewModel (
  */
 fun getCountDownSeconds(
     countDownEndTime: Long = 0L,
-    stopClockFunc: (Boolean) -> Unit = {},
-    updateFields: (Int) -> Unit = {}
+    stopClockFunc: (Boolean) -> Unit = {}
 ): Int {
     var currSeconds = calculateCurrCountDownSeconds(countDownEndTime)
     if(currSeconds <= 0) {
         stopClockFunc(false)
         currSeconds = 0
     }
-    updateFields(currSeconds)
     return currSeconds
+}
+
+/**
+ * These are the things that are passed directly into the ClockPage
+ * component. This doesn't contain things like activities, service
+ * managers, and so on. This allows us to test ClockPage component
+ * without needing to build the entire ViewModel
+ *
+ * @param taskTextFieldValue The text field value that appears in the TaskTextField component
+ * @param isClockRunning Determines if the clock button should say Start or Stop
+ * @param dropdownExpanded The dropdown below the TaskTextField component is open or closed
+ * @param currSeconds The current amount of seconds that have been counted up, displayed in the
+ * TimerText component
+ * @param batteryWarningDialogVisible Determines if the battery warning dialog is visible
+ * @param countDownTimerEnabled Determines if the count down timer should be visible, allowing
+ * the user to set a time that an event will last.
+ * @param countDownEndTime Not sure if it'll be here in the future...
+ * @param currCountDownSeconds Not sure if this'll be here either...
+ * @param hoursTextFieldValue The text in the hours section of the EditTimerTextField
+ * @param minutesTextFieldValue The text in the minutes section of the EditTimerTextField. Should
+ * not exceed 59
+ * @param secondsTextFieldValue The text in the minutes section of the EditTimerTextField. Should
+ * not exceed 59
+ * @param batteryWarningConfirmFunction Fires when tapping confirm button in BatteryWarningDialog
+ * @param batteryWarningDismissFunction Fires when tapping outside the BatteryWarningDialog
+ * @param onTaskNameIconClick Fires when the icon in the TaskTextField is pushed. Changes from
+ * count up to count down mode.
+ * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by tapping outside it
+ * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting recording
+ * @param onClockStart Fires when the start button is pressed
+ * @param onClockStop Fires when the stop button is pressed
+ */
+class ClockPageViewModelState(
+    taskTextFieldValue: TextFieldValue = TextFieldValue(""),
+    autofillTaskNames: Set<String> = setOf(),
+    isClockRunning: Boolean = false,
+    dropdownExpanded: Boolean = false,
+    currSeconds: Int = 0,
+    batteryWarningDialogVisible: Boolean = false,
+    countDownTimerEnabled: Boolean = false,
+    hoursTextFieldValue: TextFieldValue = TextFieldValue(
+        text = "00",
+        selection = TextRange(0)
+    ),
+    minutesTextFieldValue: TextFieldValue = TextFieldValue(
+        text = "00",
+        selection = TextRange(0)
+    ),
+    secondsTextFieldValue: TextFieldValue = TextFieldValue(
+        text = "00",
+        selection = TextRange(0)
+    ),
+    var batteryWarningConfirmFunction: () -> Unit = {},
+    var batteryWarningDismissFunction: () -> Unit = {},
+    var onTaskNameIconClick: () -> Unit = {},
+    var onDismissDropdown: () -> Unit = {},
+    var onTimerAnimationFinish: () -> Unit = {},
+    var onClockStart: () -> Unit = {},
+    var onClockStop: (Boolean) -> Unit = { _ ->},
+) {
+    val clockButtonEnabled: Boolean
+        get() {
+            return if (countDownTimerEnabled) {
+                val countDownClockIsZero =
+                    hoursTextFieldValue.text.toInt() == 0 &&
+                            minutesTextFieldValue.text.toInt() == 0 &&
+                            secondsTextFieldValue.text.toInt() == 0
+                taskTextFieldValue.text.isNotBlank() && !countDownClockIsZero
+            } else {
+                taskTextFieldValue.text.isNotBlank()
+            }
+        }
+    val filteredEventNames: List<String>
+        get() {
+            return autofillTaskNames.filter {
+                it.contains(taskTextFieldValue.text)
+            }
+        }
+    var taskTextFieldValue by mutableStateOf(taskTextFieldValue)
+    var autofillTaskNames by mutableStateOf(autofillTaskNames)
+    var isClockRunning by mutableStateOf(isClockRunning)
+    var dropdownExpanded by mutableStateOf(dropdownExpanded)
+    // could use a TextFieldValue here, but it's easier to update the timer component with seconds
+    var currSeconds by mutableStateOf(currSeconds)
+    var batteryWarningDialogVisible by mutableStateOf(batteryWarningDialogVisible)
+    var countDownTimerEnabled by mutableStateOf(countDownTimerEnabled)
+    var hoursTextFieldValue by mutableStateOf(hoursTextFieldValue)
+    var minutesTextFieldValue by mutableStateOf(minutesTextFieldValue)
+    var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
+    // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
+    var dropdownClicked = false
+
+    fun onTaskNameChange(tfv: TextFieldValue) {
+        if (dropdownClicked) {
+            dropdownClicked = false
+            return
+        }
+        taskTextFieldValue = tfv
+        val taskName = tfv.text
+        dropdownExpanded = taskName.isNotBlank() && filteredEventNames.isNotEmpty()
+    }
+
+    fun dismissDropdown() {
+        dropdownExpanded = false
+    }
+
+    fun onDropdownMenuItemClick(label: String) {
+        dropdownClicked = true
+        taskTextFieldValue = TextFieldValue(
+            text = label,
+            selection = TextRange(label.length)
+        )
+        dropdownExpanded = false
+    }
+
+    fun onMinutesValueChanged(value: TextFieldValue) {
+        minutesTextFieldValue = onMinutesOrSecondsValueChanged(value)
+    }
+
+    fun onSecondsValueChanged(value: TextFieldValue) {
+        secondsTextFieldValue = onMinutesOrSecondsValueChanged(value)
+    }
+
+    private fun onMinutesOrSecondsValueChanged(value: TextFieldValue): TextFieldValue {
+        return when (value.text.length) {
+            0 -> cursorAtEnd(value)
+            1 -> {
+                if (value.text.toInt() >= 6) {
+                    selectAllValue(value)
+                } else {
+                    cursorAtEnd(value)
+                }
+            }
+            2 -> selectAllValue(value)
+            else -> TextFieldValue()
+        }
+    }
+
+    fun onHoursValueChanged(value: TextFieldValue) {
+        hoursTextFieldValue = when (value.text.length) {
+            0 -> cursorAtEnd(value)
+            1 -> cursorAtEnd(value)
+            2 -> selectAllValue(value)
+            else -> TextFieldValue()
+        }
+    }
+
+    private fun onTimerStringFocusChanged(
+        focusState: FocusState,
+        textFieldValue: TextFieldValue
+    ) : TextFieldValue {
+        return if(focusState.isFocused) {
+            // select all text when focusing
+            selectAllValue(textFieldValue)
+        } else {
+            // format the digits when leaving focus and remove selection
+            TextFieldValue(
+                text = formatDigitsAfterLeavingFocus(textFieldValue.text),
+                selection = TextRange(0)
+            )
+        }
+    }
+
+    fun onHoursFocusChanged(focusState: FocusState) {
+        hoursTextFieldValue = onTimerStringFocusChanged(focusState, hoursTextFieldValue)
+    }
+
+    fun onMinutesFocusChanged(focusState: FocusState) {
+        minutesTextFieldValue = onTimerStringFocusChanged(focusState, minutesTextFieldValue)
+    }
+
+    fun onSecondsFocusChanged(focusState: FocusState) {
+        secondsTextFieldValue = onTimerStringFocusChanged(focusState, secondsTextFieldValue)
+    }
+
+    fun updateCurrSeconds(seconds: Int) {
+        currSeconds = seconds
+    }
+
+    // TODO should be private, but is dependent on reloading event details
+    fun updateCountDownTextFieldValues(currSeconds: Int) {
+        val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
+        hoursTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.first.toString())
+        )
+        minutesTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.second.toString())
+        )
+        secondsTextFieldValue = TextFieldValue(
+            text = formatDigitsAfterLeavingFocus(hms.third.toString())
+        )
+    }
+
+    private fun formatDigitsAfterLeavingFocus(digits: String): String {
+        if (digits.isEmpty()) return "00"
+        if (digits.length > 1) return digits
+        return "0$digits"
+    }
 }

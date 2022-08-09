@@ -6,72 +6,84 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import com.nickspatties.timeclock.ui.viewmodel.ClockPageViewModel
+import com.nickspatties.timeclock.R
 
 const val TAG = "EditTimerTextField"
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EditTimerTextField(
-    // TODO: just pass TextFieldValues into this component. No need to pass the current seconds down
-    viewModel: ClockPageViewModel,
-    hoursTextFieldValue: TextFieldValue = TextFieldValue(),
-    minutesTextFieldValue: TextFieldValue = TextFieldValue(),
-    secondsTextFieldValue: TextFieldValue = TextFieldValue(),
+    hoursTextFieldValue: TextFieldValue = TextFieldValue("00"),
+    minutesTextFieldValue: TextFieldValue = TextFieldValue("00"),
+    secondsTextFieldValue: TextFieldValue = TextFieldValue("00"),
+    divider: String = stringResource(id = R.string.timer_divider),
     clickable: Boolean = true,
-    focusManager: FocusManager
+    onHoursValueChanged: (TextFieldValue) -> Unit = { _ -> },
+    onMinutesValueChanged: (TextFieldValue) -> Unit = { _ -> },
+    onSecondsValueChanged: (TextFieldValue) -> Unit = { _ -> },
+    onHoursFocusChanged: (FocusState) -> Unit = { _ -> },
+    onMinutesFocusChanged: (FocusState) -> Unit = { _ -> },
+    onSecondsFocusChanged: (FocusState) -> Unit = { _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
     Row {
         TimerTextField(
-            modifier = Modifier.onFocusChanged {
-                viewModel.onHoursFocusChanged(it)
-            },
+            modifier = Modifier
+                .testTag("TimerTextField_Hours")
+                .onFocusChanged {
+                    onHoursFocusChanged(it)
+                },
             textValue = hoursTextFieldValue,
             enabled = clickable,
             keyboardController = keyboardController,
             imeAction = ImeAction.Next,
             focusManager = focusManager,
-            onValueChange = { viewModel.onHourValueChange(it) }
+            onValueChange = onHoursValueChanged
         )
         Text(
-            text = ":",
+            text = divider,
             style = MaterialTheme.typography.h2
         )
         TimerTextField(
-            modifier = Modifier.onFocusChanged {
-                viewModel.onMinutesFocusChanged(it)
-            },
+            modifier = Modifier
+                .testTag("TimerTextField_Minutes")
+                .onFocusChanged {
+                    onMinutesFocusChanged(it)
+                },
             textValue = minutesTextFieldValue,
             enabled = clickable,
             keyboardController = keyboardController,
             imeAction = ImeAction.Next,
             focusManager = focusManager,
-            onValueChange = { viewModel.onMinuteValueChange(it)}
+            onValueChange = onMinutesValueChanged
         )
         Text(
-            text = ":",
+            text = divider,
             style = MaterialTheme.typography.h2
         )
         TimerTextField(
-            modifier = Modifier.onFocusChanged {
-                viewModel.onSecondsFocusChanged(it)
-            },
+            modifier = Modifier
+                .testTag("TimerTextField_Seconds")
+                .onFocusChanged {
+                    onSecondsFocusChanged(it)
+                },
             textValue = secondsTextFieldValue,
             enabled = clickable,
             keyboardController = keyboardController,
             imeAction = ImeAction.Done,
             focusManager = focusManager,
-            onValueChange = { viewModel.onSecondValueChange(it) }
+            onValueChange = onSecondsValueChanged
         )
     }
 }
@@ -79,5 +91,5 @@ fun EditTimerTextField(
 @Preview
 @Composable
 fun EditTimerTextFieldPreview() {
-    //EditTimerTextField()
+    EditTimerTextField()
 }

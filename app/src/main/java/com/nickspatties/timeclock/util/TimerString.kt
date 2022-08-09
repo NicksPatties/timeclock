@@ -1,5 +1,7 @@
 package com.nickspatties.timeclock.util
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import com.nickspatties.timeclock.data.TimeClockEvent
 import java.util.*
 
@@ -72,4 +74,18 @@ fun decorateMillisToTimeString(millis: Long, timeZone: TimeZone = TimeZone.getDe
     val hours = if (calHour == 0) 12 else calHour
     val minutes = cal.get(Calendar.MINUTE)
     return "%d:%02d %s".format(hours, minutes, amPmString)
+}
+
+fun selectAllValue(value: TextFieldValue): TextFieldValue {
+    return TextFieldValue(
+        text = value.text,
+        selection = TextRange(0, value.text.length)
+    )
+}
+
+fun cursorAtEnd(value: TextFieldValue): TextFieldValue {
+    return TextFieldValue(
+        text = value.text,
+        selection = TextRange(value.text.length)
+    )
 }

@@ -15,7 +15,7 @@ fun TimerText(
     modifier: Modifier = Modifier,
     isRunning: Boolean,
     currSeconds: Int,
-    finishedListener: () -> Unit = { }
+    finishedListener: () -> Unit = {}
 ) {
     val alpha: Float by animateFloatAsState(
         targetValue = if (isRunning) 1f else 0f,

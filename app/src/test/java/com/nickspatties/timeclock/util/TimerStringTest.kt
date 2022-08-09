@@ -1,5 +1,7 @@
 package com.nickspatties.timeclock.util
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import com.google.common.truth.Truth.assertThat
 import com.nickspatties.timeclock.data.TimeClockEvent
 import junitparams.JUnitParamsRunner
@@ -40,5 +42,31 @@ class TimerStringTest {
     fun decorateMillisToTimeString_returnsCorrectValue(millis: Long, expectedString: String) {
         assertThat(decorateMillisToTimeString(millis, TimeZone.getTimeZone("UTC")))
             .isEqualTo(expectedString)
+    }
+
+    @Test
+    fun selectAllValue_returnsSameTextButWithAllTextSelected() {
+        val input = TextFieldValue(
+            text = "1"
+        )
+        assertThat(selectAllValue(input)).isEqualTo(
+            TextFieldValue(
+                text = "1",
+                selection = TextRange(0, 1)
+            )
+        )
+    }
+
+    @Test
+    fun cursorAtEnd_returnsSameTextButWithCursorAtEnd() {
+        val input = TextFieldValue(
+            text = "1"
+        )
+        assertThat(cursorAtEnd(input)).isEqualTo(
+            TextFieldValue(
+                text = "1",
+                selection = TextRange(1)
+            )
+        )
     }
 }
