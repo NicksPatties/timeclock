@@ -84,7 +84,6 @@ class ClockPageViewModel (
     init {
         // state function declarations
         state.batteryWarningConfirmFunction = this::goToBatterySettings
-        state.batteryWarningDismissFunction = this::hideBatteryWarningModal
         state.onTaskNameIconClick = this::switchCountDownTimer
         state.onTimerAnimationFinish = this::resetCurrSeconds
         state.onClockStart = this::startClock
@@ -158,9 +157,7 @@ class ClockPageViewModel (
         }
     }
 
-    fun hideBatteryWarningModal() {
-        state.batteryWarningDialogVisible = false
-    }
+
 
     /**
      * Allow user to give TimeClock permission to run in the background unrestricted, which
@@ -177,7 +174,7 @@ class ClockPageViewModel (
                 Uri.parse("package:" + getApplication<Application?>().packageName)
             startActivity(getApplication(), intentBatteryUsage, null)
         }
-        hideBatteryWarningModal()
+        state.dismissBatteryWarningDialog()
     }
 
     private fun timerTextFieldValuesToSeconds(): Int {
@@ -330,7 +327,7 @@ fun getCountDownSeconds(
  * @param secondsTextFieldValue The text in the minutes section of the EditTimerTextField. Should
  * not exceed 59
  * @param batteryWarningConfirmFunction Fires when tapping confirm button in BatteryWarningDialog
- * @param batteryWarningDismissFunction Fires when tapping outside the BatteryWarningDialog
+ * @param dismissBatteryWarningDialog Fires when tapping outside the BatteryWarningDialog
  * @param onTaskNameIconClick Fires when the icon in the TaskTextField is pushed. Changes from
  * count up to count down mode.
  * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by tapping outside it
@@ -359,7 +356,6 @@ class ClockPageViewModelState(
         selection = TextRange(0)
     ),
     var batteryWarningConfirmFunction: () -> Unit = {},
-    var batteryWarningDismissFunction: () -> Unit = {},
     var onTaskNameIconClick: () -> Unit = {},
     var onDismissDropdown: () -> Unit = {},
     var onTimerAnimationFinish: () -> Unit = {},
@@ -397,6 +393,10 @@ class ClockPageViewModelState(
     var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
     // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
     var dropdownClicked = false
+
+    fun dismissBatteryWarningDialog() {
+        batteryWarningDialogVisible = false
+    }
 
     fun onTaskNameChange(tfv: TextFieldValue) {
         if (dropdownClicked) {

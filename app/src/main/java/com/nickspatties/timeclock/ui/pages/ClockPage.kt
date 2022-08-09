@@ -30,7 +30,7 @@ fun ClockPage(
     if (viewModelState.batteryWarningDialogVisible) {
         BatteryWarningDialog(
             confirmFunction = viewModelState.batteryWarningConfirmFunction,
-            dismissFunction = viewModelState.batteryWarningDismissFunction
+            dismissFunction = viewModelState::dismissBatteryWarningDialog
         )
     }
 
@@ -137,5 +137,15 @@ fun ClockPage(
 fun ClockPage_Initial() {
     ClockPage(
         viewModelState = ClockPageViewModelState()
+    )
+}
+
+@Composable
+@Preview
+fun ClockPage_batteryDialogVisible() {
+    ClockPage(
+        viewModelState = ClockPageViewModelState(
+            batteryWarningDialogVisible = true
+        )
     )
 }

@@ -243,4 +243,13 @@ class ClockPageViewModelStateTest {
             )
         )
     }
+
+    @Test
+    fun dismissBatteryWarningDialog_dialogNotVisibleAfterDismiss() {
+        val testState = ClockPageViewModelState(
+            batteryWarningDialogVisible = true
+        )
+        testState.dismissBatteryWarningDialog()
+        assertThat(testState.batteryWarningDialogVisible).isFalse()
+    }
 }
