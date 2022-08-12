@@ -29,12 +29,12 @@ fun ClockPage(
 
     if (viewModelState.batteryWarningDialogVisible) {
         BatteryWarningDialog(
-            confirmFunction = viewModelState.batteryWarningConfirmFunction,
-            dismissFunction = viewModelState.batteryWarningDismissFunction
+            confirmFunction = viewModelState::confirmBatteryWarningDialog,
+            dismissFunction = viewModelState::dismissBatteryWarningDialog
         )
     }
 
-    Scaffold() {
+    Scaffold {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -63,7 +63,7 @@ fun ClockPage(
                     },
                     keyboardController = keyboardController,
                     countdownTimerEnabled = viewModelState.countDownTimerEnabled,
-                    onIconClick = viewModelState.onTaskNameIconClick
+                    onIconClick = viewModelState::onTaskTextFieldIconClick
                 )
 
                 DropdownMenu(
@@ -137,5 +137,15 @@ fun ClockPage(
 fun ClockPage_Initial() {
     ClockPage(
         viewModelState = ClockPageViewModelState()
+    )
+}
+
+@Composable
+@Preview
+fun ClockPage_batteryDialogVisible() {
+    ClockPage(
+        viewModelState = ClockPageViewModelState(
+            batteryWarningDialogVisible = true
+        )
     )
 }

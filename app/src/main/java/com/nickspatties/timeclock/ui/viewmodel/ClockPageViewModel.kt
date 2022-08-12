@@ -83,9 +83,9 @@ class ClockPageViewModel (
     // only occurs when the class is created, not when moving from view to view
     init {
         // state function declarations
-        state.batteryWarningConfirmFunction = this::goToBatterySettings
-        state.batteryWarningDismissFunction = this::hideBatteryWarningModal
-        state.onTaskNameIconClick = this::switchCountDownTimer
+        state.checkBatteryOptimizationSettings = this::checkBatteryOptimizationSettings
+        state.startBatteryManagementActivity = this::goToBatterySettings
+        state.saveCountDownTimerEnabledValue = this::saveCountDownTimerEnabled
         state.onTimerAnimationFinish = this::resetCurrSeconds
         state.onClockStart = this::startClock
         state.onClockStop = this::stopClock
@@ -139,27 +139,20 @@ class ClockPageViewModel (
         }
     }
 
-    fun switchCountDownTimer() {
-        val shouldWarn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    private fun checkBatteryOptimizationSettings() : Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // can just check if the permission is set
             !powerManager.isIgnoringBatteryOptimizations(getApplication<Application?>().packageName)
         } else {
             // is unable to change the battery permission for versions below M, so only false
             false
         }
-
-        if (!state.countDownTimerEnabled && shouldWarn) {
-            state.batteryWarningDialogVisible = true
-        } else {
-            state.countDownTimerEnabled = !state.countDownTimerEnabled
-            viewModelScope.launch {
-                userPreferencesRepository.updateCountDownEnabled(state.countDownTimerEnabled)
-            }
-        }
     }
 
-    fun hideBatteryWarningModal() {
-        state.batteryWarningDialogVisible = false
+    private fun saveCountDownTimerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateCountDownEnabled(enabled)
+        }
     }
 
     /**
@@ -177,7 +170,6 @@ class ClockPageViewModel (
                 Uri.parse("package:" + getApplication<Application?>().packageName)
             startActivity(getApplication(), intentBatteryUsage, null)
         }
-        hideBatteryWarningModal()
     }
 
     private fun timerTextFieldValuesToSeconds(): Int {
@@ -322,19 +314,20 @@ fun getCountDownSeconds(
  * @param batteryWarningDialogVisible Determines if the battery warning dialog is visible
  * @param countDownTimerEnabled Determines if the count down timer should be visible, allowing
  * the user to set a time that an event will last.
- * @param countDownEndTime Not sure if it'll be here in the future...
- * @param currCountDownSeconds Not sure if this'll be here either...
  * @param hoursTextFieldValue The text in the hours section of the EditTimerTextField
  * @param minutesTextFieldValue The text in the minutes section of the EditTimerTextField. Should
  * not exceed 59
  * @param secondsTextFieldValue The text in the minutes section of the EditTimerTextField. Should
  * not exceed 59
- * @param batteryWarningConfirmFunction Fires when tapping confirm button in BatteryWarningDialog
- * @param batteryWarningDismissFunction Fires when tapping outside the BatteryWarningDialog
- * @param onTaskNameIconClick Fires when the icon in the TaskTextField is pushed. Changes from
- * count up to count down mode.
- * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by tapping outside it
- * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting recording
+ * @param checkBatteryOptimizationSettings Verifies whether or not the TimeClock has unrestricted
+ * battery permission. If it doesn't, then the battery warning dialog should appear.
+ * @param startBatteryManagementActivity Starts battery management activity
+ * @param saveCountDownTimerEnabledValue Saves the countDownTimerEnabled UserPreference variable, so
+ * the count down timer's visibility persists on activity recreation
+ * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by
+ * tapping outside it
+ * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting
+ * recording
  * @param onClockStart Fires when the start button is pressed
  * @param onClockStop Fires when the stop button is pressed
  */
@@ -358,9 +351,9 @@ class ClockPageViewModelState(
         text = "00",
         selection = TextRange(0)
     ),
-    var batteryWarningConfirmFunction: () -> Unit = {},
-    var batteryWarningDismissFunction: () -> Unit = {},
-    var onTaskNameIconClick: () -> Unit = {},
+    var checkBatteryOptimizationSettings: () -> Boolean = {false},
+    var startBatteryManagementActivity: () -> Unit = {},
+    var saveCountDownTimerEnabledValue: (Boolean) -> Unit = {_ -> },
     var onDismissDropdown: () -> Unit = {},
     var onTimerAnimationFinish: () -> Unit = {},
     var onClockStart: () -> Unit = {},
@@ -397,6 +390,25 @@ class ClockPageViewModelState(
     var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
     // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
     var dropdownClicked = false
+
+    fun dismissBatteryWarningDialog() {
+        batteryWarningDialogVisible = false
+    }
+
+    fun confirmBatteryWarningDialog() {
+        startBatteryManagementActivity()
+        batteryWarningDialogVisible = false
+    }
+
+    fun onTaskTextFieldIconClick() {
+        val shouldWarn = checkBatteryOptimizationSettings()
+        if (!countDownTimerEnabled && shouldWarn) {
+            batteryWarningDialogVisible = true
+        } else {
+            countDownTimerEnabled = !countDownTimerEnabled
+            saveCountDownTimerEnabledValue(countDownTimerEnabled)
+        }
+    }
 
     fun onTaskNameChange(tfv: TextFieldValue) {
         if (dropdownClicked) {

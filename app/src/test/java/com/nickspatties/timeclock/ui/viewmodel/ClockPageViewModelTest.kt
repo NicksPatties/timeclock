@@ -243,4 +243,50 @@ class ClockPageViewModelStateTest {
             )
         )
     }
+
+    @Test
+    fun confirmBatteryWarningDialog_callsStartBatteryManagementActivityFunction() {
+        var counter = 0
+        val testState = ClockPageViewModelState(
+            batteryWarningDialogVisible = true,
+            startBatteryManagementActivity = {
+                counter++
+            }
+        )
+        testState.confirmBatteryWarningDialog()
+        assertThat(counter).isEqualTo(1)
+        assertThat(testState.batteryWarningDialogVisible).isFalse()
+    }
+
+    @Test
+    fun dismissBatteryWarningDialog_dialogNotVisibleAfterDismiss() {
+        val testState = ClockPageViewModelState(
+            batteryWarningDialogVisible = true
+        )
+        testState.dismissBatteryWarningDialog()
+        assertThat(testState.batteryWarningDialogVisible).isFalse()
+    }
+
+    @Test
+    fun onTaskTextFieldIconClick_switchesCountDownTimerEnabled() {
+        var counter = 0
+        val testState = ClockPageViewModelState(
+            countDownTimerEnabled = false,
+            saveCountDownTimerEnabledValue = { counter++ }
+        )
+        testState.onTaskTextFieldIconClick()
+        assertThat(testState.countDownTimerEnabled).isTrue()
+        assertThat(counter).isEqualTo(1) // saveCountDownTimerEnabled has been called
+    }
+
+    @Test
+    fun onTaskTextFieldIconClick_shouldWarnIfBatterySettingsNotOptimized() {
+        val testState = ClockPageViewModelState(
+            checkBatteryOptimizationSettings = { true },
+            countDownTimerEnabled = false
+        )
+        testState.onTaskTextFieldIconClick()
+        assertThat(testState.countDownTimerEnabled).isFalse()
+        assertThat(testState.batteryWarningDialogVisible).isTrue()
+    }
 }
