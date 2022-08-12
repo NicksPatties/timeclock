@@ -322,6 +322,8 @@ fun getCountDownSeconds(
  * @param checkBatteryOptimizationSettings Verifies whether or not the TimeClock has unrestricted
  * battery permission. If it doesn't, then the battery warning dialog should appear.
  * @param startBatteryManagementActivity Starts battery management activity
+ * @param saveCountDownTimerEnabledValue Saves the countDownTimerEnabled UserPreference variable, so
+ * the count down timer's visibility persists on activity recreation
  * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by
  * tapping outside it
  * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting
