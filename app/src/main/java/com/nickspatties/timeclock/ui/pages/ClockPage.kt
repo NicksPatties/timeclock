@@ -34,7 +34,7 @@ fun ClockPage(
         )
     }
 
-    Scaffold() {
+    Scaffold {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -63,7 +63,7 @@ fun ClockPage(
                     },
                     keyboardController = keyboardController,
                     countdownTimerEnabled = viewModelState.countDownTimerEnabled,
-                    onIconClick = viewModelState.onTaskNameIconClick
+                    onIconClick = viewModelState::onTaskTextFieldIconClick
                 )
 
                 DropdownMenu(

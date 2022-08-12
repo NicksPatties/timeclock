@@ -47,6 +47,44 @@ class ClockPageTest {
     }
 
     @Test
+    fun taskNameIcon_countDownTimerAppears() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(
+                    viewModelState = ClockPageViewModelState()
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField_IconButton").performClick()
+        composeTestRule.onNodeWithTag("TimerTextField_Hours")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+        composeTestRule.onNodeWithTag("TimerTextField_Minutes")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+        composeTestRule.onNodeWithTag("TimerTextField_Seconds")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+    }
+
+    @Test
+    fun taskNameIcon_countDownTimerDisappearsIfAlreadyEnabled() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        countDownTimerEnabled = true
+                    )
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField_IconButton").performClick()
+        composeTestRule.onNodeWithTag("TimerTextField_Hours").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TimerTextField_Minutes").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TimerTextField_Seconds").assertDoesNotExist()
+    }
+
+    @Test
     fun taskNameDropdown_dropdownAppearsAndTaskFillsInWhenLabelIsClicked() {
         composeTestRule.setContent {
             TimeClockTheme {
