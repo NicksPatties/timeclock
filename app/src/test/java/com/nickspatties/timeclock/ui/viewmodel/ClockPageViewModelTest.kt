@@ -289,4 +289,34 @@ class ClockPageViewModelStateTest {
         assertThat(testState.countDownTimerEnabled).isFalse()
         assertThat(testState.batteryWarningDialogVisible).isTrue()
     }
+
+    @Test
+    fun onClockStart_worksAsIntended() {
+        var saveOnStartCounter = 0
+        var saveOnStopCounter = 0
+        val testState = ClockPageViewModelState(
+            saveEventDataOnStart = { saveOnStartCounter++ },
+            saveEventDataOnStop = { saveOnStopCounter++ },
+            currSeconds = 10
+        )
+        testState.onClockStart()
+        assertThat(testState.isClockRunning).isTrue()
+        assertThat(testState.currSeconds).isEqualTo(0)
+        assertThat(saveOnStartCounter).isEqualTo(1)
+        assertThat(saveOnStopCounter).isEqualTo(0)
+    }
+
+    @Test
+    fun onClockStop_worksAsIntended() {
+        var saveOnStartCounter = 0
+        var saveOnStopCounter = 0
+        val testState = ClockPageViewModelState(
+            saveEventDataOnStart = { saveOnStartCounter++ },
+            saveEventDataOnStop = { saveOnStopCounter++ }
+        )
+        testState.onClockStop()
+        assertThat(testState.isClockRunning).isFalse()
+        assertThat(saveOnStartCounter).isEqualTo(0)
+        assertThat(saveOnStopCounter).isEqualTo(1)
+    }
 }

@@ -30,15 +30,15 @@ import com.nickspatties.timeclock.data.TimeClockEventDao
 import com.nickspatties.timeclock.data.UserPreferencesRepository
 import com.nickspatties.timeclock.receiver.AlarmReceiver
 import com.nickspatties.timeclock.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 const val TAG = "ClockPageViewModel"
 
 class ClockPageViewModel (
     application: Application,
     private val database: TimeClockEventDao,
-    private val timeClockEvents: LiveData<List<TimeClockEvent>>,
+    timeClockEvents: LiveData<List<TimeClockEvent>>,
     private val userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
 
@@ -53,9 +53,7 @@ class ClockPageViewModel (
 
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
     private var currentTimeClockEvent : TimeClockEvent? = null
-    private var currSeconds: Int = 0
     private var countDownEndTime: Long = 0L
-    private var currCountDownSeconds: Int = 0
 
     private val chronometer = Chronometer().apply {
         setOnChronometerTickListener { countUp() }
@@ -86,9 +84,8 @@ class ClockPageViewModel (
         state.checkBatteryOptimizationSettings = this::checkBatteryOptimizationSettings
         state.startBatteryManagementActivity = this::goToBatterySettings
         state.saveCountDownTimerEnabledValue = this::saveCountDownTimerEnabled
-        state.onTimerAnimationFinish = this::resetCurrSeconds
-        state.onClockStart = this::startClock
-        state.onClockStop = this::stopClock
+        state.saveEventDataOnStart = this::startClock
+        state.saveEventDataOnStop = this::stopClock
 
         notificationManager.cancelAll()
 
@@ -113,12 +110,13 @@ class ClockPageViewModel (
                         database.update(currEvent)
                         currentTimeClockEvent = null
                     } else { // init countdown
-                        currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
-                        state.updateCountDownTextFieldValues(currCountDownSeconds)
+                        state.updateCountDownTextFieldValues(
+                            calculateCurrCountDownSeconds(countDownEndTime)
+                        )
                         countDownChronometer.start(startTimeDelay)
                     }
                 } else {
-                    currSeconds = calculateCurrSeconds(currEvent)
+                    state.currSeconds = calculateCurrSeconds(currEvent)
                     chronometer.start(startTimeDelay)
                 }
                 notificationManager.sendClockInProgressNotification(
@@ -180,7 +178,7 @@ class ClockPageViewModel (
         )
     }
 
-    fun startClock() {
+    private fun startClock() {
         viewModelScope.launch {
             // create and save the new event
             val newEvent = TimeClockEvent(
@@ -188,7 +186,6 @@ class ClockPageViewModel (
             )
             database.insert(newEvent)
             currentTimeClockEvent = getCurrentEventFromDatabase()
-            state.isClockRunning = true
             notificationManager.sendClockInProgressNotification(
                 getApplication(),
                 newEvent.name
@@ -210,7 +207,7 @@ class ClockPageViewModel (
             alarmIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        currCountDownSeconds = timerTextFieldValuesToSeconds()
+        val currCountDownSeconds = timerTextFieldValuesToSeconds()
         val upcomingEndTime = actualStartTime + currCountDownSeconds * MILLIS_PER_SECOND
         countDownEndTime = upcomingEndTime
         userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
@@ -224,7 +221,7 @@ class ClockPageViewModel (
         countDownChronometer.start()
     }
 
-    fun stopClock(tappedStopButton: Boolean) {
+    private fun stopClock(tappedStopButton: Boolean) {
         viewModelScope.launch {
             val finishedEvent = currentTimeClockEvent ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
@@ -234,7 +231,6 @@ class ClockPageViewModel (
             // successfully saved! reset values to initial
             notificationManager.cancelClockInProgressNotification()
             currentTimeClockEvent = null
-            state.isClockRunning = false
             val saved = getApplication<Application>().applicationContext
                 .getString(R.string.task_saved_toast, state.taskTextFieldValue.text)
             if (state.countDownTimerEnabled) {
@@ -252,27 +248,20 @@ class ClockPageViewModel (
         }
         countDownEndTime = 0L
         userPreferencesRepository.updateCountDownEndTime(countDownEndTime)
-        currCountDownSeconds = 0
+        state.isClockRunning = false
     }
 
     private fun showToast(message: String) {
         Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show()
     }
 
-    /**
-     * Executed when count up timer finishes the fadeOut animation
-     */
-    fun resetCurrSeconds() {
-        currSeconds = 0
-    }
-
     private fun countUp() {
-        currSeconds = calculateCurrSeconds(currentTimeClockEvent)
+        val currSeconds = calculateCurrSeconds(currentTimeClockEvent)
         state.updateCurrSeconds(currSeconds)
     }
 
     private fun countDown() {
-        currCountDownSeconds = getCountDownSeconds(
+        val currCountDownSeconds = getCountDownSeconds(
             countDownEndTime = countDownEndTime,
             stopClockFunc = this::stopClock
         )
@@ -324,12 +313,10 @@ fun getCountDownSeconds(
  * @param startBatteryManagementActivity Starts battery management activity
  * @param saveCountDownTimerEnabledValue Saves the countDownTimerEnabled UserPreference variable, so
  * the count down timer's visibility persists on activity recreation
- * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by
- * tapping outside it
  * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting
  * recording
- * @param onClockStart Fires when the start button is pressed
- * @param onClockStop Fires when the stop button is pressed
+ * @param saveEventDataOnStart Handles saving of event and repo data when the event starts
+ * @param saveEventDataOnStop Handles saving of event and repo data when the event ends
  */
 class ClockPageViewModelState(
     taskTextFieldValue: TextFieldValue = TextFieldValue(""),
@@ -354,10 +341,9 @@ class ClockPageViewModelState(
     var checkBatteryOptimizationSettings: () -> Boolean = {false},
     var startBatteryManagementActivity: () -> Unit = {},
     var saveCountDownTimerEnabledValue: (Boolean) -> Unit = {_ -> },
-    var onDismissDropdown: () -> Unit = {},
     var onTimerAnimationFinish: () -> Unit = {},
-    var onClockStart: () -> Unit = {},
-    var onClockStop: (Boolean) -> Unit = { _ ->},
+    var saveEventDataOnStart: () -> Unit = { },
+    var saveEventDataOnStop: (Boolean) -> Unit = { _ -> },
 ) {
     val clockButtonEnabled: Boolean
         get() {
@@ -389,7 +375,7 @@ class ClockPageViewModelState(
     var minutesTextFieldValue by mutableStateOf(minutesTextFieldValue)
     var secondsTextFieldValue by mutableStateOf(secondsTextFieldValue)
     // cheeky var used to prevent onTaskNameChange from being called after onDropdownMenuItemClick
-    var dropdownClicked = false
+    private var dropdownClicked = false
 
     fun dismissBatteryWarningDialog() {
         batteryWarningDialogVisible = false
@@ -497,7 +483,6 @@ class ClockPageViewModelState(
         currSeconds = seconds
     }
 
-    // TODO should be private, but is dependent on reloading event details
     fun updateCountDownTextFieldValues(currSeconds: Int) {
         val hms = convertSecondsToHoursMinutesSeconds(currSeconds)
         hoursTextFieldValue = TextFieldValue(
@@ -515,5 +500,16 @@ class ClockPageViewModelState(
         if (digits.isEmpty()) return "00"
         if (digits.length > 1) return digits
         return "0$digits"
+    }
+
+    fun onClockStart() {
+        saveEventDataOnStart()
+        currSeconds = 0
+        isClockRunning = true
+    }
+
+    fun onClockStop() {
+        saveEventDataOnStop(true)
+        isClockRunning = false
     }
 }

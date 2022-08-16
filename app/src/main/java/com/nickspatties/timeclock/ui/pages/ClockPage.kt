@@ -125,8 +125,8 @@ fun ClockPage(
                 modifier = Modifier.testTag("StartTimerButton"),
                 clockEnabled = viewModelState.clockButtonEnabled,
                 isRunning = viewModelState.isClockRunning,
-                startClock = viewModelState.onClockStart,
-                stopClock = viewModelState.onClockStop
+                startClock = viewModelState::onClockStart,
+                stopClock = viewModelState::onClockStop
             )
         }
     }
