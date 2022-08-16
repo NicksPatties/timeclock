@@ -19,7 +19,7 @@ fun StartTimerButton(
     clockEnabled: Boolean,
     isRunning: Boolean,
     startClock: () -> Unit,
-    stopClock: (Boolean) -> Unit
+    stopClock: () -> Unit
 ) {
     Button(
         modifier = modifier
@@ -27,7 +27,7 @@ fun StartTimerButton(
             .height(100.dp),
         shape = RoundedCornerShape(50.dp),
         enabled = clockEnabled,
-        onClick = { if (isRunning) stopClock(true) else startClock() }
+        onClick = { if (isRunning) stopClock() else startClock() }
     ) {
         Text(
             text = if (isRunning) stringResource(id = R.string.stop) else stringResource(id = R.string.start),
