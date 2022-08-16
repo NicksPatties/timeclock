@@ -38,7 +38,7 @@ const val TAG = "ClockPageViewModel"
 class ClockPageViewModel (
     application: Application,
     private val database: TimeClockEventDao,
-    private val timeClockEvents: LiveData<List<TimeClockEvent>>,
+    timeClockEvents: LiveData<List<TimeClockEvent>>,
     private val userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
 
@@ -53,9 +53,7 @@ class ClockPageViewModel (
 
     private val userPreferencesFlow = userPreferencesRepository.userPreferencesFlow
     private var currentTimeClockEvent : TimeClockEvent? = null
-    private var currSeconds: Int = 0
     private var countDownEndTime: Long = 0L
-    private var currCountDownSeconds: Int = 0
 
     private val chronometer = Chronometer().apply {
         setOnChronometerTickListener { countUp() }
@@ -112,12 +110,13 @@ class ClockPageViewModel (
                         database.update(currEvent)
                         currentTimeClockEvent = null
                     } else { // init countdown
-                        currCountDownSeconds = calculateCurrCountDownSeconds(countDownEndTime)
-                        state.updateCountDownTextFieldValues(currCountDownSeconds)
+                        state.updateCountDownTextFieldValues(
+                            calculateCurrCountDownSeconds(countDownEndTime)
+                        )
                         countDownChronometer.start(startTimeDelay)
                     }
                 } else {
-                    currSeconds = calculateCurrSeconds(currEvent)
+                    state.currSeconds = calculateCurrSeconds(currEvent)
                     chronometer.start(startTimeDelay)
                 }
                 notificationManager.sendClockInProgressNotification(
@@ -179,7 +178,7 @@ class ClockPageViewModel (
         )
     }
 
-    fun startClock() {
+    private fun startClock() {
         viewModelScope.launch {
             // create and save the new event
             val newEvent = TimeClockEvent(
@@ -208,7 +207,7 @@ class ClockPageViewModel (
             alarmIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        currCountDownSeconds = timerTextFieldValuesToSeconds()
+        val currCountDownSeconds = timerTextFieldValuesToSeconds()
         val upcomingEndTime = actualStartTime + currCountDownSeconds * MILLIS_PER_SECOND
         countDownEndTime = upcomingEndTime
         userPreferencesRepository.updateCountDownEndTime(upcomingEndTime) // save to memory in case app closes
@@ -222,7 +221,7 @@ class ClockPageViewModel (
         countDownChronometer.start()
     }
 
-    fun stopClock(tappedStopButton: Boolean) {
+    private fun stopClock(tappedStopButton: Boolean) {
         viewModelScope.launch {
             val finishedEvent = currentTimeClockEvent ?: return@launch
             finishedEvent.endTime = System.currentTimeMillis()
@@ -249,7 +248,6 @@ class ClockPageViewModel (
         }
         countDownEndTime = 0L
         userPreferencesRepository.updateCountDownEndTime(countDownEndTime)
-        currCountDownSeconds = 0
         state.isClockRunning = false
     }
 
@@ -258,12 +256,12 @@ class ClockPageViewModel (
     }
 
     private fun countUp() {
-        currSeconds = calculateCurrSeconds(currentTimeClockEvent)
+        val currSeconds = calculateCurrSeconds(currentTimeClockEvent)
         state.updateCurrSeconds(currSeconds)
     }
 
     private fun countDown() {
-        currCountDownSeconds = getCountDownSeconds(
+        val currCountDownSeconds = getCountDownSeconds(
             countDownEndTime = countDownEndTime,
             stopClockFunc = this::stopClock
         )
@@ -315,8 +313,6 @@ fun getCountDownSeconds(
  * @param startBatteryManagementActivity Starts battery management activity
  * @param saveCountDownTimerEnabledValue Saves the countDownTimerEnabled UserPreference variable, so
  * the count down timer's visibility persists on activity recreation
- * @param onDismissDropdown Fires when the dropdown in the TaskTextField is dismissed by
- * tapping outside it
  * @param onTimerAnimationFinish Fires when the count up timer fades in and out when starting
  * recording
  * @param saveEventDataOnStart Handles saving of event and repo data when the event starts
@@ -345,7 +341,6 @@ class ClockPageViewModelState(
     var checkBatteryOptimizationSettings: () -> Boolean = {false},
     var startBatteryManagementActivity: () -> Unit = {},
     var saveCountDownTimerEnabledValue: (Boolean) -> Unit = {_ -> },
-    var onDismissDropdown: () -> Unit = {},
     var onTimerAnimationFinish: () -> Unit = {},
     var saveEventDataOnStart: () -> Unit = { },
     var saveEventDataOnStop: (Boolean) -> Unit = { _ -> },
@@ -507,8 +502,6 @@ class ClockPageViewModelState(
         return "0$digits"
     }
 
-    // TODO may need to make onClockStart and onClockStop suspend functions so they can properly
-    // respond to the output of saveEventDataOnStart and saveEventDataOnStop
     fun onClockStart() {
         saveEventDataOnStart()
         currSeconds = 0
