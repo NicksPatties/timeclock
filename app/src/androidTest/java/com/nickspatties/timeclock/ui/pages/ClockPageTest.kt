@@ -161,4 +161,43 @@ class ClockPageTest {
         composeTestRule.onNodeWithTag("TimerTextField_Minutes").performTextInput("1")
         composeTestRule.onNodeWithTag("StartTimerButton").assertIsEnabled()
     }
+
+    @Test
+    fun countUp_imeDoneActionHidesDropdownMenuAndRemovesFocus() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        autofillTaskNames = setOf(
+                            "programming"
+                        )
+                    )
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").performTextInput("p")
+        composeTestRule.onNodeWithTag("TaskTextField").performImeAction()
+        composeTestRule.onNodeWithTag("DropdownMenuItem_programming").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TaskTextField").assertIsNotFocused()
+    }
+
+    @Test
+    fun countDown_imeActionHidesDropdownMenuAndFocusTimer() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        countDownTimerEnabled = true,
+                        autofillTaskNames = setOf(
+                            "programming"
+                        )
+                    )
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").performTextInput("p")
+        composeTestRule.onNodeWithTag("TaskTextField").performImeAction()
+        composeTestRule.onNodeWithTag("DropdownMenuItem_programming").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TimerTextField_Hours").assertIsFocused()
+    }
 }
