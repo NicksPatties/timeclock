@@ -61,7 +61,6 @@ fun ClockPage(
                         }
                         viewModelState.dismissDropdown()
                     },
-                    keyboardController = keyboardController,
                     countdownTimerEnabled = viewModelState.countDownTimerEnabled,
                     onIconClick = viewModelState::onTaskTextFieldIconClick
                 )
