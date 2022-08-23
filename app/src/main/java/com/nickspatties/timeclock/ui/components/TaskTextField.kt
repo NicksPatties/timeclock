@@ -19,12 +19,13 @@ fun TaskTextField(
     value: TextFieldValue,
     enabled: Boolean,
     onTaskNameChange: (TextFieldValue) -> Unit,
-    onDone: () -> Unit = {},
+    onImeAction: () -> Unit = {},
     countdownTimerEnabled: Boolean = false,
-    onIconClick: () -> Unit = {}
+    onIconClick: () -> Unit = {},
+    imeAction: ImeAction = ImeAction.Done
 ) {
     TextField(
-        modifier = modifier,
+        modifier = modifier.testTag("TaskTextField"),
         value = value,
         enabled = enabled,
         onValueChange = onTaskNameChange,
@@ -51,10 +52,11 @@ fun TaskTextField(
                 )
             }
         },
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = {
-            onDone()
-        })
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = imeAction),
+        keyboardActions = KeyboardActions(
+            onDone = { onImeAction() },
+            onNext = { onImeAction() }
+        )
     )
 }
 
