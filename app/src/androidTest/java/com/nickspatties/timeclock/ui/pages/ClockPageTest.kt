@@ -1,7 +1,9 @@
 package com.nickspatties.timeclock.ui.pages
 
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.text.input.ImeAction
 import androidx.test.platform.app.InstrumentationRegistry
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
@@ -10,6 +12,19 @@ import org.junit.Rule
 import org.junit.Test
 
 class ClockPageTest {
+
+    /**
+     * Util function to get the specific ImeAction of a node. Used to verify the correct ImeAction
+     * is being used.
+     */
+    private fun SemanticsNodeInteraction.getImeAction(): ImeAction {
+        val errorOnFail = "Failed to perform IME action."
+        val node = fetchSemanticsNode(errorOnFail)
+        assert(hasSetTextAction()) { errorOnFail }
+        return node.config.getOrElse(SemanticsProperties.ImeAction) {
+            ImeAction.Default
+        }
+    }
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -85,10 +100,11 @@ class ClockPageTest {
     }
 
     @Test
-    fun taskNameDropdown_dropdownAppearsAndTaskFillsInWhenLabelIsClicked() {
+    fun countUp_dropdownAppearsTaskFillsInWhenLabelIsClickedAndFocusIsGone() {
         composeTestRule.setContent {
             TimeClockTheme {
-                ClockPage(viewModelState =
+                ClockPage(
+                    viewModelState =
                     ClockPageViewModelState(
                         autofillTaskNames = setOf(
                             "programming",
@@ -102,15 +118,43 @@ class ClockPageTest {
         composeTestRule.onNodeWithTag("DropdownMenuItem_programming").performClick()
         composeTestRule.onNodeWithTag("TaskTextField", useUnmergedTree = true)
             .assertTextEquals("programming")
+        composeTestRule.onNodeWithTag("DropdownMenuItem_programming").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TaskTextField").assertIsNotFocused()
+    }
+
+    @Test
+    fun countDown_dropdownAppearsTaskFillsInWhenLabelIsClickedAndFocusMovesToHours() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(
+                    viewModelState =
+                    ClockPageViewModelState(
+                        countDownTimerEnabled = true,
+                        autofillTaskNames = setOf(
+                            "programming",
+                            "reading"
+                        )
+                    )
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").performTextInput("pro")
+        composeTestRule.onNodeWithTag("DropdownMenuItem_programming").performClick()
+        composeTestRule.onNodeWithTag("TaskTextField", useUnmergedTree = true)
+            .assertTextEquals("programming")
+        composeTestRule.onNodeWithTag("DropdownMenuItem_programming").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TimerTextField_Hours").assertIsFocused()
     }
 
     @Test
     fun countDown_defaultConfiguration() {
         composeTestRule.setContent {
             TimeClockTheme {
-                ClockPage(viewModelState = ClockPageViewModelState(
-                    countDownTimerEnabled = true
-                ))
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        countDownTimerEnabled = true
+                    )
+                )
             }
         }
         composeTestRule.onNodeWithTag("TaskTextField").assertIsEnabled()
@@ -126,9 +170,11 @@ class ClockPageTest {
     fun countDown_StartTimerButtonStillDisabledIfTaskNameIsNotEmptyAndTimeIsZero() {
         composeTestRule.setContent {
             TimeClockTheme {
-                ClockPage(viewModelState = ClockPageViewModelState(
-                    countDownTimerEnabled = true
-                ))
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        countDownTimerEnabled = true
+                    )
+                )
             }
         }
         composeTestRule.onNodeWithTag("TaskTextField").performTextInput("programming")
@@ -139,9 +185,11 @@ class ClockPageTest {
     fun countDown_StartTimerButtonStillDisabledIfTaskNameIsEmptyTimeIsNotZero() {
         composeTestRule.setContent {
             TimeClockTheme {
-                ClockPage(viewModelState = ClockPageViewModelState(
-                    countDownTimerEnabled = true
-                ))
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        countDownTimerEnabled = true
+                    )
+                )
             }
         }
         composeTestRule.onNodeWithTag("TimerTextField_Minutes").performTextInput("1")
@@ -152,13 +200,58 @@ class ClockPageTest {
     fun countDown_StartTimerButtonEnabledIfTaskNameIsNotEmptyAndTimeIsNonZero() {
         composeTestRule.setContent {
             TimeClockTheme {
-                ClockPage(viewModelState = ClockPageViewModelState(
-                    countDownTimerEnabled = true
-                ))
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        countDownTimerEnabled = true
+                    )
+                )
             }
         }
         composeTestRule.onNodeWithTag("TaskTextField").performTextInput("programming")
         composeTestRule.onNodeWithTag("TimerTextField_Minutes").performTextInput("1")
         composeTestRule.onNodeWithTag("StartTimerButton").assertIsEnabled()
+    }
+
+    @Test
+    fun countUp_imeDoneActionHidesDropdownMenuAndRemovesFocus() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        autofillTaskNames = setOf(
+                            "programming"
+                        )
+                    )
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").performTextInput("p")
+        val imeAction = composeTestRule.onNodeWithTag("TaskTextField").getImeAction()
+        assert(imeAction == ImeAction.Done)
+        composeTestRule.onNodeWithTag("TaskTextField").performImeAction()
+        composeTestRule.onNodeWithTag("DropdownMenuItem_programming").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TaskTextField").assertIsNotFocused()
+    }
+
+    @Test
+    fun countDown_imeActionHidesDropdownMenuAndFocusTimer() {
+        composeTestRule.setContent {
+            TimeClockTheme {
+                ClockPage(
+                    viewModelState = ClockPageViewModelState(
+                        countDownTimerEnabled = true,
+                        autofillTaskNames = setOf(
+                            "programming"
+                        )
+                    )
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("TaskTextField").performTextInput("p")
+        val imeAction = composeTestRule.onNodeWithTag("TaskTextField").getImeAction()
+        assert(imeAction == ImeAction.Next)
+        composeTestRule.onNodeWithTag("TaskTextField").performImeAction()
+        composeTestRule.onNodeWithTag("DropdownMenuItem_programming").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("TimerTextField_Hours").assertIsFocused()
     }
 }

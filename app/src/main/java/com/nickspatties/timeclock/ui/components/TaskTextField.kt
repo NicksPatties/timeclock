@@ -4,9 +4,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -15,20 +13,19 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.nickspatties.timeclock.R
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TaskTextField(
     modifier: Modifier = Modifier,
     value: TextFieldValue,
     enabled: Boolean,
     onTaskNameChange: (TextFieldValue) -> Unit,
-    onDone: () -> Unit = {},
-    keyboardController: SoftwareKeyboardController?,
+    onImeAction: () -> Unit = {},
     countdownTimerEnabled: Boolean = false,
-    onIconClick: () -> Unit = {}
+    onIconClick: () -> Unit = {},
+    imeAction: ImeAction = ImeAction.Done
 ) {
     TextField(
-        modifier = modifier,
+        modifier = modifier.testTag("TaskTextField"),
         value = value,
         enabled = enabled,
         onValueChange = onTaskNameChange,
@@ -55,46 +52,40 @@ fun TaskTextField(
                 )
             }
         },
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = {
-            onDone()
-            keyboardController?.hide()
-        })
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = imeAction),
+        keyboardActions = KeyboardActions(
+            onDone = { onImeAction() },
+            onNext = { onImeAction() }
+        )
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Preview(showBackground = true)
 @Composable
 fun TaskTextFieldPreviewEnabled() {
     TaskTextField(
         value = TextFieldValue("programming"),
         enabled = true,
-        onTaskNameChange = {},
-        keyboardController = null
+        onTaskNameChange = {}
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Preview(showBackground = true)
 @Composable
 fun TaskTextFieldPreviewDisabled() {
     TaskTextField(
         value = TextFieldValue("programming"),
         enabled = false,
-        onTaskNameChange = {},
-        keyboardController = null
+        onTaskNameChange = {}
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Preview(showBackground = true)
 @Composable
 fun TaskTextFieldEnabledEmptyTextField() {
     TaskTextField(
         value = TextFieldValue(""),
         enabled = true,
-        onTaskNameChange = {},
-        keyboardController = null
+        onTaskNameChange = {}
     )
 }

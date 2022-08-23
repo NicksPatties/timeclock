@@ -13,6 +13,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -46,14 +47,14 @@ fun ClockPage(
                 // Task name input
                 // todo character limit 120
                 val widthFraction = 0.9f
+
                 TaskTextField(
                     modifier = Modifier
-                        .testTag("TaskTextField")
                         .fillMaxWidth(widthFraction),
                     value = viewModelState.taskTextFieldValue,
                     enabled = !viewModelState.isClockRunning,
                     onTaskNameChange = viewModelState::onTaskNameChange,
-                    onDone = {
+                    onImeAction = {
                         if (viewModelState.countDownTimerEnabled) {
                             focusManager.moveFocus(FocusDirection.Next)
                         } else {
@@ -61,9 +62,12 @@ fun ClockPage(
                         }
                         viewModelState.dismissDropdown()
                     },
-                    keyboardController = keyboardController,
                     countdownTimerEnabled = viewModelState.countDownTimerEnabled,
-                    onIconClick = viewModelState::onTaskTextFieldIconClick
+                    onIconClick = viewModelState::onTaskTextFieldIconClick,
+                    imeAction = if (viewModelState.countDownTimerEnabled)
+                        ImeAction.Next
+                    else
+                        ImeAction.Done
                 )
 
                 DropdownMenu(
