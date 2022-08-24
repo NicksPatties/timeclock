@@ -74,8 +74,7 @@ class AnalysisPageViewModel (
     }
 
     fun updateAnalysisPane(index: Int) {
-        // reset selected row for curr pane
-        analysisPanes[currDateRangeIndex].selectedAnalysisRowId = -1
+        analysisPanes[currDateRangeIndex].resetSelectedRowAndMillis()
         // change the current index
         currDateRangeIndex = index
         currAnalysisPane = analysisPanes[currDateRangeIndex]

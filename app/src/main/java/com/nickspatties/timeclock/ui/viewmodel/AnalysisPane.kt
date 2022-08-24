@@ -53,4 +53,9 @@ class AnalysisPane(
             matchingRow?.millis ?: totalMillis
         }
     }
+
+    fun resetSelectedRowAndMillis() {
+        selectedMillis = getTotalMillis()
+        selectedAnalysisRowId = -1
+    }
 }
