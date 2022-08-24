@@ -6,29 +6,29 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.ui.components.*
-import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
+import com.nickspatties.timeclock.ui.viewmodel.AnalysisPageViewModelState
+import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
 fun AnalysisPage(
-    currentSelectionString: String = "All time",
-    onSelectionStartButtonClick: () -> Unit = {},
-    onSelectionEndButtonClick: () -> Unit = {},
-    selectionStartButtonVisible: Boolean = false,
-    selectionEndButtonVisible: Boolean = true,
-    analysisPageRows: List<AnalysisRow>?,
-    totalSelectedHours: String = "",
-    openId: Long = -1,
-    changeRowId: (Long) -> Unit = {}
+    viewModelState: AnalysisPageViewModelState
 ) {
+    val currentSelectionString = viewModelState.currAnalysisPane.rangeName
+    val analysisPageRows = viewModelState.currAnalysisPane.rowData.observeAsState().value
+    val totalSelectedHours =
+        decorateMillisWithDecimalHours(viewModelState.currAnalysisPane.selectedMillis)
+    val openId = viewModelState.currAnalysisPane.selectedAnalysisRowId
+    val changeRowId = viewModelState.currAnalysisPane::changeSelectedAnalysisRowId
+
     Scaffold {
         Column(
             modifier = Modifier.padding(it)
@@ -36,10 +36,10 @@ fun AnalysisPage(
             TimeRangeSelector(
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
                 centerText = currentSelectionString,
-                startButtonFunction = onSelectionStartButtonClick,
-                startButtonVisible = selectionStartButtonVisible,
-                endButtonFunction = onSelectionEndButtonClick,
-                endButtonVisible = selectionEndButtonVisible
+                startButtonFunction = viewModelState::onDateRangeStartButtonClick,
+                startButtonVisible = viewModelState.isDateRangeStartButtonVisible(),
+                endButtonFunction = viewModelState::onDateRangeEndButtonClick,
+                endButtonVisible = viewModelState.isDateRangeEndButtonVisible()
             )
             if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
                 var totalMillis = 0L
@@ -125,53 +125,4 @@ fun AnalysisPage(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AnalysisPagePreview() {
-    val pairsList = mutableListOf<AnalysisRow>()
-    var items = 50
-    var id = 0L
-    while (items > 0) {
-        pairsList.add(
-            AnalysisRow("Item $items", items * 100000L, id)
-        )
-        id++
-        items--
-    }
-    AnalysisPage(analysisPageRows = pairsList)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AnalysisPagePairsAreNull() {
-    AnalysisPage(analysisPageRows = null)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AnalysisPageNoPairs() {
-    AnalysisPage(analysisPageRows = listOf())
-}
-
-/**
- * Demonstrates that the AnalysisPage component can handle an AnalysisRow with
- * no milliseconds of duration instead of printing "NaN%"
- *
- * @see <a href="https://github.com/NicksPatties/timeclock/issues/11">issue #11</a>
- * for more details
- */
-@Preview(showBackground = true)
-@Composable
-fun AnalysisPageTestNaNBug() {
-    AnalysisPage(
-        analysisPageRows = listOf(
-            AnalysisRow(
-                "item",
-                0,
-                0
-            )
-        )
-    )
 }
