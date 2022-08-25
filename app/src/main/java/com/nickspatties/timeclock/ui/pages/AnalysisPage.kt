@@ -6,7 +6,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,12 +21,9 @@ import com.nickspatties.timeclock.util.generateColorFromString
 fun AnalysisPage(
     viewModelState: AnalysisPageViewModelState
 ) {
-    val currentSelectionString = viewModelState.currAnalysisPane.rangeName
-    val analysisPageRows = viewModelState.currAnalysisPane.rowData.observeAsState().value
-    val totalSelectedHours =
-        decorateMillisWithDecimalHours(viewModelState.currAnalysisPane.selectedMillis)
-    val openId = viewModelState.currAnalysisPane.selectedAnalysisRowId
-    val changeRowId = viewModelState.currAnalysisPane::changeSelectedAnalysisRowId
+    val analysisPageRows = viewModelState.analysisRows
+    val openId = viewModelState.selectedAnalysisRowId
+    val changeRowId = viewModelState::changeSelectedAnalysisRowId
 
     Scaffold {
         Column(
@@ -35,13 +31,13 @@ fun AnalysisPage(
         ) {
             TimeRangeSelector(
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-                centerText = currentSelectionString,
+                centerText = viewModelState.rangeName,
                 startButtonFunction = viewModelState::onDateRangeStartButtonClick,
                 startButtonVisible = viewModelState.isDateRangeStartButtonVisible(),
                 endButtonFunction = viewModelState::onDateRangeEndButtonClick,
                 endButtonVisible = viewModelState.isDateRangeEndButtonVisible()
             )
-            if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
+            if (analysisPageRows.isNotEmpty()) {
                 var totalMillis = 0L
                 analysisPageRows.forEach {
                     totalMillis += it.millis
@@ -80,7 +76,7 @@ fun AnalysisPage(
                     ) {
                         // total hours recorded
                         Text(
-                            text = totalSelectedHours,
+                            text = decorateMillisWithDecimalHours(viewModelState.selectedMillis),
                             style = MaterialTheme.typography.h3
                         )
                         Text(
