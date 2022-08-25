@@ -9,11 +9,20 @@ import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.util.filterEventsByNumberOfDays
 
 class AnalysisPane(
+    var eventsValue: List<TimeClockEvent>? = null,
     val eventData: LiveData<List<TimeClockEvent>>,
     val rowTransformation: (List<TimeClockEvent>) -> List<AnalysisRow>,
     val rangeName: String,
     private val daysInRange: Int = -1
 ) {
+
+    private val events = eventsValue ?: listOf()
+
+    // todo try and do the following things
+    // pass only a list of events into this class
+    // getTotalMillis keeps breaking due to NPE regarding assigning selectedMillis, perhaps edit
+    //   getTotalMillis to take in a list of AnalysisRows as a param, so I can
+    //   or perhaps an init block to assign selectedMillis to the correct value after everything's been assigned
 
     val rowData: LiveData<List<AnalysisRow>> = Transformations.map(eventData) { events ->
         // filter events by range

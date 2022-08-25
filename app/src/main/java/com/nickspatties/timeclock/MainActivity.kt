@@ -149,6 +149,7 @@ fun NavigationComponent(
     val onDeleteButtonClick = listPageViewModel::deleteEvent
     val onCancelButtonClick =  listPageViewModel::changeEditId
 
+    viewModel.analysisPage.coolTransformation.observeAsState()
     val analysisPageViewModelState = viewModel.analysisPage.state
 
     val clockRoute = stringResource(id = R.string.route_clock)
