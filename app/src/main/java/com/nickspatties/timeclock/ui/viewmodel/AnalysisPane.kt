@@ -29,7 +29,7 @@ class AnalysisPane(
 
     fun onEventsUpdate(inputEvents: List<TimeClockEvent>) {
         events = inputEvents
-        filteredEvents = filterEventsByNumberOfDays(events)
+        filteredEvents = filterEventsByNumberOfDays(events, daysInRange)
         var millis = 0L
         filteredEvents.forEach {
             millis += it.endTime - it.startTime
@@ -60,5 +60,4 @@ class AnalysisPane(
             matchingRow?.millis ?: totalMillis
         }
     }
-
 }

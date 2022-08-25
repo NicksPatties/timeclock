@@ -20,7 +20,9 @@ class AnalysisPageViewModel (
 ): ViewModel() {
 
     val coolTransformation = Transformations.map(timeClockEvents) { events ->
-        state.analysisPane.onEventsUpdate(events)
+        state.analysisPanes.forEach { pane ->
+            pane.onEventsUpdate(events)
+        }
     }
 
     val events: List<TimeClockEvent> = timeClockEvents.value?: listOf()
@@ -28,22 +30,23 @@ class AnalysisPageViewModel (
     /**
      * Analysis page properties
      */
-
+    var analysisPane = AnalysisPane(
+        events = events,
+        rangeName = context.getString(R.string.analysis_page_all_time)
+    )
 
     val state = AnalysisPageViewModelState(
-        events = events
+        analysisPanes = listOf(analysisPane)
     )
 }
 
 // todo change this class to handle one event first
 class AnalysisPageViewModelState(
-    events: List<TimeClockEvent>
+    val analysisPanes: List<AnalysisPane>,
+    currAnalysisPaneIndex: Int = 0
 ) {
-
-    var analysisPane = AnalysisPane(
-        events = events,
-        rangeName = "all of the time"
-    )
+    var currAnalysisPaneIndex by mutableStateOf(currAnalysisPaneIndex)
+    var currAnalysisPane = analysisPanes[currAnalysisPaneIndex]
 
     fun onDateRangeStartButtonClick() {
 //        if (currDateRangeIndex > 0) {

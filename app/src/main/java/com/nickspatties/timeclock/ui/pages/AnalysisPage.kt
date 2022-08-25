@@ -16,6 +16,7 @@ import com.nickspatties.timeclock.R
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.ui.viewmodel.AnalysisPageViewModelState
+import com.nickspatties.timeclock.ui.viewmodel.AnalysisPane
 import com.nickspatties.timeclock.util.MILLIS_PER_HOUR
 import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.generateColorFromString
@@ -24,11 +25,11 @@ import com.nickspatties.timeclock.util.generateColorFromString
 fun AnalysisPage(
     viewModelState: AnalysisPageViewModelState
 ) {
-    val analysisPageRows = viewModelState.analysisPane.analysisRows
-    val openId = viewModelState.analysisPane.selectedAnalysisRowId
-    val changeRowId = viewModelState.analysisPane::changeSelectedAnalysisRowId
-    val rangeName = viewModelState.analysisPane.rangeName
-    val selectedMillis = viewModelState.analysisPane.selectedMillis
+    val analysisPageRows = viewModelState.currAnalysisPane.analysisRows
+    val openId = viewModelState.currAnalysisPane.selectedAnalysisRowId
+    val changeRowId = viewModelState.currAnalysisPane::changeSelectedAnalysisRowId
+    val rangeName = viewModelState.currAnalysisPane.rangeName
+    val selectedMillis = viewModelState.currAnalysisPane.selectedMillis
 
     Scaffold {
         Column(
@@ -131,15 +132,19 @@ fun AnalysisPage(
 @Preview
 @Composable
 fun AnalysisPageTest() {
+    val testPane = AnalysisPane(
+        events = listOf(
+            TimeClockEvent(
+                startTime = 0L,
+                endTime = MILLIS_PER_HOUR,
+                name = "programming"
+            )
+        ),
+        rangeName = "Test time"
+    )
     AnalysisPage(
         viewModelState = AnalysisPageViewModelState(
-            events = listOf(
-                TimeClockEvent(
-                    startTime = 0L,
-                    endTime = MILLIS_PER_HOUR,
-                    name = "programming"
-                )
-            )
+            analysisPanes = listOf(testPane)
         )
     )
 }
