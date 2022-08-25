@@ -20,7 +20,7 @@ class AnalysisPageViewModel (
 ): ViewModel() {
 
     val coolTransformation = Transformations.map(timeClockEvents) { events ->
-        state.events = events
+        state.onEventsUpdate(events)
     }
 
     val events = timeClockEvents.value
@@ -47,21 +47,53 @@ class AnalysisPageViewModelState(
     events: List<TimeClockEvent>
 ) {
     var events by mutableStateOf(events)
-    var selectedMillis by mutableStateOf(0L)
+
+    // variables per analysis pane
+    private lateinit var filteredEvents : List<TimeClockEvent>
+    private var totalMillis: Long = 0L
+    lateinit var analysisRows: List<AnalysisRow>
+    var selectedMillis by mutableStateOf(totalMillis)
+
     var selectedAnalysisRowId by mutableStateOf(-1L)
     var rangeName by mutableStateOf("all time")
-    val analysisRows: List<AnalysisRow>
-        get() {
-            val filteredEvents = filterEventsByNumberOfDays(events)
 
-            // count total milliseconds
-            var totalMillis = 0L
-            filteredEvents.forEach {
-                totalMillis += it.endTime - it.startTime
-            }
-            // transform the rows
-            return (::sortByNamesAndTotalMillis)(filteredEvents)
+    init {
+        onEventsUpdate(events)
+    }
+
+    fun onEventsUpdate(inputEvents: List<TimeClockEvent>) {
+        events = inputEvents
+        filteredEvents = filterEventsByNumberOfDays(events)
+        var millis = 0L
+        filteredEvents.forEach {
+            millis += it.endTime - it.startTime
         }
+        totalMillis = millis
+        selectedMillis = if (selectedAnalysisRowId == -1L) {
+            totalMillis
+        } else {
+            // find the event that has been selected
+            val matchingRow = analysisRows.find {
+                selectedAnalysisRowId == it.id
+            }
+            matchingRow?.millis ?: totalMillis
+        }
+        analysisRows = (::sortByNamesAndTotalMillis)(filteredEvents)
+    }
+
+    fun changeSelectedAnalysisRowId(id: Long) {
+        selectedAnalysisRowId =
+            if (selectedAnalysisRowId == id) -1L else id
+        selectedMillis = if (selectedAnalysisRowId == -1L) {
+            totalMillis
+        } else {
+            // find the event that has been selected
+            val matchingRow = analysisRows.find {
+                id == it.id
+            }
+            matchingRow?.millis ?: totalMillis
+        }
+    }
 
     fun onDateRangeStartButtonClick() {
 //        if (currDateRangeIndex > 0) {
@@ -90,29 +122,5 @@ class AnalysisPageViewModelState(
 //        // change the current index
 //        currDateRangeIndex = index
 //        currAnalysisPane = panes[currDateRangeIndex]
-    }
-
-    private fun getTotalMillis() : Long {
-//        var totalMillis = 0L
-//        analysisRows.forEach { event : AnalysisRow ->
-//            totalMillis += event.millis
-//        }
-//        return totalMillis
-        return 0L
-    }
-
-    fun changeSelectedAnalysisRowId(id: Long) {
-        val totalMillis = getTotalMillis()
-        selectedAnalysisRowId =
-            if (selectedAnalysisRowId == id) -1L else id
-        selectedMillis = if (selectedAnalysisRowId == -1L) {
-            totalMillis
-        } else {
-            // find the event that has been selected
-            val matchingRow = analysisRows.find {
-                id == it.id
-            }
-            matchingRow?.millis ?: totalMillis
-        }
     }
 }
