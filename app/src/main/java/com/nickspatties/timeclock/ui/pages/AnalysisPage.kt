@@ -10,10 +10,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.R
+import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.components.*
 import com.nickspatties.timeclock.ui.viewmodel.AnalysisPageViewModelState
+import com.nickspatties.timeclock.util.MILLIS_PER_HOUR
 import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.generateColorFromString
 
@@ -121,4 +124,20 @@ fun AnalysisPage(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun AnalysisPageTest() {
+    AnalysisPage(
+        viewModelState = AnalysisPageViewModelState(
+            events = listOf(
+                TimeClockEvent(
+                    startTime = 0L,
+                    endTime = MILLIS_PER_HOUR,
+                    name = "programming"
+                )
+            )
+        )
+    )
 }
