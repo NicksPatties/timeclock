@@ -3,68 +3,62 @@ package com.nickspatties.timeclock.ui.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.util.filterEventsByNumberOfDays
+import com.nickspatties.timeclock.util.sortByNamesAndTotalMillis
 
 class AnalysisPane(
-    var eventsValue: List<TimeClockEvent>? = null,
-    val eventData: LiveData<List<TimeClockEvent>>,
-    val rowTransformation: (List<TimeClockEvent>) -> List<AnalysisRow>,
+    events: List<TimeClockEvent>,
     val rangeName: String,
     private val daysInRange: Int = -1
 ) {
+    var events by mutableStateOf(events)
 
-    private val events = eventsValue ?: listOf()
+    // variables updated when new events arrive
+    private lateinit var filteredEvents : List<TimeClockEvent>
+    private var totalMillis: Long = 0L
+    lateinit var analysisRows: List<AnalysisRow>
+    var selectedMillis by mutableStateOf(totalMillis)
+    // end updated event variables
 
-    // todo try and do the following things
-    // pass only a list of events into this class
-    // getTotalMillis keeps breaking due to NPE regarding assigning selectedMillis, perhaps edit
-    //   getTotalMillis to take in a list of AnalysisRows as a param, so I can
-    //   or perhaps an init block to assign selectedMillis to the correct value after everything's been assigned
-
-    val rowData: LiveData<List<AnalysisRow>> = Transformations.map(eventData) { events ->
-        // filter events by range
-        val filteredEvents = filterEventsByNumberOfDays(events, daysInRange)
-
-        // count total milliseconds
-        var totalMillis = 0L
-        filteredEvents.forEach {
-            totalMillis += it.endTime - it.startTime
-        }
-        selectedMillis = totalMillis
-        // transform the rows
-        return@map rowTransformation(filteredEvents)
-    }
-
-    private fun getTotalMillis() : Long {
-        var totalMillis = 0L
-        rowData.value?.forEach { event : AnalysisRow ->
-            totalMillis += event.millis
-        }
-        return totalMillis
-    }
-    var selectedMillis by mutableStateOf(getTotalMillis())
     var selectedAnalysisRowId by mutableStateOf(-1L)
 
+    init {
+        onEventsUpdate(events)
+    }
+
+    fun onEventsUpdate(inputEvents: List<TimeClockEvent>) {
+        events = inputEvents
+        filteredEvents = filterEventsByNumberOfDays(events)
+        var millis = 0L
+        filteredEvents.forEach {
+            millis += it.endTime - it.startTime
+        }
+        totalMillis = millis
+        selectedMillis = if (selectedAnalysisRowId == -1L) {
+            totalMillis
+        } else {
+            // find the event that has been selected
+            val matchingRow = analysisRows.find {
+                selectedAnalysisRowId == it.id
+            }
+            matchingRow?.millis ?: totalMillis
+        }
+        analysisRows = (::sortByNamesAndTotalMillis)(filteredEvents)
+    }
+
     fun changeSelectedAnalysisRowId(id: Long) {
-        val totalMillis = getTotalMillis()
         selectedAnalysisRowId =
             if (selectedAnalysisRowId == id) -1L else id
         selectedMillis = if (selectedAnalysisRowId == -1L) {
             totalMillis
         } else {
             // find the event that has been selected
-            val matchingRow = rowData.value?.find {
+            val matchingRow = analysisRows.find {
                 id == it.id
             }
             matchingRow?.millis ?: totalMillis
         }
     }
 
-    fun resetSelectedRowAndMillis() {
-        selectedMillis = getTotalMillis()
-        selectedAnalysisRowId = -1
-    }
 }

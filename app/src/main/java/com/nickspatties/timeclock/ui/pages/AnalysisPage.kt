@@ -24,9 +24,11 @@ import com.nickspatties.timeclock.util.generateColorFromString
 fun AnalysisPage(
     viewModelState: AnalysisPageViewModelState
 ) {
-    val analysisPageRows = viewModelState.analysisRows
-    val openId = viewModelState.selectedAnalysisRowId
-    val changeRowId = viewModelState::changeSelectedAnalysisRowId
+    val analysisPageRows = viewModelState.analysisPane.analysisRows
+    val openId = viewModelState.analysisPane.selectedAnalysisRowId
+    val changeRowId = viewModelState.analysisPane::changeSelectedAnalysisRowId
+    val rangeName = viewModelState.analysisPane.rangeName
+    val selectedMillis = viewModelState.analysisPane.selectedMillis
 
     Scaffold {
         Column(
@@ -34,7 +36,7 @@ fun AnalysisPage(
         ) {
             TimeRangeSelector(
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-                centerText = viewModelState.rangeName,
+                centerText = rangeName,
                 startButtonFunction = viewModelState::onDateRangeStartButtonClick,
                 startButtonVisible = viewModelState.isDateRangeStartButtonVisible(),
                 endButtonFunction = viewModelState::onDateRangeEndButtonClick,
@@ -79,7 +81,7 @@ fun AnalysisPage(
                     ) {
                         // total hours recorded
                         Text(
-                            text = decorateMillisWithDecimalHours(viewModelState.selectedMillis),
+                            text = decorateMillisWithDecimalHours(selectedMillis),
                             style = MaterialTheme.typography.h3
                         )
                         Text(
