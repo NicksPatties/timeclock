@@ -32,7 +32,6 @@ import com.nickspatties.timeclock.ui.theme.TimeClockTheme
 import com.nickspatties.timeclock.ui.viewmodel.Screen
 import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModel
 import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModelFactory
-import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.getNotificationManager
 
 private val Context.dataStore by preferencesDataStore(
@@ -149,7 +148,7 @@ fun NavigationComponent(
     val onDeleteButtonClick = listPageViewModel::deleteEvent
     val onCancelButtonClick =  listPageViewModel::changeEditId
 
-    viewModel.analysisPage.coolTransformation.observeAsState()
+    viewModel.analysisPage.analysisPaneTransformation.observeAsState()
     val analysisPageViewModelState = viewModel.analysisPage.state
 
     val clockRoute = stringResource(id = R.string.route_clock)
