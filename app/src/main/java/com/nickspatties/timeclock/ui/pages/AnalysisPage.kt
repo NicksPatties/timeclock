@@ -9,39 +9,42 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nickspatties.timeclock.R
+import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.components.*
-import com.nickspatties.timeclock.ui.viewmodel.AnalysisRow
+import com.nickspatties.timeclock.ui.viewmodel.AnalysisPageViewModelState
+import com.nickspatties.timeclock.ui.viewmodel.AnalysisPane
+import com.nickspatties.timeclock.util.MILLIS_PER_HOUR
+import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.generateColorFromString
 
 @Composable
 fun AnalysisPage(
-    currentSelectionString: String = "All time",
-    onSelectionStartButtonClick: () -> Unit = {},
-    onSelectionEndButtonClick: () -> Unit = {},
-    selectionStartButtonVisible: Boolean = false,
-    selectionEndButtonVisible: Boolean = true,
-    analysisPageRows: List<AnalysisRow>?,
-    totalSelectedHours: String = "",
-    openId: Long = -1,
-    changeRowId: (Long) -> Unit = {}
+    viewModelState: AnalysisPageViewModelState
 ) {
+    val analysisPageRows = viewModelState.currAnalysisPane.analysisRows
+    val openId = viewModelState.currAnalysisPane.selectedAnalysisRowId
+    val changeRowId = viewModelState.currAnalysisPane::changeSelectedAnalysisRowId
+    val rangeName = viewModelState.currAnalysisPane.rangeName
+    val selectedMillis = viewModelState.currAnalysisPane.selectedMillis
+
     Scaffold {
         Column(
             modifier = Modifier.padding(it)
         ) {
             TimeRangeSelector(
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-                centerText = currentSelectionString,
-                startButtonFunction = onSelectionStartButtonClick,
-                startButtonVisible = selectionStartButtonVisible,
-                endButtonFunction = onSelectionEndButtonClick,
-                endButtonVisible = selectionEndButtonVisible
+                centerText = rangeName,
+                startButtonFunction = viewModelState::onDateRangeStartButtonClick,
+                startButtonVisible = viewModelState.dateRangeStartButtonVisible,
+                endButtonFunction = viewModelState::onDateRangeEndButtonClick,
+                endButtonVisible = viewModelState.dateRangeEndButtonVisible
             )
-            if (analysisPageRows != null && analysisPageRows.isNotEmpty()) {
+            if (analysisPageRows.isNotEmpty()) {
                 var totalMillis = 0L
                 analysisPageRows.forEach {
                     totalMillis += it.millis
@@ -80,7 +83,8 @@ fun AnalysisPage(
                     ) {
                         // total hours recorded
                         Text(
-                            text = totalSelectedHours,
+                            modifier = Modifier.testTag("PieChart_CenterText_HoursValue"),
+                            text = decorateMillisWithDecimalHours(selectedMillis),
                             style = MaterialTheme.typography.h3
                         )
                         Text(
@@ -102,6 +106,7 @@ fun AnalysisPage(
                             val percentageString = stringResource(R.string.percentage, percentage)
                             val isClosed = openId != id
                             TimeClockListItem(
+                                modifier = Modifier.testTag("TimeClockListItem_${row.name}"),
                                 isClosed = isClosed,
                                 accentColor = generateColorFromString(name),
                                 onClick = { changeRowId(id) },
@@ -127,51 +132,22 @@ fun AnalysisPage(
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-fun AnalysisPagePreview() {
-    val pairsList = mutableListOf<AnalysisRow>()
-    var items = 50
-    var id = 0L
-    while (items > 0) {
-        pairsList.add(
-            AnalysisRow("Item $items", items * 100000L, id)
-        )
-        id++
-        items--
-    }
-    AnalysisPage(analysisPageRows = pairsList)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AnalysisPagePairsAreNull() {
-    AnalysisPage(analysisPageRows = null)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AnalysisPageNoPairs() {
-    AnalysisPage(analysisPageRows = listOf())
-}
-
-/**
- * Demonstrates that the AnalysisPage component can handle an AnalysisRow with
- * no milliseconds of duration instead of printing "NaN%"
- *
- * @see <a href="https://github.com/NicksPatties/timeclock/issues/11">issue #11</a>
- * for more details
- */
-@Preview(showBackground = true)
-@Composable
-fun AnalysisPageTestNaNBug() {
-    AnalysisPage(
-        analysisPageRows = listOf(
-            AnalysisRow(
-                "item",
-                0,
-                0
+fun AnalysisPageTest() {
+    val testPane = AnalysisPane(
+        events = listOf(
+            TimeClockEvent(
+                startTime = 0L,
+                endTime = MILLIS_PER_HOUR,
+                name = "programming"
             )
+        ),
+        rangeName = "Test time"
+    )
+    AnalysisPage(
+        viewModelState = AnalysisPageViewModelState(
+            analysisPanes = listOf(testPane)
         )
     )
 }

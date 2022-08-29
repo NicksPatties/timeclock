@@ -11,7 +11,7 @@ import com.nickspatties.timeclock.data.UserPreferencesRepository
 class TimeClockViewModel (
     application: Application,
     database: TimeClockEventDao,
-    private val userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository
 ): AndroidViewModel(application) {
 
     var timeClockEvents = database.getAllEvents()
@@ -31,7 +31,7 @@ class TimeClockViewModel (
 
     val analysisPage = AnalysisPageViewModel(
         timeClockEvents,
-        application
+        application.applicationContext
     )
 }
 

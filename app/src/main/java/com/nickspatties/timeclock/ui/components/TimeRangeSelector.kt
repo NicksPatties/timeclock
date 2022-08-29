@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -41,10 +42,12 @@ fun TimeRangeSelector(
         val (startButton, text, endButton) = createRefs()
         if (startButtonVisible) {
             IconButton(
-                modifier = Modifier.constrainAs(startButton) {
-                    start.linkTo(parent.start)
-                    centerVerticallyTo(parent)
-                },
+                modifier = Modifier
+                    .testTag("TimeRangeSelector_Start")
+                    .constrainAs(startButton) {
+                        start.linkTo(parent.start)
+                        centerVerticallyTo(parent)
+                    },
                 onClick = startButtonFunction
             ) {
                 Icon(
@@ -54,19 +57,23 @@ fun TimeRangeSelector(
             }
         }
         Text(
-            modifier = Modifier.constrainAs(text) {
-                centerTo(parent)
-            },
+            modifier = Modifier.
+                testTag("TimeRangeSelector_CenterText")
+                .constrainAs(text) {
+                    centerTo(parent)
+                },
             text = centerText,
             style = MaterialTheme.typography.h6,
             textAlign = TextAlign.Center
         )
         if (endButtonVisible) {
             IconButton(
-                modifier = Modifier.constrainAs(endButton) {
-                    end.linkTo(parent.end)
-                    centerVerticallyTo(parent)
-                },
+                modifier = Modifier
+                    .testTag("TimeRangeSelector_End")
+                    .constrainAs(endButton) {
+                        end.linkTo(parent.end)
+                        centerVerticallyTo(parent)
+                    },
                 onClick = endButtonFunction
             ) {
                 Icon(

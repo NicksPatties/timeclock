@@ -32,7 +32,6 @@ import com.nickspatties.timeclock.ui.theme.TimeClockTheme
 import com.nickspatties.timeclock.ui.viewmodel.Screen
 import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModel
 import com.nickspatties.timeclock.ui.viewmodel.TimeClockViewModelFactory
-import com.nickspatties.timeclock.util.decorateMillisWithDecimalHours
 import com.nickspatties.timeclock.util.getNotificationManager
 
 private val Context.dataStore by preferencesDataStore(
@@ -149,17 +148,8 @@ fun NavigationComponent(
     val onDeleteButtonClick = listPageViewModel::deleteEvent
     val onCancelButtonClick =  listPageViewModel::changeEditId
 
-    val analysisPageViewModel = viewModel.analysisPage
-    val currentSelectionString = analysisPageViewModel.currAnalysisPane.rangeName
-    val selectionStartButtonVisible = analysisPageViewModel.isDateRangeStartButtonVisible()
-    val selectionEndButtonVisible = analysisPageViewModel.isDateRangeEndButtonVisible()
-    val analysisPageRows = analysisPageViewModel.currAnalysisPane.rowData.observeAsState().value
-    val openId = analysisPageViewModel.currAnalysisPane.selectedAnalysisRowId
-    val changeId = analysisPageViewModel.currAnalysisPane::changeSelectedAnalysisRowId
-    val onSelectionStartButtonClick = analysisPageViewModel::onDateRangeStartButtonClick
-    val onSelectionEndButtonClick = analysisPageViewModel::onDateRangeEndButtonClick
-    val totalSelectedHours =
-        decorateMillisWithDecimalHours(analysisPageViewModel.currAnalysisPane.selectedMillis)
+    viewModel.analysisPage.analysisPaneTransformation.observeAsState()
+    val analysisPageViewModelState = viewModel.analysisPage.state
 
     val clockRoute = stringResource(id = R.string.route_clock)
     val listRoute = stringResource(id = R.string.route_list)
@@ -186,15 +176,7 @@ fun NavigationComponent(
         }
         composable(metricsRoute) {
             AnalysisPage(
-                currentSelectionString = currentSelectionString,
-                selectionStartButtonVisible = selectionStartButtonVisible,
-                selectionEndButtonVisible = selectionEndButtonVisible,
-                onSelectionStartButtonClick = onSelectionStartButtonClick,
-                onSelectionEndButtonClick = onSelectionEndButtonClick,
-                analysisPageRows = analysisPageRows,
-                totalSelectedHours = totalSelectedHours,
-                openId = openId,
-                changeRowId = changeId
+                viewModelState = analysisPageViewModelState
             )
         }
     }

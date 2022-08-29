@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun TimeClockListItem(
+    modifier: Modifier = Modifier,
     isClosed: Boolean = true,
     accentColor: Color? = null,
     onClick: () -> Unit = {},
@@ -39,14 +40,14 @@ fun TimeClockListItem(
         targetValue = if (isClosed) TextFieldDefaults.MinHeight else openContentHeight
     )
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clickable {
                 onClick()
             }
             .fillMaxWidth()
             .height(itemHeight)
     ) {
-        Row() {
+        Row {
             if (accentColor != null) {
                 Box(
                     modifier = Modifier
