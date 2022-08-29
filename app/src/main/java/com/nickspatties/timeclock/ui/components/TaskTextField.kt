@@ -46,7 +46,7 @@ fun TaskTextField(
                 else
                     MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.medium)
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_baseline_av_timer_24),
+                    painter = painterResource(id = R.drawable.ic_baseline_hourglass_bottom_24),
                     contentDescription = null,
                     tint = tint
                 )
