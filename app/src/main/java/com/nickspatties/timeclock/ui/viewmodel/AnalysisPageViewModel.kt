@@ -124,6 +124,14 @@ class AnalysisPageViewModelState(
     private var currAnalysisPaneIndex: Int = 0
 ) {
     var currAnalysisPane by mutableStateOf(analysisPanes[currAnalysisPaneIndex])
+    val dateRangeStartButtonVisible : Boolean
+        get() {
+            return currAnalysisPaneIndex > 0
+        }
+    val dateRangeEndButtonVisible: Boolean
+        get(){
+            return currAnalysisPaneIndex < analysisPanes.size - 1
+        }
 
     fun onDateRangeStartButtonClick() {
         if (currAnalysisPaneIndex > 0) {
@@ -131,18 +139,10 @@ class AnalysisPageViewModelState(
         }
     }
 
-    fun isDateRangeStartButtonVisible(): Boolean {
-        return currAnalysisPaneIndex > 0
-    }
-
     fun onDateRangeEndButtonClick() {
         if (currAnalysisPaneIndex < analysisPanes.size - 1) {
             updateAnalysisPane(currAnalysisPaneIndex + 1)
         }
-    }
-
-    fun isDateRangeEndButtonVisible(): Boolean {
-        return currAnalysisPaneIndex < analysisPanes.size - 1
     }
 
     private fun updateAnalysisPane(index: Int) {

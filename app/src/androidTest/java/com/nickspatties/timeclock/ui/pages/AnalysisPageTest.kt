@@ -4,9 +4,6 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.printToLog
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.test.platform.app.InstrumentationRegistry
 import com.nickspatties.timeclock.data.TimeClockEvent
 import com.nickspatties.timeclock.ui.theme.TimeClockTheme
 import com.nickspatties.timeclock.ui.viewmodel.AnalysisPageViewModelState
@@ -19,8 +16,6 @@ import org.junit.Rule
 import org.junit.Test
 
 class AnalysisPageTest {
-
-    private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     @get:Rule
     val composeTestRule = createComposeRule()

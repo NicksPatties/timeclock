@@ -8,7 +8,7 @@ import org.junit.Test
 
 class AnalysisPaneTest {
     @Test
-    fun resetSelectedRowAndMillis_doesAsAdvertised() {
+    fun resetSelectedRowAndMillis_changeSelectedRowIdToMinusOneAndMillisToTotalMillis() {
         val expectedTotalMillis = 2 * MILLIS_PER_HOUR
         val events = listOf(
             TimeClockEvent(

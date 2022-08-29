@@ -40,9 +40,9 @@ fun AnalysisPage(
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
                 centerText = rangeName,
                 startButtonFunction = viewModelState::onDateRangeStartButtonClick,
-                startButtonVisible = viewModelState.isDateRangeStartButtonVisible(),
+                startButtonVisible = viewModelState.dateRangeStartButtonVisible,
                 endButtonFunction = viewModelState::onDateRangeEndButtonClick,
-                endButtonVisible = viewModelState.isDateRangeEndButtonVisible()
+                endButtonVisible = viewModelState.dateRangeEndButtonVisible
             )
             if (analysisPageRows.isNotEmpty()) {
                 var totalMillis = 0L
