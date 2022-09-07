@@ -1,6 +1,0 @@
-This app allows you to keep track of different activities that you do during the day. Over time, as use continues, you can analyze how much time you spend during the days, weeks, and months doing different things.
-
-Use this app to:
-* Improve your time management skills
-* Improve task and activity estimates
-* Take control of when and what you're spending your time doing
